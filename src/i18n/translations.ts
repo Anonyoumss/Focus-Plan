@@ -1,0 +1,629 @@
+export type Locale = 'en' | 'ar';
+
+export interface Translations {
+  appName: string;
+  tagline: string;
+  nav: {
+    focus: string;
+    plan: string;
+    tests: string;
+    progress: string;
+    friends: string;
+    store: string;
+    settings: string;
+    terms: string;
+    privacy: string;
+  };
+  timer: {
+    focus: string;
+    shortBreak: string;
+    longBreak: string;
+    start: string;
+    pause: string;
+    skip: string;
+    reset: string;
+    sessionNumber: string;
+    dailyTarget: string;
+    currentTask: string;
+    noActiveTask: string;
+    selectTask: string;
+    completedRounds: string;
+    timeRemaining: string;
+    wakeLockActive: string;
+    ambientSound: string;
+    alarmSound: string;
+    volume: string;
+  };
+  tasks: {
+    title: string;
+    addTask: string;
+    editTask: string;
+    taskName: string;
+    category: string;
+    estimatedPomodoros: string;
+    completedPomodoros: string;
+    minGoal: string;
+    maxGoal: string;
+    cadence: string;
+    cadenceDaily: string;
+    cadenceWeekly: string;
+    cadenceMonthly: string;
+    notes: string;
+    markDone: string;
+    delete: string;
+    clearDone: string;
+    noTasks: string;
+    save: string;
+    cancel: string;
+    reorderHint: string;
+  };
+  categories: {
+    work: string;
+    school: string;
+    extracurriculars: string;
+    study: string;
+    standardizedTests: string;
+    personal: string;
+  };
+  tests: {
+    title: string;
+    catalogTitle: string;
+    myGoals: string;
+    addTestGoal: string;
+    testName: string;
+    testDate: string;
+    targetScore: string;
+    currentScore: string;
+    scoreScale: string;
+    sections: string;
+    hoursPerWeek: string;
+    sessionsPerWeek: string;
+    daysRemaining: string;
+    verifyNotice: string;
+    customTest: string;
+    logScore: string;
+    scoreLoopPrompt: string;
+    scoreHistory: string;
+  };
+  streaks: {
+    streakTitle: string;
+    dayStreak: string;
+    bestStreak: string;
+    streakRuleNotice: string;
+    activeToday: string;
+    sessionsToday: string;
+    goalMet: string;
+    streakFreezeAvailable: string;
+    streakFreezes: string;
+    freezeNotice: string;
+  };
+  badges: {
+    title: string;
+    overachievement: string;
+    overachievementDesc: string;
+    streakMilestone: string;
+    hoursMilestone: string;
+    firstScore: string;
+    scoreImproved: string;
+    groupWinner: string;
+    locked: string;
+    unlocked: string;
+  };
+  store: {
+    title: string;
+    coinsBalance: string;
+    focusPoints: string;
+    items: string;
+    streakFreezeTitle: string;
+    streakFreezeDesc: string;
+    breakMultiplierTitle: string;
+    breakMultiplierDesc: string;
+    colorThemeTitle: string;
+    colorThemeDesc: string;
+    price: string;
+    buy: string;
+    owned: string;
+    insufficientCoins: string;
+    purchasedSuccess: string;
+  };
+  friends: {
+    title: string;
+    createGroup: string;
+    groupName: string;
+    joinByCode: string;
+    enterCode: string;
+    shareLink: string;
+    copyCode: string;
+    copied: string;
+    groupTasks: string;
+    weeklyLeaderboard: string;
+    dailyWinnerNotice: string;
+    weeklyWinnerNotice: string;
+    publicLeaderboard: string;
+    publicOptIn: string;
+    rank: string;
+    member: string;
+    focusTime: string;
+  };
+  settings: {
+    title: string;
+    appearance: string;
+    themeMode: string;
+    system: string;
+    light: string;
+    dark: string;
+    seedPalette: string;
+    language: string;
+    english: string;
+    arabic: string;
+    timerDurations: string;
+    focusDuration: string;
+    shortBreakDuration: string;
+    longBreakDuration: string;
+    longBreakInterval: string;
+    autoStartBreaks: string;
+    autoStartPomodoros: string;
+    notifications: string;
+    enableNotifications: string;
+    quietHours: string;
+    integrations: string;
+    googleTasks: string;
+    googleCalendar: string;
+    privacy: string;
+    publicProfileVisible: string;
+    exportData: string;
+    downloadCsv: string;
+    downloadJson: string;
+    account: string;
+    guestMode: string;
+    signInGoogle: string;
+  };
+  onboarding: {
+    welcomeTitle: string;
+    welcomeSubtitle: string;
+    step1Title: string;
+    step1Subtitle: string;
+    step2Title: string;
+    step2Subtitle: string;
+    step3Title: string;
+    step3Subtitle: string;
+    continue: string;
+    skip: string;
+    finish: string;
+  };
+  shortcuts: {
+    title: string;
+    space: string;
+    reset: string;
+    skip: string;
+    modes: string;
+    newTask: string;
+    help: string;
+    close: string;
+  };
+  legal: {
+    termsTitle: string;
+    privacyTitle: string;
+    lastUpdated: string;
+    backToApp: string;
+  };
+}
+
+export const TRANSLATIONS: Record<Locale, Translations> = {
+  en: {
+    appName: 'Focus Plan M3E',
+    tagline: 'Material 3 Expressive Pomodoro & Study Tracker',
+    nav: {
+      focus: 'Focus',
+      plan: 'Plan',
+      tests: 'Tests',
+      progress: 'Progress',
+      friends: 'Friends',
+      store: 'Store',
+      settings: 'Settings',
+      terms: 'Terms of Service',
+      privacy: 'Privacy Policy',
+    },
+    timer: {
+      focus: 'Focus',
+      shortBreak: 'Short Break',
+      longBreak: 'Long Break',
+      start: 'Start Focus',
+      pause: 'Pause Timer',
+      skip: 'Skip Mode',
+      reset: 'Reset Timer',
+      sessionNumber: 'Session',
+      dailyTarget: 'Daily Goal',
+      currentTask: 'Active Task',
+      noActiveTask: 'No Task Selected',
+      selectTask: 'Choose a task to track your time',
+      completedRounds: 'Completed Today',
+      timeRemaining: 'Remaining',
+      wakeLockActive: 'Screen Kept Awake',
+      ambientSound: 'Ambient Background',
+      alarmSound: 'Alarm Chime',
+      volume: 'Volume',
+    },
+    tasks: {
+      title: 'Tasks & Topics',
+      addTask: 'New Task',
+      editTask: 'Edit Task',
+      taskName: 'Task Name',
+      category: 'Category',
+      estimatedPomodoros: 'Estimated Sessions',
+      completedPomodoros: 'Completed',
+      minGoal: 'Minimum Goal',
+      maxGoal: 'Maximum Goal',
+      cadence: 'Repeat Cadence',
+      cadenceDaily: 'Daily',
+      cadenceWeekly: 'Weekly',
+      cadenceMonthly: 'Monthly',
+      notes: 'Notes or Syllabus details',
+      markDone: 'Mark Complete',
+      delete: 'Delete Task',
+      clearDone: 'Clear Finished',
+      noTasks: 'No tasks scheduled yet. Add your first goal to begin.',
+      save: 'Save Task',
+      cancel: 'Cancel',
+      reorderHint: 'Drag or reorder tasks in priority sequence',
+    },
+    categories: {
+      work: 'Work',
+      school: 'School',
+      extracurriculars: 'Extracurriculars',
+      study: 'Study',
+      standardizedTests: 'Standardized Tests',
+      personal: 'Personal',
+    },
+    tests: {
+      title: 'Standardized Test Goals',
+      catalogTitle: 'Exam Catalog',
+      myGoals: 'My Target Tests',
+      addTestGoal: 'Add Test Goal',
+      testName: 'Test Name',
+      testDate: 'Exam Date',
+      targetScore: 'Target Score',
+      currentScore: 'Baseline Score',
+      scoreScale: 'Score Range',
+      sections: 'Sections & Breakdown',
+      hoursPerWeek: 'Target Hours / Week',
+      sessionsPerWeek: 'Weekly Pomodoros',
+      daysRemaining: 'Days Left',
+      verifyNotice: 'Please verify exact test dates and registration deadlines on the official testing portal.',
+      customTest: 'Custom Exam',
+      logScore: 'Log Real Exam Score',
+      scoreLoopPrompt: 'Have you completed your test? Enter your real scores to review progress and adjust your next plan.',
+      scoreHistory: 'Score History',
+    },
+    streaks: {
+      streakTitle: 'Focus Streak',
+      dayStreak: 'Day Streak',
+      bestStreak: 'Best Streak',
+      streakRuleNotice: 'Complete at least 3 Pomodoros daily to advance your streak.',
+      activeToday: 'Streak Maintained Today',
+      sessionsToday: 'Sessions Completed Today',
+      goalMet: 'Target Reached',
+      streakFreezeAvailable: 'Streak Freeze Equipped',
+      streakFreezes: 'Streak Freezes',
+      freezeNotice: 'Streak freezes protect your streak if a day is missed.',
+    },
+    badges: {
+      title: 'Achievements & Badges',
+      overachievement: 'Double Output',
+      overachievementDesc: 'Completed 200% of your daily session goal',
+      streakMilestone: 'Consistent Scholar',
+      hoursMilestone: 'Master of Time',
+      firstScore: 'First Trial Logged',
+      scoreImproved: 'Positive Trajectory',
+      groupWinner: 'Study Circle Champion',
+      locked: 'In Progress',
+      unlocked: 'Earned',
+    },
+    store: {
+      title: 'Focus Rewards Store',
+      coinsBalance: 'Focus Coins Balance',
+      focusPoints: 'Focus Points',
+      items: 'Available Perks',
+      streakFreezeTitle: 'Streak Freeze',
+      streakFreezeDesc: 'Shields your streak from resetting if you miss a day.',
+      breakMultiplierTitle: 'Break Multiplier',
+      breakMultiplierDesc: 'Unlocks a restful 30-minute long break after reaching 8 daily sessions.',
+      colorThemeTitle: 'Palette Seed Token',
+      colorThemeDesc: 'Unlocks custom tonal palette extraction and luxury themes.',
+      price: 'Coins',
+      buy: 'Redeem Item',
+      owned: 'Equipped',
+      insufficientCoins: 'Need more Focus Coins to redeem',
+      purchasedSuccess: 'Item redeemed and added to your inventory',
+    },
+    friends: {
+      title: 'Study Circles & Groups',
+      createGroup: 'Create Study Circle',
+      groupName: 'Circle Name',
+      joinByCode: 'Join With Code',
+      enterCode: 'Enter 6-character code',
+      shareLink: 'Share Circle Link',
+      copyCode: 'Copy Code',
+      copied: 'Code copied to clipboard',
+      groupTasks: 'Shared Circle Goal',
+      weeklyLeaderboard: 'Weekly Standings',
+      dailyWinnerNotice: 'Daily leader earns 1 Focus Point',
+      weeklyWinnerNotice: 'Weekly champion earns 7 bonus Focus Points',
+      publicLeaderboard: 'Opt-in Public Leaderboard',
+      publicOptIn: 'Display my alias and focus hours on the public leaderboard',
+      rank: 'Rank',
+      member: 'Member',
+      focusTime: 'Focus Minutes',
+    },
+    settings: {
+      title: 'App Settings',
+      appearance: 'Appearance & Theme',
+      themeMode: 'Theme Mode',
+      system: 'System Default',
+      light: 'Light',
+      dark: 'Dark',
+      seedPalette: 'Seed Color Palette',
+      language: 'Language',
+      english: 'English',
+      arabic: 'العربية (Arabic)',
+      timerDurations: 'Timer Durations (Minutes)',
+      focusDuration: 'Focus Time',
+      shortBreakDuration: 'Short Break',
+      longBreakDuration: 'Long Break',
+      longBreakInterval: 'Sessions Between Long Breaks',
+      autoStartBreaks: 'Auto-start Breaks',
+      autoStartPomodoros: 'Auto-start Focus Sessions',
+      notifications: 'Notifications & Audio',
+      enableNotifications: 'Web Notifications',
+      quietHours: 'Quiet Hours (Do Not Disturb)',
+      integrations: 'Cloud & Workspace Integrations',
+      googleTasks: 'Google Tasks Sync',
+      googleCalendar: 'Google Calendar Study Blocks',
+      privacy: 'Privacy & Sharing',
+      publicProfileVisible: 'Allow group members to view focus hours',
+      exportData: 'Export Study Data',
+      downloadCsv: 'Download CSV Summary',
+      downloadJson: 'Download JSON Backup',
+      account: 'Account & Synchronization',
+      guestMode: 'Guest Mode (Local Storage Only)',
+      signInGoogle: 'Sign In with Google',
+    },
+    onboarding: {
+      welcomeTitle: 'Welcome to Focus Plan M3E',
+      welcomeSubtitle: 'Material 3 Expressive Pomodoro and test preparation engineered for deep focus.',
+      step1Title: 'Select Your Palette',
+      step1Subtitle: 'Choose a soothing tonal palette tailored to your visual environment.',
+      step2Title: 'Set Your First Goal',
+      step2Subtitle: 'Select an exam target or a deep work topic to initiate your cadence.',
+      step3Title: 'Study Circles',
+      step3Subtitle: 'Create or join a study group with friends to build mutual momentum.',
+      continue: 'Continue',
+      skip: 'Skip Setup',
+      finish: 'Start Focusing',
+    },
+    shortcuts: {
+      title: 'Keyboard Shortcuts',
+      space: 'Start / Pause Timer',
+      reset: 'Reset Timer to Mode Start',
+      skip: 'Skip Current Timer Mode',
+      modes: 'Switch to Focus (1), Short Break (2), Long Break (3)',
+      newTask: 'Open New Task Modal',
+      help: 'Toggle Keyboard Shortcuts',
+      close: 'Dismiss',
+    },
+    legal: {
+      termsTitle: 'Terms of Service',
+      privacyTitle: 'Privacy Policy',
+      lastUpdated: 'Last Updated: November 2026',
+      backToApp: 'Back to Timer',
+    },
+  },
+  ar: {
+    appName: 'فوكس بلان M3E',
+    tagline: 'مؤقت بومودورو وتتبع دراسي بنمط ماتيريال 3 التعبيري',
+    nav: {
+      focus: 'التركيز',
+      plan: 'الخطة',
+      tests: 'الاختبارات',
+      progress: 'التقدم',
+      friends: 'الأصدقاء',
+      store: 'المتجر',
+      settings: 'الإعدادات',
+      terms: 'شروط الخدمة',
+      privacy: 'سياسة الخصوصية',
+    },
+    timer: {
+      focus: 'التركيز',
+      shortBreak: 'استراحة قصيرة',
+      longBreak: 'استراحة طويلة',
+      start: 'بدء التركيز',
+      pause: 'إيقاف مؤقت',
+      skip: 'تخطي الجلسة',
+      reset: 'إعادة التعيين',
+      sessionNumber: 'الجلسة',
+      dailyTarget: 'الهدف اليومي',
+      currentTask: 'المهمة النشطة',
+      noActiveTask: 'لم يتم اختيار مهمة',
+      selectTask: 'اختر مهمة لتتبع وقتك وإنجازك',
+      completedRounds: 'المكتمل اليوم',
+      timeRemaining: 'المتبقي',
+      wakeLockActive: 'الشاشة قيد التشغيل الدائم',
+      ambientSound: 'الصوت المحيطي المهدئ',
+      alarmSound: 'جرس التنبيه',
+      volume: 'مستوى الصوت',
+    },
+    tasks: {
+      title: 'المهام والموضوعات',
+      addTask: 'مهمة جديدة',
+      editTask: 'تعديل المهمة',
+      taskName: 'اسم المهمة',
+      category: 'التصنيف',
+      estimatedPomodoros: 'الجلسات المقدرة',
+      completedPomodoros: 'المكتمل',
+      minGoal: 'الحد الأدنى للجلسات',
+      maxGoal: 'الحد الأقصى للجلسات',
+      cadence: 'دورية التكرار',
+      cadenceDaily: 'يومياً',
+      cadenceWeekly: 'أسبوعياً',
+      cadenceMonthly: 'شهرياً',
+      notes: 'ملاحظات وتفاصيل المنهج',
+      markDone: 'اكتمال المهمة',
+      delete: 'حذف المهمة',
+      clearDone: 'مسح المكتملة',
+      noTasks: 'لا توجد مهام حالياً. أضف هدفك الأول للانطلاق.',
+      save: 'حفظ المهمة',
+      cancel: 'إلغاء',
+      reorderHint: 'اسحب المهام لترتيبها حسب الأولوية',
+    },
+    categories: {
+      work: 'العمل',
+      school: 'المدرسة',
+      extracurriculars: 'الأنشطة الإضافية',
+      study: 'المذاكرة',
+      standardizedTests: 'الاختبارات المعيارية',
+      personal: 'شخصي',
+    },
+    tests: {
+      title: 'أهداف الاختبارات المعيارية',
+      catalogTitle: 'دليل الاختبارات',
+      myGoals: 'اختباراتي المستهدفة',
+      addTestGoal: 'إضافة هدف اختبار',
+      testName: 'اسم الاختبار',
+      testDate: 'تاريخ الاختبار',
+      targetScore: 'الدرجة المستهدفة',
+      currentScore: 'الدرجة الحالية',
+      scoreScale: 'نطاق الدرجات',
+      sections: 'الأقسام والمعايير',
+      hoursPerWeek: 'الساعات المستهدفة أسبوعياً',
+      sessionsPerWeek: 'جلسات البومودورو الأسبوعية',
+      daysRemaining: 'الأيام المتبقية',
+      verifyNotice: 'يرجى مراجعة وتأكيد مواعيد الاختبارات والتسجيل الرسمية عبر موقع الجهة المنظمة للاختبار.',
+      customTest: 'اختبار مخصص',
+      logScore: 'تسجيل الدرجة الفعلية',
+      scoreLoopPrompt: 'هل انتهيت من اختبارك؟ أدخل درجاتك الحقيقية لمقارنة تقدمك وتعديل الخطة القادمة.',
+      scoreHistory: 'سجل الدرجات',
+    },
+    streaks: {
+      streakTitle: 'سلسلة التركيز',
+      dayStreak: 'أيام متتالية',
+      bestStreak: 'أفضل سلسلة',
+      streakRuleNotice: 'أنجز 3 جلسات بومودورو يومياً على الأقل للحفاظ على السلسلة.',
+      activeToday: 'تم الحفاظ على السلسلة اليوم',
+      sessionsToday: 'الجلسات المكتملة اليوم',
+      goalMet: 'تم تحقيق الهدف',
+      streakFreezeAvailable: 'تجميد السلسلة مفعل',
+      streakFreezes: 'مرات تجميد السلسلة',
+      freezeNotice: 'يحمي تجميد السلسلة تقدمك إذا فاتك يوم دون إكمال الجلسات.',
+    },
+    badges: {
+      title: 'الإنجازات والأوسمة',
+      overachievement: 'إنجاز مضاعف',
+      overachievementDesc: 'إكمال 200% من هدف الجلسات اليومي',
+      streakMilestone: 'الباحث المتفاني',
+      hoursMilestone: 'سيد إدارة الوقت',
+      firstScore: 'تسجيل المحاولة الأولى',
+      scoreImproved: 'مسار تصاعدي متميز',
+      groupWinner: 'بطل حلقة المذاكرة',
+      locked: 'قيد التقدم',
+      unlocked: 'تم الحصول عليه',
+    },
+    store: {
+      title: 'متجر مكافآت التركيز',
+      coinsBalance: 'رصيد عملات التركيز',
+      focusPoints: 'نقاط التركيز',
+      items: 'المكافآت المتاحة',
+      streakFreezeTitle: 'تجميد السلسلة',
+      streakFreezeDesc: 'يحمي سلسلتك من التصفير في حال عدم المذاكرة ليوم واحد.',
+      breakMultiplierTitle: 'مضاعف الاستراحة',
+      breakMultiplierDesc: 'يمنحك استراحة طويلة لمدة 30 دقيقة عند إتمام 8 جلسات في يوم واحد.',
+      colorThemeTitle: 'رمز لوحة الألوان',
+      colorThemeDesc: 'يفتح لك استخراج لوحات ألوان حصرية من الصور والتدرجات الراقية.',
+      price: 'عملة',
+      buy: 'استبدال',
+      owned: 'مملوك',
+      insufficientCoins: 'تحتاج للمزيد من عملات التركيز للاستبدال',
+      purchasedSuccess: 'تم شراء العنصر بنجاح وإضافته إلى حقيبتك',
+    },
+    friends: {
+      title: 'حلقات المذاكرة والأصدقاء',
+      createGroup: 'إنشاء حلقة مذاكرة',
+      groupName: 'اسم الحلقة',
+      joinByCode: 'انضمام بواسطة رمز',
+      enterCode: 'أدخل الرمز المكون من 6 خانات',
+      shareLink: 'مشاركة رابط الحلقة',
+      copyCode: 'نسخ الرمز',
+      copied: 'تم نسخ الرمز إلى الحافظة',
+      groupTasks: 'المهمة المشتركة للحلقة',
+      weeklyLeaderboard: 'صدارة الأسبوع',
+      dailyWinnerNotice: 'يحصل متصدر اليوم على نقطة تركيز واحدة',
+      weeklyWinnerNotice: 'يحصل بطل الأسبوع على 7 نقاط تركيز إضافية',
+      publicLeaderboard: 'لوحة الصدارة العامة (اختياري)',
+      publicOptIn: 'إظهار اسمي المستعار وساعات تركيزي على لوحة الصدارة العامة',
+      rank: 'الترتيب',
+      member: 'العضو',
+      focusTime: 'دقائق التركيز',
+    },
+    settings: {
+      title: 'إعدادات التطبيق',
+      appearance: 'المظهر والسمات',
+      themeMode: 'نمط العرض',
+      system: 'حسب النظام',
+      light: 'فاتح',
+      dark: 'داكن',
+      seedPalette: 'لوحة الألوان الأساسية',
+      language: 'اللغة',
+      english: 'English (الإنجليزية)',
+      arabic: 'العربية',
+      timerDurations: 'مدد المؤقت (بالدقائق)',
+      focusDuration: 'مدة التركيز',
+      shortBreakDuration: 'استراحة قصيرة',
+      longBreakDuration: 'استراحة طويلة',
+      longBreakInterval: 'الجلسات بين كل استراحة طويلة',
+      autoStartBreaks: 'بدء الاستراحة تلقائياً',
+      autoStartPomodoros: 'بدء جلسات التركيز تلقائياً',
+      notifications: 'الإشعارات والأصوات',
+      enableNotifications: 'إشعارات المتصفح',
+      quietHours: 'أوقات الهدوء (عدم الإزعاج)',
+      integrations: 'التكامل السحابي ومنصة جوجل',
+      googleTasks: 'مزامنة مهام جوجل (Google Tasks)',
+      googleCalendar: 'جدولة جلسات التقويم (Google Calendar)',
+      privacy: 'الخصوصية والمشاركة',
+      publicProfileVisible: 'السماح للأصدقاء بمشاهدة ساعات تركيزي',
+      exportData: 'تصدير البيانات الدراسية',
+      downloadCsv: 'تنزيل ملخص CSV',
+      downloadJson: 'تنزيل نسخة احتياطية JSON',
+      account: 'الحساب والمزامنة',
+      guestMode: 'وضع الضيف (حفظ محلي فقط)',
+      signInGoogle: 'تسجيل الدخول عبر Google',
+    },
+    onboarding: {
+      welcomeTitle: 'أهلاً بك في فوكس بلان M3E',
+      welcomeSubtitle: 'مؤقت بومودورو وإدارة اختبارات بنمط ماتيريال 3 التعبيري لتحقيق أعلى درجات التركيز.',
+      step1Title: 'اختر لوحة الألوان',
+      step1Subtitle: 'حدد التدرج اللوني المريح لعينيك ليتكيف التطبيق معه بانسيابية.',
+      step2Title: 'حدد هدفك الدراسي الأول',
+      step2Subtitle: 'اختر اختبارك القادم أو موضوع عملك العميق لبدء وتيرة الإنجاز.',
+      step3Title: 'حلقات المذاكرة',
+      step3Subtitle: 'أنشئ أو انضم لمجموعة دراسية مع زملائك لتحفيز مستمر.',
+      continue: 'متابعة',
+      skip: 'تخطي الإعداد',
+      finish: 'ابدأ التركيز الآن',
+    },
+    shortcuts: {
+      title: 'اختصارات لوحة المفاتيح',
+      space: 'بدء / إيقاف المؤقت مؤقتاً',
+      reset: 'إعادة تعيين المؤقت إلى البداية',
+      skip: 'تخطي وضع المؤقت الحالي',
+      modes: 'التبديل إلى تركيز (1)، استراحة قصيرة (2)، استراحة طويلة (3)',
+      newTask: 'فتح نافذة إضافة مهمة جديدة',
+      help: 'إظهار نافذة اختصارات المفاتيح',
+      close: 'إغلاق',
+    },
+    legal: {
+      termsTitle: 'شروط الخدمة',
+      privacyTitle: 'سياسة الخصوصية',
+      lastUpdated: 'آخر تحديث: نوفمبر 2026',
+      backToApp: 'العودة للمؤقت',
+    },
+  },
+};

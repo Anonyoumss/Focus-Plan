@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* Default M3 Expressive Soft Tonal Forest Green (Tomato baseline) */
+  --md-sys-color-primary: #1e523e;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #bbf0d6;
+  --md-sys-color-on-primary-container: #002114;
+  --md-sys-color-secondary: #4d6357;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #cfe8d9;
+  --md-sys-color-on-secondary-container: #0b1f15;
+  --md-sys-color-tertiary: #3b6470;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #beeaf7;
+  --md-sys-color-on-tertiary-container: #001f26;
+  --md-sys-color-surface: #f6fbf6;
+  --md-sys-color-surface-dim: #d5dbd5;
+  --md-sys-color-surface-bright: #f6fbf6;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #eff5ef;
+  --md-sys-color-surface-container: #e9efe9;
+  --md-sys-color-surface-container-high: #e3e9e3;
+  --md-sys-color-surface-container-highest: #dde4dd;
+  --md-sys-color-on-surface: #171d19;
+  --md-sys-color-on-surface-variant: #3f4943;
+  --md-sys-color-outline: #707973;
+  --md-sys-color-outline-variant: #bfc9c1;
+  --md-sys-color-error: #ba1a1a;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffdad6;
+  --md-sys-color-on-error-container: #410002;
+
+  /* M3 Shape Scale */
+  --md-shape-xs: 4px;
+  --md-shape-sm: 8px;
+  --md-shape-md: 12px;
+  --md-shape-lg: 16px;
+  --md-shape-xl: 24px;
+  --md-shape-xxl: 32px;
+  --md-shape-full: 9999px;
+}
+
+.dark {
+  --md-sys-color-primary: #85d7b0;
+  --md-sys-color-on-primary: #003823;
+  --md-sys-color-primary-container: #035235;
+  --md-sys-color-on-primary-container: #a0f4cc;
+  --md-sys-color-secondary: #b3ccbe;
+  --md-sys-color-on-secondary: #1f352a;
+  --md-sys-color-secondary-container: #354c40;
+  --md-sys-color-on-secondary-container: #cfe8d9;
+  --md-sys-color-tertiary: #a2cdde;
+  --md-sys-color-on-tertiary: #043541;
+  --md-sys-color-tertiary-container: #214c58;
+  --md-sys-color-on-tertiary-container: #beeaf7;
+  --md-sys-color-surface: #0f1512;
+  --md-sys-color-surface-dim: #0f1512;
+  --md-sys-color-surface-bright: #353b37;
+  --md-sys-color-surface-container-lowest: #0a100d;
+  --md-sys-color-surface-container-low: #171d1a;
+  --md-sys-color-surface-container: #1b211e;
+  --md-sys-color-surface-container-high: #252c28;
+  --md-sys-color-surface-container-highest: #303733;
+  --md-sys-color-on-surface: #dfe4e0;
+  --md-sys-color-on-surface-variant: #bfc9c1;
+  --md-sys-color-outline: #89938c;
+  --md-sys-color-outline-variant: #3f4943;
+  --md-sys-color-error: #ffb4ab;
+  --md-sys-color-on-error: #690005;
+  --md-sys-color-error-container: #93000a;
+  --md-sys-color-on-error-container: #ffdad6;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', 'Readex Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+[dir="rtl"] body,
+[dir="rtl"] {
+  font-family: 'Readex Pro', 'Plus Jakarta Sans', -apple-system, sans-serif;
+}
+
+.font-timer {
+  font-family: 'Roboto Flex', monospace, sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+.font-display {
+  font-family: 'Roboto Flex', 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.material-symbols-rounded {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  user-select: none;
+}
+
+.material-symbols-rounded.filled {
+  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--md-sys-color-outline-variant);
+  border-radius: 9999px;
+}
