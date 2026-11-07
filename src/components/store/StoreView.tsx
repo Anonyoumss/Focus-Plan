@@ -9,8 +9,8 @@ export const StoreView: React.FC = () => {
   const t = TRANSLATIONS[locale];
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
 
-  const handleBuy = (item: StoreItem) => {
-    const success = purchaseItem(item);
+  const handleBuy = async (item: StoreItem) => {
+    const success = await purchaseItem(item);
     if (success) {
       setFeedbackMsg(t.store.purchasedSuccess);
       setTimeout(() => setFeedbackMsg(null), 3000);

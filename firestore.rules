@@ -35,23 +35,38 @@ service cloud.firestore {
       return v is bool;
     }
 
+    // Tombstone: delete marker written instead of a hard delete so the
+    // deletion reaches other devices on their next pull. Exactly the
+    // sync-only fields, nothing else.
+    function isTombstone(data) {
+      return data._deleted == true
+        && data.updatedAt is number
+        && data.keys().size() <= 3;
+    }
+
     // ---- Synced collections (guest-migratable user data) ----
 
     match /users/{uid}/tasks/{taskId} {
       allow read: if isOwner(uid);
-      allow create, update: if isOwner(uid)
-        && docSizeOk(request.resource.data, 20)
-        && isStr(request.resource.data.title, 200)
-        && isStr(request.resource.data.category, 100)
-        && isNum(request.resource.data.estimatedSessions, 0, 10000)
-        && isNum(request.resource.data.completedSessions, 0, 10000)
-        && isNum(request.resource.data.minGoal, 0, 10000)
-        && isNum(request.resource.data.maxGoal, 0, 10000)
-        && request.resource.data.cadence in ['hourly', 'daily', 'weekly', 'monthly']
-        && isStr(request.resource.data.notes, 2000)
-        && isBool(request.resource.data.isCompleted)
-        && isNum(request.resource.data.createdAt, 0, 4102444800000);
-      allow delete: if isOwner(uid);
+      allow create, update: if isOwner(uid) && (
+        isTombstone(request.resource.data)
+        || (
+          docSizeOk(request.resource.data, 20)
+          && isStr(request.resource.data.title, 200)
+          && isStr(request.resource.data.category, 100)
+          && isNum(request.resource.data.estimatedSessions, 0, 10000)
+          && isNum(request.resource.data.completedSessions, 0, 10000)
+          && isNum(request.resource.data.minGoal, 0, 10000)
+          && isNum(request.resource.data.maxGoal, 0, 10000)
+          && request.resource.data.cadence in ['hourly', 'daily', 'weekly', 'monthly']
+          && isStr(request.resource.data.notes, 2000)
+          && isBool(request.resource.data.isCompleted)
+          && isNum(request.resource.data.createdAt, 0, 4102444800000)
+        )
+      );
+      // Hard deletes are denied: deletes must go through tombstones so
+      // they propagate to other devices.
+      allow delete: if false;
     }
 
     match /users/{uid}/sessionLogs/{logId} {
@@ -72,33 +87,41 @@ service cloud.firestore {
 
     match /users/{uid}/testGoals/{goalId} {
       allow read: if isOwner(uid);
-      allow create, update: if isOwner(uid)
-        && docSizeOk(request.resource.data, 20)
-        && isStr(request.resource.data.id, 64)
-        && isStr(request.resource.data.testId, 64)
-        && isStr(request.resource.data.testName, 200)
-        && isStr(request.resource.data.testDate, 10)
-        && isNum(request.resource.data.targetScore, 0, 100000)
-        && isNum(request.resource.data.currentBaselineScore, 0, 100000)
-        && isNum(request.resource.data.weeklyHours, 0, 168)
-        && isNum(request.resource.data.weeklyPomodoros, 0, 1008)
-        && isNum(request.resource.data.completedPomodoros, 0, 100000)
-        && request.resource.data.sectionTargets is map
-        && request.resource.data.scoresHistory is list
-        && request.resource.data.scoresHistory.size() <= 200;
-      allow delete: if isOwner(uid);
+      allow create, update: if isOwner(uid) && (
+        isTombstone(request.resource.data)
+        || (
+          docSizeOk(request.resource.data, 20)
+          && isStr(request.resource.data.id, 64)
+          && isStr(request.resource.data.testId, 64)
+          && isStr(request.resource.data.testName, 200)
+          && isStr(request.resource.data.testDate, 10)
+          && isNum(request.resource.data.targetScore, 0, 100000)
+          && isNum(request.resource.data.currentBaselineScore, 0, 100000)
+          && isNum(request.resource.data.weeklyHours, 0, 168)
+          && isNum(request.resource.data.weeklyPomodoros, 0, 1008)
+          && isNum(request.resource.data.completedPomodoros, 0, 100000)
+          && request.resource.data.sectionTargets is map
+          && request.resource.data.scoresHistory is list
+          && request.resource.data.scoresHistory.size() <= 200
+        )
+      );
+      allow delete: if false;
     }
 
     match /users/{uid}/templates/{templateId} {
       allow read: if isOwner(uid);
-      allow create, update: if isOwner(uid)
-        && docSizeOk(request.resource.data, 16)
-        && isStr(request.resource.data.title, 200)
-        && isStr(request.resource.data.category, 100)
-        && request.resource.data.cadence in ['hourly', 'daily', 'weekly', 'monthly']
-        && isNum(request.resource.data.minGoal, 0, 10000)
-        && isNum(request.resource.data.maxGoal, 0, 10000);
-      allow delete: if isOwner(uid);
+      allow create, update: if isOwner(uid) && (
+        isTombstone(request.resource.data)
+        || (
+          docSizeOk(request.resource.data, 16)
+          && isStr(request.resource.data.title, 200)
+          && isStr(request.resource.data.category, 100)
+          && request.resource.data.cadence in ['hourly', 'daily', 'weekly', 'monthly']
+          && isNum(request.resource.data.minGoal, 0, 10000)
+          && isNum(request.resource.data.maxGoal, 0, 10000)
+        )
+      );
+      allow delete: if false;
     }
 
     match /users/{uid}/settings/{docId} {
@@ -138,20 +161,22 @@ service cloud.firestore {
     function walletDeltaOk(uid) {
       let wallet = request.resource.data;
       let old = resource.data;
-      let delta = wallet.coins - old.coins;
+      let coinDelta = wallet.coins - old.coins;
       let fpDelta = wallet.focusPoints - old.focusPoints;
       let ledgerId = wallet.ledgerId;
       return ledgerId is string
         && existsAfter(ledgerPath(uid, ledgerId))
-        && getAfter(ledgerPath(uid, ledgerId)).data.amount == delta
         && getAfter(ledgerPath(uid, ledgerId)).data.userId == uid
         && (
-          // spend: delta negative and equals a catalog price
-          (delta in spendDeltas())
-          // award: delta positive, small, and no focus-point change bundled
-          || (delta > 0 && delta <= 20 && fpDelta == 0)
-          // focus-point-only award with matching ledger
-          || (delta == 0 && fpDelta > 0 && fpDelta <= 5)
+          // coin spend: delta negative and equals a catalog price
+          (coinDelta in spendDeltas() && fpDelta == 0
+            && getAfter(ledgerPath(uid, ledgerId)).data.amount == coinDelta)
+          // coin award
+          || (coinDelta > 0 && coinDelta <= 20 && fpDelta == 0
+            && getAfter(ledgerPath(uid, ledgerId)).data.amount == coinDelta)
+          // focus-point award (group daily/weekly claims)
+          || (coinDelta == 0 && fpDelta > 0 && fpDelta <= 10
+            && getAfter(ledgerPath(uid, ledgerId)).data.amount == fpDelta)
         )
         && wallet.coins >= 0
         && wallet.coins <= 1000000
@@ -182,6 +207,154 @@ service cloud.firestore {
         && isStr(request.resource.data.reason, 200)
         && isStr(request.resource.data.itemId, 64);
       allow update, delete: if false;
+    }
+
+    // ---- Group award claims (create-only, one per member per period) ----
+    // Doc id: {groupId}_day_YYYY-MM-DD or {groupId}_week_YYYY-Www.
+    match /users/{uid}/groupAwards/{awardId} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid)
+        && docSizeOk(request.resource.data, 8)
+        && isStr(request.resource.data.groupId, 64)
+        && isStr(request.resource.data.period, 80)
+        && request.resource.data.uid == uid
+        && isNum(request.resource.data.claimedAt, 0, 4102444800000)
+        && request.resource.data.keys().hasOnly(['groupId', 'period', 'uid', 'claimedAt']);
+      allow update, delete: if false;
+    }
+
+    // ---- Profiles ----
+    // Private profile: owner only, never exposed to other users.
+    match /users/{uid}/profile/{docId} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(['alias', 'updatedAt'])
+        && isStr(request.resource.data.alias, 60);
+    }
+
+    // Public projection: readable by any signed-in user, writable only by
+    // the owner, and only ever contains the fields the member chose to
+    // share (the client omits hidden fields entirely).
+    match /users/{uid}/public/{docId} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(uid)
+        && docSizeOk(request.resource.data, 12)
+        && isStr(request.resource.data.alias, 60)
+        && isBool(request.resource.data.shareMinutes)
+        && isBool(request.resource.data.shareStreak)
+        && isBool(request.resource.data.shareFocusPoints)
+        // Stat fields are optional: a member who does not share a stat
+        // omits the key entirely so viewers never receive it.
+        && (!('weeklyMinutes' in request.resource.data)
+          || isNum(request.resource.data.weeklyMinutes, 0, 100000))
+        && (!('streak' in request.resource.data)
+          || isNum(request.resource.data.streak, 0, 100000))
+        && (!('focusPoints' in request.resource.data)
+          || isNum(request.resource.data.focusPoints, 0, 1000000))
+        && request.resource.data.keys().hasOnly(
+          ['alias', 'shareMinutes', 'shareStreak', 'shareFocusPoints',
+           'weeklyMinutes', 'streak', 'focusPoints', 'updatedAt']);
+      allow delete: if isOwner(uid);
+    }
+
+    // Opt-in public leaderboard: absent doc = not listed. Only alias,
+    // weekly minutes and streak may be published.
+    match /publicLeaderboard/{uid} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && request.auth.uid == uid
+        && docSizeOk(request.resource.data, 8)
+        && isStr(request.resource.data.alias, 60)
+        && isNum(request.resource.data.weeklyMinutes, 0, 100000)
+        && isNum(request.resource.data.streak, 0, 100000)
+        && request.resource.data.keys().hasOnly(['alias', 'weeklyMinutes', 'streak', 'updatedAt']);
+      allow delete: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    // ---- Groups ----
+
+    function isGroupMember(gid) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/groups/$(gid)/members/$(request.auth.uid));
+    }
+
+    function isGroupOwner(gid) {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/groups/$(gid)).data.ownerId == request.auth.uid;
+    }
+
+    match /inviteCodes/{code} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.createdBy == request.auth.uid
+        && isStr(request.resource.data.groupId, 64)
+        && isStr(request.resource.data.groupName, 120)
+        && request.resource.data.keys().hasOnly(['groupId', 'groupName', 'createdBy', 'createdAt']);
+      allow delete: if isSignedIn()
+        && resource.data.createdBy == request.auth.uid;
+    }
+
+    match /groups/{gid} {
+      allow read: if isGroupMember(gid);
+      allow create: if isSignedIn()
+        && request.resource.data.ownerId == request.auth.uid
+        && isStr(request.resource.data.name, 120)
+        && isStr(request.resource.data.inviteCode, 12)
+        && request.resource.data.keys().hasOnly(['name', 'ownerId', 'inviteCode', 'createdAt', 'updatedAt']);
+      allow update: if isSignedIn()
+        && resource.data.ownerId == request.auth.uid
+        && request.resource.data.keys().hasOnly(['name', 'ownerId', 'inviteCode', 'createdAt', 'updatedAt']);
+      allow delete: if isSignedIn()
+        && resource.data.ownerId == request.auth.uid;
+    }
+
+    match /groups/{gid}/members/{uid} {
+      allow read: if isGroupMember(gid);
+      // A signed-in user may add only themselves (invite code is the
+      // capability that reveals the group id).
+      allow create: if isSignedIn()
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && isStr(request.resource.data.alias, 60)
+        && request.resource.data.role in ['owner', 'member']
+        && request.resource.data.keys().hasOnly(['uid', 'alias', 'role', 'joinedAt']);
+      // Members may edit only their own roster entry; the group owner may
+      // also update roles (used for ownership transfer on leave).
+      allow update: if isGroupMember(gid)
+        && (request.auth.uid == uid || isGroupOwner(gid))
+        && request.resource.data.uid == uid
+        && request.resource.data.keys().hasOnly(['uid', 'alias', 'role', 'joinedAt']);
+      allow delete: if isGroupMember(gid)
+        && (request.auth.uid == uid || get(/databases/$(database)/documents/groups/$(gid)).data.ownerId == request.auth.uid);
+    }
+
+    match /groups/{gid}/tasks/{taskId} {
+      allow read: if isGroupMember(gid);
+      allow create, update: if isGroupMember(gid)
+        && docSizeOk(request.resource.data, 10)
+        && isStr(request.resource.data.title, 200)
+        && request.resource.data.keys().hasOnly(['id', 'title', 'createdBy', 'createdAt', 'updatedAt']);
+      allow delete: if isGroupMember(gid);
+    }
+
+    match /groups/{gid}/sessions/{sessionId} {
+      allow read: if isGroupMember(gid);
+      // Append-only: members log only their own minutes.
+      allow create: if isGroupMember(gid)
+        && request.resource.data.uid == request.auth.uid
+        && docSizeOk(request.resource.data, 10)
+        && isStr(request.resource.data.taskId, 64)
+        && isNum(request.resource.data.minutes, 1, 600)
+        && isStr(request.resource.data.dateStr, 10)
+        && request.resource.data.keys().hasOnly(['uid', 'taskId', 'minutes', 'dateStr', 'createdAt']);
+      allow update, delete: if false;
+    }
+
+    match /users/{uid}/memberships/{gid} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(['groupId', 'joinedAt']);
+      allow delete: if isOwner(uid);
     }
   }
 }

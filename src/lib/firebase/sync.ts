@@ -8,9 +8,12 @@ import {
   type DocumentData,
 } from 'firebase/firestore';
 import { getFirebaseDb } from './client';
+import { stableStringify } from '../syncMerge';
 import type { TaskItem } from '../../store/useAppStore';
 import type { FocusSessionRecord } from '../analyticsEngine';
 import type { UserTestGoal } from '../../data/tests/catalog';
+
+export { stableStringify };
 
 /**
  * Firestore layout (all under users/{uid}):
@@ -32,6 +35,7 @@ export interface SyncedState {
     dailyGoalSessions?: number;
     timerConfig?: unknown;
     onboardingCompleted?: boolean;
+    updatedAt?: number;
   } | null;
 }
 
@@ -46,20 +50,12 @@ export interface CloudStateSlice {
   dailyGoalSessions?: number;
   timerConfig?: unknown;
   onboardingCompleted?: boolean;
+  settingsUpdatedAt?: number;
 }
 
 const SETTINGS_DOC_ID = 'main';
 const MIGRATION_DOC_ID = 'migration';
 const BATCH_LIMIT = 400;
-
-/** JSON.stringify with recursively sorted keys for stable comparisons. */
-export function stableStringify(value: unknown): string {
-  if (value === null || typeof value !== 'object') return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
-  const obj = value as Record<string, unknown>;
-  const keys = Object.keys(obj).sort();
-  return `{${keys.map((k) => `${JSON.stringify(k)}:${stableStringify(obj[k])}`).join(',')}}`;
-}
 
 function userCollection(uid: string, name: string) {
   return collection(getFirebaseDb(), 'users', uid, name);
@@ -125,6 +121,11 @@ export async function cloudHasData(uid: string): Promise<boolean> {
   );
 }
 
+// Collections whose deletes propagate as tombstones. sessionLogs is
+// append-only (rules deny update/delete), so missing remote logs are
+// simply never removed client-side.
+const TOMBSTONE_COLLECTIONS = new Set(['tasks', 'testGoals', 'templates']);
+
 async function syncDocCollection(
   uid: string,
   name: string,
@@ -150,19 +151,38 @@ async function syncDocCollection(
     }
   };
 
-  // Delete remote docs that no longer exist locally.
-  for (const [id] of remoteById) {
-    if (!localById.has(id)) {
-      batch.delete(doc(getFirebaseDb(), 'users', uid, name, id));
-      ops++;
-      changed = true;
-    }
+  const allowTombstones = TOMBSTONE_COLLECTIONS.has(name);
+
+  // Remote docs missing locally become tombstones so the delete reaches
+  // other devices on their next pull. Already-tombstoned and append-only
+  // collections are skipped.
+  for (const [id, remoteDoc] of remoteById) {
+    if (localById.has(id)) continue;
+    const data = remoteDoc.data();
+    if (data._deleted === true || !allowTombstones) continue;
+    batch.set(doc(getFirebaseDb(), 'users', uid, name, id), {
+      _deleted: true,
+      updatedAt: Date.now(),
+      id,
+    });
+    ops++;
+    changed = true;
+    if (ops >= BATCH_LIMIT) await flush();
   }
 
   // Upsert local docs (setDoc overwrites, so retries are idempotent).
+  // Local data carries updatedAt stamped by the store; unchanged docs are
+  // skipped by content comparison.
   for (const [id, data] of localById) {
     const remote = remoteById.get(id);
-    if (remote && stableStringify(remote.data()) === stableStringify(data)) continue;
+    const remoteData = remote?.data();
+    if (
+      remoteData &&
+      remoteData._deleted !== true &&
+      stableStringify(remoteData) === stableStringify(data)
+    ) {
+      continue;
+    }
     batch.set(doc(getFirebaseDb(), 'users', uid, name, id), data);
     ops++;
     changed = true;
@@ -172,7 +192,11 @@ async function syncDocCollection(
   return changed;
 }
 
-async function syncSettingsDoc(uid: string, settings: NonNullable<SyncedState['settings']>): Promise<void> {
+async function syncSettingsDoc(
+  uid: string,
+  settings: NonNullable<SyncedState['settings']>,
+  updatedAt?: number,
+): Promise<void> {
   // Firestore rejects undefined field values; strip them. Rules require the
   // core preference keys, so merge over the existing doc to keep them.
   const clean = Object.fromEntries(
@@ -180,7 +204,11 @@ async function syncSettingsDoc(uid: string, settings: NonNullable<SyncedState['s
   );
   const ref = doc(getFirebaseDb(), 'users', uid, 'settings', SETTINGS_DOC_ID);
   const existing = await getDoc(ref);
-  await setDoc(ref, { ...(existing.exists() ? existing.data() : {}), ...clean });
+  await setDoc(ref, {
+    ...(existing.exists() ? existing.data() : {}),
+    ...clean,
+    updatedAt: updatedAt ?? Date.now(),
+  });
 }
 
 /**
@@ -202,17 +230,22 @@ export async function pushCloudState(uid: string, slice: CloudStateSlice): Promi
     slice.seedHex !== undefined ||
     slice.dailyGoalSessions !== undefined ||
     slice.timerConfig !== undefined ||
-    slice.onboardingCompleted !== undefined
+    slice.onboardingCompleted !== undefined ||
+    slice.settingsUpdatedAt !== undefined
   ) {
     jobs.push(
-      syncSettingsDoc(uid, {
-        locale: slice.locale,
-        themeMode: slice.themeMode,
-        seedHex: slice.seedHex,
-        dailyGoalSessions: slice.dailyGoalSessions,
-        timerConfig: slice.timerConfig,
-        onboardingCompleted: slice.onboardingCompleted,
-      }),
+      syncSettingsDoc(
+        uid,
+        {
+          locale: slice.locale,
+          themeMode: slice.themeMode,
+          seedHex: slice.seedHex,
+          dailyGoalSessions: slice.dailyGoalSessions,
+          timerConfig: slice.timerConfig,
+          onboardingCompleted: slice.onboardingCompleted,
+        },
+        slice.settingsUpdatedAt,
+      ),
     );
   }
 

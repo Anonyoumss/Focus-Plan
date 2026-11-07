@@ -88,6 +88,9 @@ export async function flushCloudSync(): Promise<void> {
               const v = slice[k as keyof CloudStateSlice];
               if (v !== undefined) (changed as Record<string, unknown>)[k] = v;
             }
+            if (slice.settingsUpdatedAt !== undefined) {
+              changed.settingsUpdatedAt = slice.settingsUpdatedAt;
+            }
           } else {
             (changed as Record<string, unknown>)[key] = (slice as Record<string, unknown>)[key];
           }

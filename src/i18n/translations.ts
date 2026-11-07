@@ -149,6 +149,28 @@ export interface Translations {
     rank: string;
     member: string;
     focusTime: string;
+    signInRequired: string;
+    signInCta: string;
+    join: string;
+    joined: string;
+    leaveGroup: string;
+    leftGroup: string;
+    members: string;
+    noGroups: string;
+    aliasLabel: string;
+    aliasPlaceholder: string;
+    saveAlias: string;
+    aliasSaved: string;
+    selectGroupTask: string;
+    focusOnTask: string;
+    dayFilter: string;
+    weekFilter: string;
+    publicBoard: string;
+    publicBoardEmpty: string;
+    taskTitlePlaceholder: string;
+    addTask: string;
+    errorGeneric: string;
+    groupMinutes: string;
   };
   settings: {
     title: string;
@@ -472,6 +494,28 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       rank: 'Rank',
       member: 'Member',
       focusTime: 'Focus Minutes',
+      signInRequired: 'Sign in to create or join study groups.',
+      signInCta: 'Sign in with Google',
+      join: 'Join',
+      joined: 'Joined group',
+      leaveGroup: 'Leave group',
+      leftGroup: 'Left group',
+      members: 'Members',
+      noGroups: 'You are not in any group yet.',
+      aliasLabel: 'Display alias',
+      aliasPlaceholder: 'Your alias in groups',
+      saveAlias: 'Save alias',
+      aliasSaved: 'Alias saved',
+      selectGroupTask: 'Group task',
+      focusOnTask: 'Focus on this task',
+      dayFilter: 'Today',
+      weekFilter: 'This week',
+      publicBoard: 'Public leaderboard',
+      publicBoardEmpty: 'No public entries yet.',
+      taskTitlePlaceholder: 'Shared task title',
+      addTask: 'Add task',
+      errorGeneric: 'Something went wrong. Try again.',
+      groupMinutes: 'group minutes',
     },
     settings: {
       title: 'App Settings',
@@ -793,6 +837,28 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       rank: 'الترتيب',
       member: 'العضو',
       focusTime: 'دقائق التركيز',
+      signInRequired: 'سجّل الدخول لإنشاء مجموعات دراسية أو الانضمام إليها.',
+      signInCta: 'تسجيل الدخول بحساب Google',
+      join: 'انضمام',
+      joined: 'تم الانضمام إلى المجموعة',
+      leaveGroup: 'مغادرة المجموعة',
+      leftGroup: 'تمت مغادرة المجموعة',
+      members: 'الأعضاء',
+      noGroups: 'لست في أي مجموعة بعد.',
+      aliasLabel: 'الاسم المستعار',
+      aliasPlaceholder: 'اسمك المستعار في المجموعات',
+      saveAlias: 'حفظ الاسم',
+      aliasSaved: 'تم حفظ الاسم',
+      selectGroupTask: 'مهمة المجموعة',
+      focusOnTask: 'التركيز على هذه المهمة',
+      dayFilter: 'اليوم',
+      weekFilter: 'هذا الأسبوع',
+      publicBoard: 'لوحة الصدارة العامة',
+      publicBoardEmpty: 'لا توجد إدخالات عامة بعد.',
+      taskTitlePlaceholder: 'عنوان المهمة المشتركة',
+      addTask: 'إضافة مهمة',
+      errorGeneric: 'حدث خطأ ما. حاول مرة أخرى.',
+      groupMinutes: 'دقائق المجموعة',
     },
     settings: {
       title: 'إعدادات التطبيق',

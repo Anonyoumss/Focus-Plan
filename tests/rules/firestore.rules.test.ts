@@ -8,7 +8,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { beforeAll, afterAll, describe, it } from 'vitest';
+import { beforeAll, afterAll, describe, expect, it } from 'vitest';
 
 let testEnv: RulesTestEnvironment;
 
@@ -101,6 +101,54 @@ describe('field validation', () => {
     await assertSucceeds(ref.set(validSessionLog));
     await assertFails(ref.update({ durationMinutes: 99 }));
     await assertFails(ref.delete());
+  });
+});
+
+describe('tombstones and deletes', () => {
+  it('owner can tombstone own task so deletes sync', async () => {
+    const db = testEnv.authenticatedContext('user_d').firestore();
+    const ref = db.doc('users/user_d/tasks/task_del');
+    await assertSucceeds(ref.set(validTask));
+    await assertSucceeds(
+      ref.set({ _deleted: true, updatedAt: 1700000001000, id: 'task_del' }),
+    );
+    const snap = await ref.get();
+    expect(snap.data()?._deleted).toBe(true);
+  });
+
+  it('tombstone without updatedAt is denied', async () => {
+    const db = testEnv.authenticatedContext('user_d').firestore();
+    await assertFails(
+      db.doc('users/user_d/tasks/task_bad_tomb').set({ _deleted: true, id: 'x' }),
+    );
+  });
+
+  it('tombstone with extra fields is denied', async () => {
+    const db = testEnv.authenticatedContext('user_d').firestore();
+    await assertFails(
+      db.doc('users/user_d/tasks/task_fat_tomb').set({
+        _deleted: true,
+        updatedAt: 1,
+        id: 'x',
+        title: 'smuggled',
+      }),
+    );
+  });
+
+  it('another user cannot tombstone my task', async () => {
+    const dbB = testEnv.authenticatedContext('user_e').firestore();
+    await assertFails(
+      dbB.doc('users/user_d/tasks/task_del').set({
+        _deleted: true,
+        updatedAt: 1,
+        id: 'task_del',
+      }),
+    );
+  });
+
+  it('hard delete of a synced task is denied (must tombstone)', async () => {
+    const db = testEnv.authenticatedContext('user_d').firestore();
+    await assertFails(db.doc('users/user_d/tasks/task_del').delete());
   });
 });
 
@@ -197,5 +245,306 @@ describe('wallet and ledger enforcement', () => {
     const ref = db.doc('users/user_a/ledger/tx_freeze_1');
     await assertFails(ref.update({ amount: 0 }));
     await assertFails(ref.delete());
+  });
+
+  it('focus-point award with matching ledger row succeeds', async () => {
+    const db = testEnv.authenticatedContext('user_fp').firestore();
+    await assertSucceeds(
+      db.doc('users/user_fp/wallet/main').set({ coins: 0, focusPoints: 0 }),
+    );
+    const batch = db.batch();
+    batch.update(db.doc('users/user_fp/wallet/main'), {
+      focusPoints: 7,
+      ledgerId: 'tx_fp_week',
+    });
+    batch.set(db.doc('users/user_fp/ledger/tx_fp_week'), {
+      userId: 'user_fp',
+      amount: 7,
+      reason: 'group_weekly_award',
+      itemId: 'g1_week_2026-W01',
+      createdAt: 1700000000000,
+    });
+    await assertSucceeds(batch.commit());
+  });
+
+  it('oversized focus-point award is denied', async () => {
+    const db = testEnv.authenticatedContext('user_fp').firestore();
+    const batch = db.batch();
+    batch.update(db.doc('users/user_fp/wallet/main'), {
+      focusPoints: 18,
+      ledgerId: 'tx_fp_huge',
+    });
+    batch.set(db.doc('users/user_fp/ledger/tx_fp_huge'), {
+      userId: 'user_fp',
+      amount: 11,
+      reason: 'too big',
+      itemId: 'x',
+      createdAt: 1700000000000,
+    });
+    await assertFails(batch.commit());
+  });
+
+  it('buying without enough coins is denied', async () => {
+    const db = testEnv.authenticatedContext('user_broke').firestore();
+    await assertSucceeds(
+      db.doc('users/user_broke/wallet/main').set({ coins: 0, focusPoints: 0 }),
+    );
+    const batch = db.batch();
+    batch.update(db.doc('users/user_broke/wallet/main'), {
+      coins: -10,
+      ledgerId: 'tx_broke',
+    });
+    batch.set(db.doc('users/user_broke/ledger/tx_broke'), {
+      userId: 'user_broke',
+      amount: -10,
+      reason: 'streak freeze',
+      itemId: 'streak_freeze',
+      createdAt: 1700000000000,
+    });
+    await assertFails(batch.commit());
+  });
+
+  it('buying twice with one ledger row is denied', async () => {
+    const db = testEnv.authenticatedContext('user_twice').firestore();
+    await assertSucceeds(
+      db.doc('users/user_twice/wallet/main').set({ coins: 0, focusPoints: 0 }),
+    );
+    // Fund the wallet through a legitimate award first (0 -> 20).
+    const fund = db.batch();
+    fund.update(db.doc('users/user_twice/wallet/main'), {
+      coins: 20,
+      ledgerId: 'tx_fund',
+    });
+    fund.set(db.doc('users/user_twice/ledger/tx_fund'), {
+      userId: 'user_twice',
+      amount: 20,
+      reason: 'focus sessions',
+      itemId: 'focus_session',
+      createdAt: 1700000000000,
+    });
+    await assertSucceeds(fund.commit());
+    // First purchase: 20 -> 10 with ledger row tx_once.
+    const b1 = db.batch();
+    b1.update(db.doc('users/user_twice/wallet/main'), {
+      coins: 10,
+      ledgerId: 'tx_once',
+    });
+    b1.set(db.doc('users/user_twice/ledger/tx_once'), {
+      userId: 'user_twice',
+      amount: -10,
+      reason: 'streak freeze',
+      itemId: 'streak_freeze',
+      createdAt: 1700000000000,
+    });
+    await assertSucceeds(b1.commit());
+    // Second purchase reuses the same ledger id: ledger create is denied.
+    const b2 = db.batch();
+    b2.update(db.doc('users/user_twice/wallet/main'), {
+      coins: 0,
+      ledgerId: 'tx_once',
+    });
+    b2.set(db.doc('users/user_twice/ledger/tx_once'), {
+      userId: 'user_twice',
+      amount: -10,
+      reason: 'streak freeze',
+      itemId: 'streak_freeze',
+      createdAt: 1700000000001,
+    });
+    await assertFails(b2.commit());
+  });
+});
+
+describe('groups and profiles', () => {
+  const groupDoc = {
+    name: 'GAT squad',
+    ownerId: 'user_g',
+    inviteCode: 'ABC123',
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  };
+  const memberDoc = {
+    uid: 'user_g',
+    alias: 'G',
+    role: 'owner',
+    joinedAt: 1700000000000,
+  };
+
+  async function seedGroup() {
+    const db = testEnv.authenticatedContext('user_g').firestore();
+    await assertSucceeds(db.doc('groups/g1').set(groupDoc));
+    await assertSucceeds(db.doc('groups/g1/members/user_g').set(memberDoc));
+    await assertSucceeds(
+      db.doc('inviteCodes/ABC123').set({
+        groupId: 'g1',
+        groupName: 'GAT squad',
+        createdBy: 'user_g',
+        createdAt: 1700000000000,
+      }),
+    );
+    await assertSucceeds(
+      db.doc('users/user_g/memberships/g1').set({
+        groupId: 'g1',
+        joinedAt: 1700000000000,
+      }),
+    );
+  }
+
+  it('createGroup batch succeeds atomically (group, member, invite, membership, task)', async () => {
+    const db = testEnv.authenticatedContext('user_g').firestore();
+    const batch = db.batch();
+    batch.set(db.doc('groups/g_batch'), { ...groupDoc, ownerId: 'user_g' });
+    batch.set(db.doc('groups/g_batch/members/user_g'), memberDoc);
+    batch.set(db.doc('inviteCodes/NEWCOD'), {
+      groupId: 'g_batch',
+      groupName: 'GAT squad',
+      createdBy: 'user_g',
+      createdAt: 1700000000000,
+    });
+    batch.set(db.doc('users/user_g/memberships/g_batch'), {
+      groupId: 'g_batch',
+      joinedAt: 1700000000000,
+    });
+    await assertSucceeds(batch.commit());
+    // Group tasks require isGroupMember(); rules cannot see same-batch
+    // writes, so the client commits the task separately (see groups.ts).
+    await assertSucceeds(
+      db.doc('groups/g_batch/tasks/t1').set({
+        id: 't1',
+        title: 'Group focus session',
+        createdBy: 'user_g',
+        createdAt: 1700000000000,
+        updatedAt: 1700000000000,
+      }),
+    );
+  });
+
+  it('non-member cannot read the group; self-join then roster read works', async () => {
+    await seedGroup();
+    const dbH = testEnv.authenticatedContext('user_h').firestore();
+    await assertFails(dbH.doc('groups/g1').get());
+    // Self-add is allowed (invite code is the capability).
+    await assertSucceeds(
+      dbH.doc('groups/g1/members/user_h').set({
+        uid: 'user_h',
+        alias: 'H',
+        role: 'member',
+        joinedAt: 1700000001000,
+      }),
+    );
+    await assertSucceeds(dbH.doc('groups/g1').get());
+    const roster = await dbH.collection('groups/g1/members').get();
+    expect(roster.size).toBe(2);
+  });
+
+  it('cannot add another user to a group', async () => {
+    const dbH = testEnv.authenticatedContext('user_h').firestore();
+    await assertFails(
+      dbH.doc('groups/g1/members/user_x').set({
+        uid: 'user_x',
+        alias: 'X',
+        role: 'member',
+        joinedAt: 1,
+      }),
+    );
+  });
+
+  it('sessions are append-only and only own uid', async () => {
+    const dbH = testEnv.authenticatedContext('user_h').firestore();
+    const ref = dbH.doc('groups/g1/sessions/s1');
+    await assertSucceeds(
+      ref.set({
+        uid: 'user_h',
+        taskId: 't1',
+        minutes: 25,
+        dateStr: '2026-11-08',
+        createdAt: 1700000000000,
+      }),
+    );
+    await assertFails(ref.update({ minutes: 99 }));
+    await assertFails(ref.delete());
+    await assertFails(
+      dbH.doc('groups/g1/sessions/s2').set({
+        uid: 'user_g',
+        taskId: 't1',
+        minutes: 25,
+        dateStr: '2026-11-08',
+        createdAt: 1700000000000,
+      }),
+    );
+  });
+
+  it('outsider cannot read sessions or tasks', async () => {
+    const dbX = testEnv.authenticatedContext('user_x').firestore();
+    await assertFails(dbX.collection('groups/g1/sessions').get());
+    await assertFails(dbX.collection('groups/g1/tasks').get());
+  });
+
+  it('private profile is owner-only; public projection hides unshared fields', async () => {
+    const dbI = testEnv.authenticatedContext('user_i').firestore();
+    await assertSucceeds(
+      dbI.doc('users/user_i/profile/main').set({ alias: 'Intl', updatedAt: 1 }),
+    );
+    const dbJ = testEnv.authenticatedContext('user_j').firestore();
+    await assertFails(dbJ.doc('users/user_i/profile/main').get());
+    // Public doc deliberately omits streak/focusPoints (not shared).
+    await assertSucceeds(
+      dbI.doc('users/user_i/public/profile').set({
+        alias: 'Intl',
+        shareMinutes: true,
+        shareStreak: false,
+        shareFocusPoints: false,
+        weeklyMinutes: 120,
+        updatedAt: 1,
+      }),
+    );
+    const pub = await dbJ.doc('users/user_i/public/profile').get();
+    expect(pub.exists).toBe(true);
+    const data = pub.data()!;
+    expect(data.alias).toBe('Intl');
+    expect(data.streak).toBeUndefined();
+    expect(data.focusPoints).toBeUndefined();
+  });
+
+  it('public profile rejects smuggled fields', async () => {
+    const dbI = testEnv.authenticatedContext('user_i').firestore();
+    await assertFails(
+      dbI.doc('users/user_i/public/profile').set({
+        alias: 'Intl',
+        shareMinutes: true,
+        shareStreak: true,
+        shareFocusPoints: true,
+        weeklyMinutes: 1,
+        streak: 1,
+        focusPoints: 1,
+        email: 'leak@example.com',
+        updatedAt: 1,
+      }),
+    );
+  });
+
+  it('public leaderboard entry allows only alias/minutes/streak', async () => {
+    const dbI = testEnv.authenticatedContext('user_i').firestore();
+    await assertSucceeds(
+      dbI.doc('publicLeaderboard/user_i').set({
+        alias: 'Intl',
+        weeklyMinutes: 300,
+        streak: 5,
+        updatedAt: 1,
+      }),
+    );
+    await assertFails(
+      dbI.doc('publicLeaderboard/user_i').set({
+        alias: 'Intl',
+        weeklyMinutes: 300,
+        streak: 5,
+        email: 'leak@example.com',
+        updatedAt: 2,
+      }),
+    );
+    // Another signed-in user can read the board.
+    const dbJ = testEnv.authenticatedContext('user_j').firestore();
+    await assertSucceeds(dbJ.doc('publicLeaderboard/user_i').get());
+    // Opt-out deletes own entry.
+    await assertSucceeds(dbI.doc('publicLeaderboard/user_i').delete());
   });
 });

@@ -1,16 +1,16 @@
 # Feature parity
 
-Checked on milestone 3 (Firebase, emulator-first), 2026-11-08. Milestones 2a and 2b remain in place.
+Checked on milestone 4 (social groups, wallet, public profiles), 2026-11-08. Milestones 2a, 2b, and 3 remain in place.
 
 Commands that ran:
 
 - `npm install` succeeded. `npm audit` reports dev-only advisories (vitest/eslint chains plus firebase-tools). See DECISIONS.md Decisions 8 and 16. Vitest was not upgraded per owner decision; do NOT run `npm audit fix --force`.
 - `npm run lint` (`tsc --noEmit`) exited 0. `npx eslint .` exited 0 with 0 errors, 0 warnings.
-- `npm test` (Vitest 3.2.7, config `vitest.config.ts` excludes `e2e/`): 5 files, 22 tests, all passed.
+- `npm test` (Vitest 3.2.7, config `vitest.config.ts` excludes `e2e/`): 7 files, 39 tests, all passed.
 - `npm run build` (Vite 8.3.6) exited 0.
-- `npx playwright test` (`@playwright/test` 1.65.0, Chromium): 15 passed, 0 failed; `e2e/firebase-emulators.spec.ts` self-skips without Firebase env vars.
-- `npm run test:rules` (`firebase emulators:exec --only firestore`): 14/14 rules tests passed (`tests/rules/firestore.rules.test.ts`).
-- `npm run test:e2e:firebase` (Auth + Firestore emulators + Playwright): 1/1 passed — Google sign-in via the emulator popup, guest-data migration dialog, task create + cloud sync, reload persistence, sign-out wiping on-screen and persisted data.
+- `npx playwright test` (`@playwright/test` 1.65.0, Chromium): 15 passed, 0 failed; both emulator specs self-skip without Firebase env vars.
+- `npm run test:rules` (`firebase emulators:exec --only firestore`): 31/31 rules tests passed (`tests/rules/firestore.rules.test.ts`).
+- `npm run test:e2e:firebase` (Auth + Firestore emulators + Playwright): 2/2 passed — the milestone 3 sign-in/migrate/sync/sign-out flow, plus the two-user groups spec (create, join by link and code, shared minutes, leaderboard order, hidden profile fields, rule-enforced store purchase).
 - Emulator toolchain: `firebase-tools` 15.35.0 (devDependency), `firebase` JS SDK 13.1.0, `@firebase/rules-unit-testing` 6.0.0, Firestore emulator v1.22.0, Java 21.0.13 (Temurin JRE installed user-local at `~/tools/jdk-21.0.13+9-jre`; firebase-tools 15.x requires Java 21+).
 
 Labels mean only what was run. A screen that rendered is not proof that its buttons do the real job.
@@ -25,7 +25,7 @@ Playwright opened the app in all 8 combinations (en/ar × light/dark × 360px/12
 | :--- | :--- |
 | Hash routes | `#/` landing, `#/app` and `#/app/<tab>` app screens, `#/terms`, `#/privacy`, `#/invite/<code>` placeholder. Deep links and reloads resolve via `parseHashRoute` in `src/lib/router.ts`; unknown paths fall back to landing. Verified by direct navigation in probes and the screenshot suite (`/#/app` entry point). |
 | Landing page | Renders the real `TimerDisplay`, `TaskList`, and `ProgressStatCards` components, a tests section listing the real catalog with official-site links, and a footer with Terms/Privacy. One primary CTA "Start focusing" navigates to `#/app` with no login. Header also has a small secondary "Open app" link. No gradients, emojis, card grids, or fake content. |
-| Invite route | `#/invite/DEMO-GROUP-7` renders "Group invites are not open yet" placeholder; screenshot captured in all 8 combinations. |
+| Invite route | `#/invite/<code>` is real: resolves the code via `inviteCodes`, shows the group name, offers Google sign-in for guests, and joins on click (verified in the two-user emulator spec). Invalid codes show an honest error state. |
 | Onboarding | New users see the modal; "Skip Setup" dismisses it (Playwright). |
 | Timer start / pause / reload | Start Focus becomes Pause Timer; pausing restores Start. After restart + `page.reload()`, the Pause button returns and persisted state shows `isRunning: true` with `targetEndTime` set. Recovery is driven by the persisted `targetEndTime`, not a fresh duration. |
 | Expired timer exactly-once | Seeded `isRunning: true` with a `targetEndTime` 10s in the past (simulating expiry while the tab was closed). On load the session completed once: 1 session log, coins 10→11, 1 transaction, `isRunning` false. After a second reload the counts were unchanged — no double award. |
@@ -37,12 +37,13 @@ Playwright opened the app in all 8 combinations (en/ar × light/dark × 360px/12
 | Task create / edit / reorder | `N` key opens the new-task dialog; created two tasks, edited one via its edit button, moved it up with the "Move task up" button; persisted `tasks` order verified. `md-dialog` required `slot="content"` wrapping (fixed in `MdControls`). |
 | Material Web controls | `md-switch` in Settings toggles `selected` on click. `md-dialog` opens on `N`, closes on Escape. `md-filled-button` drives store purchase. Rendered in AR screenshots with no overflow; no RTL-specific defect observed, so no custom fallback was needed. |
 | `lang`/`dir`, theme, overflow | Unchanged from 2a; still asserted in all 8 combinations including the new landing and invite screenshots. |
-| Friends screen, progress real data, Arabic phone, empty default state | Unchanged from 2a, still verified. |
+| Friends/groups screen (guest) | Signed-out users see a sign-in prompt; no demo data is shown. Screenshot captured in all 8 combinations. |
+| Groups end-to-end (emulator) | `e2e/groups-emulator.spec.ts`: user A creates a group (real Firestore docs + 6-char invite code), user B joins via `#/invite/<code>` link, leaves via UI, rejoins by typing the code, shared 25-minute group session appears on the leaderboard with B ranked above A, public profile written with `shareStreak:false` is readable by A with the `streak` key absent, and a signed-in store purchase debits the rule-enforced wallet (60 migrated coins − 10 = ~50). |
 | Guest mode without Firebase config | With no `VITE_FIREBASE_*` vars the app boots cleanly, Settings shows "Cloud sync is not configured", and the sign-in button is absent (Playwright probe, no console errors). |
 | Firebase sign-in (emulator) | `npm run test:e2e:firebase` drives the real popup flow against the Auth emulator: "Add new account" → email → "Sign in with Google.com" → popup closes → app shows "Signed in as". |
 | Guest-to-cloud migration | First sign-in with local data shows the "Merge your data" dialog (never silent). "Import device data" pushes the local slice to Firestore, writes `meta/migration`, and enables sync. Repeated/reload sign-ins do not re-prompt (marker check). Verified in the emulator e2e. |
 | Cloud sync persistence | Task created while signed in appears in Firestore and survives `page.reload()`; the migrated guest task also persists. Sign-out wipes the previous user's tasks from screen and from `localStorage`. |
-| Firestore Security Rules | 14 emulator tests: cross-user read/write denied, unauthenticated denied, invalid cadence/oversized title/settings shape denied, append-only session logs, wallet nonzero-create denied, balance edit without ledger row denied, catalog-price spend with matching ledger row allowed, non-catalog amount denied, oversized award denied, ledger rows immutable. |
+| Firestore Security Rules | 31 emulator tests: cross-user read/write denied, unauthenticated denied, invalid cadence/oversized title/settings shape denied, append-only session logs and group sessions, tombstone deletes, wallet nonzero-create denied, balance edit without ledger row denied, catalog-price spend with matching ledger row allowed, non-catalog amount denied, focus-point deltas checked, purchase replay denied, oversized award denied, ledger rows immutable, group membership isolation (non-member read denied, no adding arbitrary members), private profile owner-only, public profile/leaderboard field whitelists, createGroup batch shape. |
 
 Not exercised in the browser: completing a pomodoro end-to-end (session log write on finish), sounds, notifications, wake lock, export downloads, print, drag-and-drop reorder by pointer (keyboard/button path tested; HTML5 drag handlers are compiled only), Join.
 
@@ -57,6 +58,8 @@ These passed in Vitest. They were not driven in the browser.
 | Purchase allowed only when coins cover the price. Streak-freeze purchase writes a spend transaction. `awardPoints` adds coins. | `src/lib/__tests__/coinsEngine.test.ts` |
 | Session time filter, week bars, category percentages, estimated-vs-actual ratio, score-loop gaps, CSV quoting | `src/lib/__tests__/analyticsEngine.test.ts` |
 | EN/AR translation key parity, badge key resolution (`streakRuleNotice` found under `streaks`), helper lookups | `src/i18n/__tests__/translations.test.ts` |
+| Group stats: day/week period keys, ISO week boundaries, leaderboard ranking (minutes → focus points → streak), award walk-back windows (7 days / 4 weeks), per-member minute sums | `src/lib/__tests__/groupStats.test.ts` |
+| Sync merge: offline edit survives pull, two-device convergence, tombstone delete propagation, older-tombstone rejection, idempotent re-merge, remote-only adds, settings last-write-wins | `src/lib/__tests__/syncMerge.test.ts` |
 
 The streak tests use the dates written in that file. They do not prove the live clock or timezone.
 
@@ -84,9 +87,23 @@ Present in source and included in the production build. Not verified by the chec
 - Multi-device conflict resolution beyond last-write-wins per document. Offline edits made while signed in can be overwritten by a cloud pull on the next sign-in (DECISIONS.md).
 - Google Tasks, Google Calendar, Gemini, FCM.
 - Per-topic timer lengths.
-- Real friend groups, working invite links, shared tasks, public leaderboard, or profile privacy. The invite route is a placeholder.
+- Group member alias editing, group rename, group deletion by non-last-owner, ownership-transfer edge cases beyond the tested leave flow.
+- Group award claiming in the browser (runs on sign-in via `adoptWalletAndClaimAwards`; exercised indirectly — the two-user spec signs in twice but does not assert award docs). Rules-tested shapes only.
+- Public board stat freshness: `weeklyMinutes`/`streak` are written when the member saves profile settings, not continuously recomputed.
 - Goal and test-date reminders (in-app Notifications API). Moved to milestone 5; scheduled push is later work.
 - Chrome theme reading. Pages cannot read it.
+
+## Fixed in milestone 4 (social + store backend)
+
+- Real groups (`src/lib/firebase/groups.ts`, `src/components/friends/FriendsView.tsx`): create with 6-char invite code, join by code or `#/invite/<code>` link, member roster, leave with ownership transfer, shared group tasks, per-member focus-minute logging on pomodoro completion, day/week leaderboard.
+- Group awards: lazy daily (+1 FP) / weekly (+7 FP) claims via create-only docs in one transaction (Decision 20); walk-back window 7 days / 4 weeks.
+- Wallet + ledger in Firestore: session earns mirror via `creditWallet`, purchases go through `spendCoins` in a transaction, guest balances migrate in rule-capped chunks on first sign-in (`reconcileWallet`).
+- Public profile projection + opt-in public leaderboard (Decision 21); private profile stays owner-only.
+- `firestore.rules` extended: groups/members/tasks/sessions/inviteCodes/memberships, groupAwards, profile/public, publicLeaderboard, wallet FP deltas and purchase replay protection. 31 emulator rules tests.
+- `syncMerge.ts` conflict fix (step 0): per-record `updatedAt` + tombstones so deletes sync and offline edits are never overwritten by older cloud state.
+- Demo friends data and the "Local Demo" label removed; guests see a sign-in prompt instead.
+- Terms/Privacy describe groups, member-visible data, public-board opt-in/opt-out, and the honor-system limitation (Decision 22).
+- Two-user emulator Playwright spec `e2e/groups-emulator.spec.ts`.
 
 ## Fixed in milestone 3 (Firebase, emulator-first)
 

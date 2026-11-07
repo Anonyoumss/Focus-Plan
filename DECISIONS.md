@@ -110,3 +110,22 @@ This log documents all technical, structural, and design decisions made during t
 - **Decision**: Guest-to-cloud resolution writes `users/{uid}/meta/migration {completed:true}`. `handleAuthUser` checks this marker before comparing local vs cloud data; without it every reload after a successful import re-detected "both sides have data" and re-opened the merge dialog (found by the Playwright emulator test). "Decide later" writes no marker, so the prompt returns on the next sign-in as intended. Both "Import device data" and "Use cloud data" mark completion; "Use cloud data" also writes the marker so the prompt does not return.
 - **Rationale**: The marker is the only durable record that survives reloads and devices; localStorage cannot distinguish "already migrated" from "new conflict".
 - **Source**: e2e/firebase-emulators.spec.ts failure and fix, 2026-11-08.
+
+## Decision 19: Group writes cannot share a batch with membership-gated writes
+- **Decision**: `createGroup` commits group + owner member + invite code + membership index in one batch, then creates the shared task in a second write. Firestore rules evaluate `exists()`/`get()` against pre-batch state, so a task create guarded by `isGroupMember()` fails inside the same batch and rejects the whole commit (found by the groups emulator Playwright test and reproduced in rules-unit-testing). `joinGroupByCode` likewise treats a permission-denied member-doc read as "not a member" and proceeds to the idempotent self-add batch.
+- **Rationale**: Milestone 4 group creation must work under the strict rules; splitting the dependent write is the minimal fix and keeps rules strict.
+- **Source**: e2e/groups-emulator.spec.ts, tests/rules/firestore.rules.test.ts batch test.
+
+## Decision 20: Group awards are claimed lazily with create-only docs, walk-back limited
+- **Decision**: Daily (+1 focus point) and weekly (+7) group awards are claimed by the first member to open the app after a period boundary, per `awardPeriodsToClaim` in `src/lib/groupStats.ts`: today plus the previous 6 days, and the current ISO week plus the previous 3 weeks. Each claim is one transaction containing a create-only `users/{uid}/groupAwards/{gid}_day_YYYY-MM-DD` (or `_week_YYYY-Www`) doc, a ledger row, and the wallet update; a losing concurrent claim retries, sees the doc, and skips, so double awards are impossible. Periods older than the window are forfeited — nobody can claim them later.
+- **Rationale**: Spark plan has no Cloud Functions or scheduled jobs; this is the documented fallback. The walk-back window bounds how far back awards can be claimed so idle groups do not farm old periods.
+- **Source**: `src/lib/firebase/groups.ts` claimGroupAwards, `src/lib/groupStats.ts`.
+
+## Decision 21: Public visibility uses a separate projection, never the private doc
+- **Decision**: `users/{uid}/profile/main` (alias) is owner-read only. `users/{uid}/public/profile` is readable by any signed-in user but the client writes only opted-in stat keys — unshared stats are omitted entirely, and rules whitelist the allowed keys so smuggled fields are rejected. `publicLeaderboard/{uid}` is a separate opt-in doc (default absent = not listed) carrying only alias, weeklyMinutes, streak. Rules tests prove hidden fields cannot be read and extra fields cannot be written.
+- **Rationale**: Milestone 4 requirement; the viewer's client must never receive the private user document.
+- **Source**: firestore.rules public/profile + publicLeaderboard matches, rules tests.
+
+## Decision 22: Leaderboards and awards are an honor system without Cloud Functions
+- **Decision**: Group sessions, wallet deltas, and award claims are written by the client within rule bounds (own uid only, append-only sessions, ledger-matched wallet changes, capped deltas). Rules cannot prove a pomodoro happened, cannot verify award eligibility historically, and cannot stop a modified client from inflating minutes within caps. Terms and Privacy state this plainly; the public board is opt-in for this reason.
+- **Rationale**: Extends Decision 17 to the social surface; real enforcement needs Blaze/Cloud Functions.

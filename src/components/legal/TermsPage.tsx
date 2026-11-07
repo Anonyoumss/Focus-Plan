@@ -49,7 +49,7 @@ export const TermsPage: React.FC = () => {
             1. Purpose and Current Local State
           </h2>
           <p>
-            Focus Plan M3E works fully as a guest: timers, task goals, streaks, coins, and test records are stored in your browser's local storage. If cloud sync is configured for this build, you may optionally sign in with Google. Signing in syncs your tasks, session logs, test goals, templates, and settings to Google Cloud Firestore under a private per-user path. Coins, points, streaks, and wallet data are not synced to the cloud. No data leaves your device unless you choose to sign in.
+            Focus Plan M3E works fully as a guest: timers, task goals, streaks, coins, and test records are stored in your browser's local storage. If cloud sync is configured for this build, you may optionally sign in with Google. Signing in syncs your tasks, session logs, test goals, templates, settings, wallet, and ledger to Google Cloud Firestore under a private per-user path, and enables optional study groups. No data leaves your device unless you choose to sign in.
           </p>
         </section>
 
@@ -79,7 +79,7 @@ export const TermsPage: React.FC = () => {
             4. User Accountability & Fair Play
           </h2>
           <p>
-            The Friends screen is currently a local preview only. There are no real groups, invite links, leaderboards, or point awards yet, so nothing you enter there is shared with anyone. Study data you create yourself is yours to export or delete at any time in Settings.
+            Study groups are optional and available only when you sign in. Anyone holding a group's invite code or link can join; treat invite codes like passwords and share them only with people you want in the group. Group leaderboards and the opt-in public leaderboard rank members by self-reported focus minutes. Because award and ranking calculations run on your device, they are an honor system and are not verified or cheat-proof. You are responsible for the alias you publish and for leaving groups you no longer wish to participate in. Study data you create yourself is yours to export or delete at any time in Settings.
           </p>
         </section>
       </div>

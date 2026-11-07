@@ -47,6 +47,19 @@ import {
   enqueueCloudSync,
   setCloudSyncContext,
 } from '../lib/firebase/cloudSync';
+import {
+  mergeSyncedState,
+  stampSyncedCollections,
+  type SyncMeta,
+} from '../lib/syncMerge';
+import {
+  claimGroupAwards,
+  creditWallet,
+  listMyGroups,
+  logGroupSession,
+  reconcileWallet,
+  spendCoins,
+} from '../lib/firebase/groups';
 
 export interface TaskItem {
   id: string;
@@ -119,6 +132,12 @@ export interface AppState {
   migrationChoice: 'local-only' | 'both' | null;
   syncError: string | null;
 
+  // Groups (cloud-only; membership lives in Firestore)
+  activeGroupId: string | null;
+  groupFocusTaskId: string | null;
+  setActiveGroup: (gid: string | null) => void;
+  setGroupFocusTask: (taskId: string | null) => void;
+
   // Actions
   setLocale: (locale: Locale) => void;
   setThemeMode: (mode: ThemeMode) => void;
@@ -156,7 +175,7 @@ export interface AppState {
   deleteTestGoal: (id: string) => void;
 
   // Store actions
-  purchaseItem: (item: StoreItem) => boolean;
+  purchaseItem: (item: StoreItem) => Promise<boolean>;
 
   // Export / Reset
   exportDataJson: () => string;
@@ -172,7 +191,9 @@ export interface AppState {
 
 const STORAGE_KEY = 'focus_plan_m3e_v1';
 
-function loadPersistedState(): Partial<AppState> {
+type PersistedShape = Partial<AppState> & { syncMeta?: SyncMeta };
+
+function loadPersistedState(): PersistedShape {
   if (typeof window === 'undefined') return {};
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -183,6 +204,10 @@ function loadPersistedState(): Partial<AppState> {
     return {};
   }
 }
+
+// Per-record { hash, updatedAt } map driving conflict-free sync merges.
+// Persisted inside the same localStorage blob under `syncMeta`.
+let syncMeta: SyncMeta = loadPersistedState().syncMeta ?? {};
 
 function persistState(state: AppState) {
   if (typeof window === 'undefined') return;
@@ -208,13 +233,24 @@ function persistState(state: AppState) {
     timerMode: state.timerMode,
     isRunning: state.isRunning,
     targetEndTime: state.targetEndTime,
+    activeGroupId: state.activeGroupId,
+    groupFocusTaskId: state.groupFocusTaskId,
   };
+  // Stamp updatedAt for the cloud push and advance the sync meta map.
+  // localStorage keeps the clean records; only the enqueued slice carries
+  // updatedAt so Firestore docs get per-record timestamps.
+  const { slice, meta } = stampSyncedCollections(
+    toSave as unknown as Record<string, unknown>,
+    syncMeta,
+    Date.now(),
+  );
+  syncMeta = meta;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...toSave, syncMeta }));
   } catch (e) {
     console.warn('Failed to persist state:', e);
   }
-  enqueueCloudSync(toSave as CloudStateSlice);
+  enqueueCloudSync(slice as unknown as CloudStateSlice);
 }
 
 const initialPersisted = loadPersistedState();
@@ -332,6 +368,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   transactions: initialPersisted.transactions || [],
   sessionLogs: initialPersisted.sessionLogs || [],
   demoDataLoaded: initialPersisted.demoDataLoaded || false,
+  activeGroupId: initialPersisted.activeGroupId ?? null,
+  groupFocusTaskId: initialPersisted.groupFocusTaskId ?? null,
 
   firebaseEnabled: isFirebaseConfigured(),
   authStatus: isFirebaseConfigured() ? 'loading' : 'ready',
@@ -468,6 +506,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     let newStreak = streak;
     let newCoins = coins;
     let newFocusPoints = focusPoints;
+    let earnedCoins = 0;
+    let earnedPoints = 0;
     let newTransactions = get().transactions;
     let newSessionLogs = get().sessionLogs;
 
@@ -476,12 +516,15 @@ export const useAppStore = create<AppState>((set, get) => ({
       const coinResult = awardPoints(coins, 1, 'Completed focus session');
       newCoins = coinResult.newCoins;
       newTransactions = [coinResult.transaction, ...newTransactions];
+      earnedCoins += 1;
 
       if (newTodaySessions === 3) {
         const streakBonus = awardPoints(newCoins, 2, 'Maintained daily 3+ streak threshold');
         newCoins = streakBonus.newCoins;
         newTransactions = [streakBonus.transaction, ...newTransactions];
         newFocusPoints += 1;
+        earnedCoins += 2;
+        earnedPoints += 1;
       }
 
       const activeTask = tasks.find((t) => t.id === activeTaskId);
@@ -524,6 +567,30 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     persistState(get());
     restoreDefaultTitle();
+
+    // Best-effort cloud mirrors: wallet ledger rows for earned coins/FP
+    // and group session minutes when a group focus task is active.
+    const { user: authUser, cloudSyncEnabled, activeGroupId, groupFocusTaskId } = get();
+    if (authUser && cloudSyncEnabled) {
+      if (earnedCoins > 0) {
+        void creditWallet(authUser.uid, earnedCoins, 0, 'Focus session award', 'focus_session').catch(
+          (e) => console.warn('Wallet coin mirror failed:', e),
+        );
+      }
+      if (earnedPoints > 0) {
+        void creditWallet(authUser.uid, 0, earnedPoints, 'Streak threshold award', 'streak_bonus').catch(
+          (e) => console.warn('Wallet FP mirror failed:', e),
+        );
+      }
+      if (activeGroupId && groupFocusTaskId) {
+        void logGroupSession(
+          activeGroupId,
+          authUser.uid,
+          groupFocusTaskId,
+          timerConfig.focusDuration / 60,
+        ).catch((e) => console.warn('Group session log failed:', e));
+      }
+    }
 
     if (
       (nextMode !== 'focus' && timerConfig.autoStartBreaks) ||
@@ -637,14 +704,26 @@ export const useAppStore = create<AppState>((set, get) => ({
     persistState(get());
   },
 
-  purchaseItem: (item) => {
-    const { coins, inventory, transactions } = get();
+  purchaseItem: async (item) => {
+    const { coins, inventory, transactions, user, cloudSyncEnabled } = get();
     const result = processPurchase(coins, inventory, item);
     if (!result) return false;
 
     let streak = get().streak;
     if (item.id === 'streak_freeze') {
       streak = { ...streak, streakFreezes: streak.streakFreezes + 1 };
+    }
+
+    // Signed-in purchases are rule-enforced in Firestore: the wallet
+    // update and ledger row commit in one transaction or not at all.
+    if (user && cloudSyncEnabled) {
+      try {
+        await spendCoins(user.uid, item.price, item.id, `Purchased ${item.titleKey}`);
+      } catch (e) {
+        console.warn('Cloud purchase failed:', e);
+        set({ syncError: 'purchase-failed' });
+        return false;
+      }
     }
 
     set({
@@ -655,6 +734,16 @@ export const useAppStore = create<AppState>((set, get) => ({
     });
     persistState(get());
     return true;
+  },
+
+  setActiveGroup: (gid) => {
+    set({ activeGroupId: gid });
+    persistState(get());
+  },
+
+  setGroupFocusTask: (taskId) => {
+    set({ groupFocusTaskId: taskId });
+    persistState(get());
   },
 
   exportDataJson: () => {
@@ -752,17 +841,24 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (!uid) return;
     try {
       if (choice === 'import') {
-        await pushCloudState(uid, syncedSliceOf(get()));
+        const { slice } = stampSyncedCollections(
+          syncedSliceOf(get()) as unknown as Record<string, unknown>,
+          syncMeta,
+          Date.now(),
+        );
+        await pushCloudState(uid, slice as unknown as CloudStateSlice);
         await markMigrationComplete(uid);
         setCloudSyncContext(uid, true);
         set({ cloudSyncEnabled: true, migrationChoice: null, syncError: null });
         enqueueCloudSync(syncedSliceOf(get()));
+        void adoptWalletAndClaimAwards(uid);
       } else if (choice === 'cloud') {
         const remote = await pullCloudState(uid);
         applyCloudState(remote);
         await markMigrationComplete(uid);
         setCloudSyncContext(uid, true);
         set({ cloudSyncEnabled: true, migrationChoice: null, syncError: null });
+        void adoptWalletAndClaimAwards(uid);
       } else {
         // "Later": keep local data, leave cloud sync off until next sign-in.
         setCloudSyncContext(uid, false);
@@ -792,11 +888,27 @@ function syncedSliceOf(s: AppState): CloudStateSlice {
 }
 
 function applyCloudState(remote: SyncedState) {
-  const patch: Partial<AppState> = {};
-  patch.tasks = remote.tasks;
-  patch.sessionLogs = remote.sessionLogs;
-  patch.testGoals = remote.testGoals;
-  const st = remote.settings;
+  // Per-record LWW merge: newer updatedAt wins, remote tombstones delete
+  // local records, remote-only docs are added. Local edits made offline
+  // (newer local updatedAt) are kept and pushed on the next sync.
+  const localSlice = syncedSliceOf(useAppStore.getState());
+  const merged = mergeSyncedState(
+    {
+      tasks: localSlice.tasks,
+      sessionLogs: localSlice.sessionLogs,
+      testGoals: localSlice.testGoals,
+    },
+    remote,
+    syncMeta,
+  );
+  syncMeta = merged.meta;
+
+  const patch: Partial<AppState> = {
+    tasks: merged.tasks as TaskItem[],
+    sessionLogs: merged.sessionLogs as FocusSessionRecord[],
+    testGoals: merged.testGoals as UserTestGoal[],
+  };
+  const st = merged.settings;
   if (st) {
     if (st.locale === 'en' || st.locale === 'ar') patch.locale = st.locale;
     if (st.themeMode === 'system' || st.themeMode === 'light' || st.themeMode === 'dark') {
@@ -846,6 +958,40 @@ function wipeUserData() {
 
 let previousUid: string | null = null;
 
+/**
+ * Adopts the cloud wallet as the coin/FP source of truth and claims any
+ * unclaimed group daily/weekly awards. Best-effort: failures are logged,
+ * never block the UI.
+ */
+async function adoptWalletAndClaimAwards(uid: string) {
+  try {
+    const s = useAppStore.getState();
+    const wallet = await reconcileWallet(uid, s.coins, s.focusPoints);
+    const patch: Partial<AppState> = {};
+    if (wallet.coins !== s.coins) patch.coins = wallet.coins;
+    if (wallet.focusPoints !== s.focusPoints) patch.focusPoints = wallet.focusPoints;
+    if (Object.keys(patch).length > 0) {
+      useAppStore.setState(patch);
+      persistState(useAppStore.getState());
+    }
+
+    const groups = await listMyGroups(uid).catch(() => []);
+    for (const g of groups) {
+      await claimGroupAwards(uid, g.id).catch((e) =>
+        console.warn('Group award claim failed:', g.id, e),
+      );
+    }
+    // Awards may have raised focusPoints; refresh once.
+    const after = await reconcileWallet(uid, 0, 0).catch(() => null);
+    if (after && after.focusPoints !== useAppStore.getState().focusPoints) {
+      useAppStore.setState({ focusPoints: after.focusPoints });
+      persistState(useAppStore.getState());
+    }
+  } catch (e) {
+    console.warn('Wallet/award adoption failed:', e);
+  }
+}
+
 async function handleAuthUser(user: { uid: string; email: string | null; displayName: string | null } | null) {
   if (!user) {
     const wasSignedIn = previousUid !== null;
@@ -877,6 +1023,7 @@ async function handleAuthUser(user: { uid: string; email: string | null; display
       applyCloudState(remote);
       setCloudSyncContext(user.uid, true);
       useAppStore.setState({ cloudSyncEnabled: true, migrationChoice: null });
+      void adoptWalletAndClaimAwards(user.uid);
       return;
     }
 
@@ -899,6 +1046,7 @@ async function handleAuthUser(user: { uid: string; email: string | null; display
     applyCloudState(remote);
     setCloudSyncContext(user.uid, true);
     useAppStore.setState({ cloudSyncEnabled: true, migrationChoice: null });
+    void adoptWalletAndClaimAwards(user.uid);
   } catch (e) {
     console.warn('Cloud sync init failed:', e);
     setCloudSyncContext(user.uid, false);
