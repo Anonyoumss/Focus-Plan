@@ -35,3 +35,17 @@ This log documents all technical, structural, and design decisions made during t
 ## Decision 5: Framework-Free Core Logic (`/src/lib/`)
 - **Decision**: Keep countdown math, streak algorithms, badge evaluations, and coin transaction validation in pure TypeScript modules decoupled from React.
 - **Rationale**: Enables lightning-fast automated unit testing with Vitest and allows direct 1:1 porting to native Android (Kotlin / Jetpack Compose) or Capacitor in future expansion phases.
+
+---
+
+## Decision 6: Spark-plan wallet and leaderboards are an honor system
+- **Decision**: Without Cloud Functions, coins, focus minutes, and daily or weekly awards are written by the client. Firestore Security Rules can reject some impossible deltas, but they cannot prove that a session was actually completed. Leaderboards are an honor system and are not cheat-proof.
+- **Rationale**: The Firebase Spark plan does not include Cloud Functions. A scheduled or trusted server writer would require the Blaze plan.
+- **Source**: Firebase pricing and Cloud Functions requirements, https://firebase.google.com/pricing and https://firebase.google.com/docs/functions (recorded 2026-11-07).
+
+---
+
+## Decision 7: Direct esbuild range matches Vite 8.3.6
+- **Decision**: The direct `esbuild` devDependency is `^0.28.2`.
+- **Rationale**: `npm install` failed with `ERESOLVE` because `package.json` asked for `esbuild@^0.25.0` while the published Vite 8.3.6 peer dependency is `esbuild@^0.27.0 || ^0.28.0`. `0.28.2` is a published version and is already the esbuild copy nested under `tsx` in `bun.lock`.
+- **Source**: `npm view vite@8.3.6 peerDependencies` and `npm view esbuild versions`, run on 2026-11-07.

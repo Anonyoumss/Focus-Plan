@@ -1,85 +1,90 @@
-# Feature Parity Matrix: Pomofocus & Tomato vs Focus Plan M3E
+# Feature parity
 
-This document tracks feature parity between **Pomofocus**, **Tomato**, and **Focus Plan M3E**. In accordance with project instructions, **each item is honestly classified into: `Verified in browser`, `Unit tested only`, `Untested`, or `Planned`.**
+Checked on commit parent `591de4d` plus this audit, 2026-11-07.
 
----
+Commands that ran:
 
-## 1. Pomofocus Feature Parity
+- `npm install` succeeded after changing the direct `esbuild` range. See DECISIONS.md.
+- `npx tsc --noEmit` exited 0. There is no ESLint config. `npm run lint` is that same `tsc` script.
+- `npm test` (Vitest 3.2.7): 4 files, 18 tests, all passed.
+- `npm run build` (Vite 8.3.6) exited 0.
+- `npx playwright test` (`@playwright/test` 1.65.0, Chromium 158.0.8127.18): 8 passed, 0 failed. Screenshots are in `docs/screenshots/`.
 
-| Feature | Pomofocus Status | Focus Plan M3E Status | Verification Classification | Implementation & Verification Notes |
-| :--- | :--- | :--- | :--- | :--- |
-| **Focus / Short / Long Break Modes** | Supported | Done | **Verified in browser** | Connected M3 segmented controls switch modes and update duration state in `TimerDisplay.tsx`. |
-| **Custom Timer Durations** | Supported | Done | **Verified in browser** | Configurable via `SettingsView.tsx`; reflected in store state. |
-| **Auto-Start Breaks & Pomodoros** | Supported | Done | **Verified in browser** | Auto-transition timer callbacks trigger on countdown zero. |
-| **Task Management (CRUD)** | Supported | Done | **Verified in browser** | Adding, editing, completing, and deleting tasks tested in `TaskList.tsx`. |
-| **Estimated vs Actual Pomodoros** | Supported | Done | **Verified in browser** | Task sessions increment upon session completion. |
-| **Clear Finished Tasks** | Supported | Done | **Verified in browser** | Finished tasks are purged from the list on button click. |
-| **Alarm Sound & Volume** | Supported | Done | **Verified in browser** | Web Audio API harmonic chime synthesizer tested in browser. |
-| **Tick / Ambient Sound** | Supported | Done | **Verified in browser** | Synthesized pink noise and alpha wave binaural oscillators. |
-| **Document Title Countdown** | Supported | Done | **Verified in browser** | Document title updates dynamically with `(MM:SS) Mode · App`. |
-| **Web Notifications** | Supported | Done | **Untested** | Browser permissions handled with fallback; notification delivery in background tab untested on live system. |
-| **Screen Wake Lock** | Supported | Done | **Untested** | Native `navigator.wakeLock` requested on start; untestable in sandbox without physical screen sleep. |
-| **Keyboard Shortcuts** | Supported | Done | **Verified in browser** | Space, R, S, 1, 2, 3, and ? modal verified. |
-| **Data Export (JSON & CSV)** | Supported | Done | **Verified in browser** | Blob generation and file download triggers functional in `SettingsView.tsx`. |
-| **Google Login & Cloud Sync** | Supported | Planned | **Planned (Phase 3)** | Local storage active in Phase 1; Firebase Auth scheduled for Phase 3. |
+Labels mean only what was run. A screen that rendered is not proof that its buttons do the real job.
 
----
+Tomato is GPL-3.0. This repo does not copy that source. Pomofocus behavior below is the public product behavior, not a claim that `bermarte/pomofocus` implements it.
 
-## 2. Tomato Feature Parity & Material 3 Expressive
+## Verified in browser
 
-| Feature | Tomato Status | Focus Plan M3E Status | Verification Classification | Implementation & Verification Notes |
-| :--- | :--- | :--- | :--- | :--- |
-| **Material 3 Expressive Design** | Supported | Done | **Verified in browser** | M3 token system derived via `@material/material-color-utilities`. |
-| **Dynamic Color Seed Engine** | Supported | Done | **Verified in browser** | Swatches (Sage, Teal, Clay, Indigo, Crimson) apply to CSS tokens. |
-| **System / Light / Dark Theme** | Supported | Done | **Verified in browser** | Toggles `.dark` on `<html>` and updates CSS variables. |
-| **Floating Bottom Navigation Bar** | Supported | Done | **Verified in browser** | Tested on mobile viewport (<768px) with active indicator pill. |
-| **Navigation Rail on Desktop** | Supported | Done | **Verified in browser** | Docked 80px navigation rail on desktop (≥768px) verified. |
-| **Wavy Circular Progress Ring** | Supported | Done | **Verified in browser** | SVG strokeDashoffset and circular track fill correctly with time. |
-| **Roboto Flex Expressive Digits** | Supported | Done | **Verified in browser** | Tabular figures loaded from Google Fonts for zero-jitter display. |
-| **Total Focus Time Metrics** | Supported | Done | **Verified in browser** | Total hours and sessions calculate correctly from session counts. |
-| **Weekly Consistency Grid** | Supported | Done | **Verified in browser** | 7-day session distribution rendered in `ProgressView.tsx`. |
+Playwright opened `/` with stored `locale` and `themeMode`, at 1280x800 and 360x740, English and Arabic, light and dark.
 
----
+| What was checked | Result |
+| :--- | :--- |
+| App shell, onboarding, and Skip | Onboarding rendered. Skip removed it. |
+| `lang` and `dir` | `en`/`ltr` and `ar`/`rtl` matched the stored locale. |
+| Dark theme class | `html` had class `dark` when `themeMode` was `dark`. |
+| Tabs | Focus, Plan, Tests, Progress, Friends, Settings, Terms, and Privacy rendered in every combination. Store rendered on the desktop rail only. |
+| Start control | English, light, desktop only: Start Focus became Pause Timer. The countdown itself was not timed. |
+| Friends screen | Visible copy says the circle and standings are local demo data. Names Tariq, Fahad, Sarah, and Omar are still shown. |
+| Progress screen | Renders. The week row is not the same data as the chart. Total focus on the top card was 0.0 hrs while the chart card said 7.9 hrs. One badge description showed the raw key `streakRuleNotice`. |
+| Arabic phone Focus | Rendered RTL, and the task titles overflow. English category names stay in the task rows. The bottom bar covers part of the list. |
 
-## 3. Advanced Study & Test Tracking (Focus Plan M3E Innovations)
+Phone Store is unreachable from Mobile Bottom Navigation. Notes: `docs/screenshots/*/phone/store.unreachable.txt`.
 
-| Feature | Origin / Category | Status | Verification Classification | Implementation & Verification Notes |
-| :--- | :--- | :--- | :--- | :--- |
-| **Saudi Standardized Test Catalog** | Focus Innovation | Done | **Verified in browser** | Saudi GAT, SAAT, STEP, KFUPM Early SAAT with section score targets. |
-| **Global Standardized Test Catalog** | Focus Innovation | Done | **Verified in browser** | SAT, ACT, IELTS, TOEFL, Duolingo English Test with section scores. |
-| **Official Test Portal Disclaimer** | Focus Innovation | Done | **Verified in browser** | Prominent warning banners and direct portal links on exam cards. |
-| **Exam Countdown & Target Score** | Focus Innovation | Done | **Verified in browser** | Days remaining calculated from target test date; progress bar verified. |
-| **Real Score Logging & History** | Focus Innovation | Done | **Verified in browser** | Modal to record exam scores and append to score history. |
-| **Task Repetition Cadences** | Focus Innovation | Done | **Verified in browser** | Daily, weekly, monthly cadence selectors in task creation. |
-| **3+ Sessions Daily Streak Rule** | Focus Innovation | Done | **Unit tested only** | Rigorously verified in Vitest suite (`streakCalculator.test.ts`). |
-| **Streak Freeze Protection** | Focus Innovation | Done | **Unit tested only** | Verified in Vitest suite (`streakCalculator.test.ts`). |
-| **Overachievement Goal (200%+)** | Focus Innovation | Done | **Unit tested only** | Verified in Vitest suite (`streakCalculator.test.ts`). |
-| **Focus Coins Economy & Store** | Focus Innovation | Done | **Unit tested only & in browser** | Purchase validation and store inventory verified in Vitest and UI. |
-| **Study Circles & Group Codes** | Focus Innovation | Done | **Verified in browser (Demo Data)** | Local demo preview with 6-char code sharing. Cloud sync in Phase 3. |
-| **Bilingual English & Arabic RTL** | Focus Innovation | Done | **Verified in browser** | Complete RTL layout, Arabic fonts (`Readex Pro`), and logical spacing verified. |
-| **3-Step Skippable Onboarding** | Focus Innovation | Done | **Verified in browser** | Step progression, theme picking, and first goal setup verified. |
-| **Plain-Language Terms & Privacy** | Focus Innovation | Done | **Verified in browser** | Local-storage disclosure verified. |
-| **Skeleton Loaders for Async Data** | Focus Innovation | Done | **Verified in browser** | Pulse placeholder states verified in `ProgressView.tsx`. |
-| **Interactive SVG Bar Chart** | Focus Innovation | Done | **Verified in browser & Unit tested** | Day, Week, Month, Year, All Time filters with interactive tooltips in `TelemetryCharts.tsx`. |
-| **Smooth SVG Line Chart (Trendline)** | Focus Innovation | Done | **Verified in browser & Unit tested** | Bezier curve velocity trajectory with tonal gradient fill in `TelemetryCharts.tsx`. |
-| **Category Distribution Breakdown** | Focus Innovation | Done | **Verified in browser & Unit tested** | Color-coded M3 chips, minutes, percentages, and stacked visualizer in `TelemetryCharts.tsx`. |
-| **Task Planning Accuracy Ratio** | Focus Innovation | Done | **Verified in browser & Unit tested** | Estimated vs actual completed session ratio in `TelemetryCharts.tsx`. |
-| **28-Day Activity Heatmap Grid** | Focus Innovation | Done | **Verified in browser & Unit tested** | 4-tier tonal density matrix (0 to 4 sessions) in `TelemetryCharts.tsx`. |
-| **Accessible Tabular Telemetry View** | Focus Innovation | Done | **Verified in browser** | Semantic HTML table with screen-reader friendly figures and session records. |
-| **Interactive Score Loop & Gap Analysis** | Focus Innovation | Done | **Verified in browser & Unit tested** | Per-section target vs trial score comparisons with surplus/deficit tags in `ScoreLoopModal.tsx`. |
-| **Adaptive Session Recommendations** | Focus Innovation | Done | **Verified in browser & Unit tested** | Dynamically calculates needed weekly pomodoros per section based on exam weeks left. |
-| **Weekly Printable Focus Report** | Focus Innovation | Done | **Verified in browser** | Formatted M3 report with week selector, daily breakdown, and subject distribution in `WeeklyReportModal.tsx`. |
-| **Print / Save PDF Stylesheet** | Focus Innovation | Done | **Verified in browser** | `@media print` styles strip modal chrome and render a clean, high-contrast document. |
-| **RFC 4180 CSV Report & Session Export** | Focus Innovation | Done | **Verified in browser & Unit tested** | One-click CSV generation for session logs and weekly telemetry. |
-| **Firebase Cloud Firestore Sync** | Cloud Backend | Planned | **Planned (Phase 3)** | Multi-user database synchronization scheduled for Phase 3. |
-| **Google Tasks Two-Way Sync** | Integration | Planned | **Planned (Phase 4)** | Google Tasks API integration scheduled for Phase 4. |
-| **Google Calendar Study Blocks** | Integration | Planned | **Planned (Phase 4)** | Calendar events scheduled for Phase 4. |
-| **Gemini AI Plan & Gap Analysis** | AI Intelligence | Planned | **Planned (Phase 5)** | AI-driven study planner scheduled for Phase 5. |
+Not exercised in the browser: completing a pomodoro, editing a task, sounds, notifications, wake lock, export downloads, store purchase, score entry, print, keyboard shortcuts, or Join.
 
----
+## Unit tested only
 
-## 4. Screens and Environments Not Open / Not Tested in Live Interaction
+These passed in Vitest. They were not driven in the browser.
 
-- **Physical Mobile WakeLock**: Untested on actual Android/iOS hardware (tested only in Chromium desktop preview environment).
-- **Physical Printer Output**: The `window.print()` trigger and `@media print` styling rules were verified in the browser preview; physical ink printing to hardware was not executed.
-- **Push Notification Background Delivery**: Service worker push notifications when the browser is entirely shut down require Firebase Cloud Messaging (Phase 6).
+| Behavior | Test file |
+| :--- | :--- |
+| Remaining seconds, `MM:SS`, progress ratio, next mode after 4 focus sessions | `src/lib/__tests__/timerEngine.test.ts` |
+| Goal percent including 8/4 = 200. Streak does not advance at 2 sessions. Streak advances at 3. A missed day uses one freeze or resets the streak. | `src/lib/__tests__/streakCalculator.test.ts` |
+| Purchase allowed only when coins cover the price. Streak-freeze purchase writes a spend transaction. `awardPoints` adds coins. | `src/lib/__tests__/coinsEngine.test.ts` |
+| Session time filter, week bars, category percentages, estimated-vs-actual ratio, score-loop gaps, CSV quoting | `src/lib/__tests__/analyticsEngine.test.ts` |
+
+The streak tests use the dates written in that file. They do not prove the live clock or timezone.
+
+## Compiled only
+
+Present in source and included in the production build. Not verified by the checks above.
+
+- Timer mode buttons, duration settings, auto-start flags, task add/edit/delete/clear, estimated versus completed counts.
+- Web Audio synth, document title updates, Notification API call, Wake Lock call.
+- Keyboard listeners for Space, R, S, 1, 2, 3, and `?`. There is no `N` listener.
+- JSON and CSV task export from Settings. No import.
+- Seed colors Sage, Teal, Clay, Indigo, and Crimson through `@material/material-color-utilities`.
+- Test catalog cards and score-loop modal. Catalog score scales and the prefilled dates `2026-12-15` and `2026-12-05` were not checked against an official site in this audit.
+- Print stylesheet in `WeeklyReportModal.tsx`. No PDF file writer.
+- Skeleton component. The Progress refresh button shows it for 400ms. Charts do not use it for their first paint.
+- PWA `manifest.json`. No service worker file.
+
+## Not in this codebase
+
+- URL routes `/terms` and `/privacy`. Those screens are tab state.
+- Landing page.
+- `@material/web`, `anime.js`. `motion` is installed and not imported.
+- Wavy progress ring and a shape-morphing Start control. The timer SVG is a circular dash offset.
+- Firebase Auth, Firestore, rules, or emulator tests.
+- Google Tasks, Google Calendar, Gemini, FCM.
+- Hourly cadence, per-topic timer lengths, task drag reorder.
+- Real friend groups, invite links, shared tasks, public leaderboard, or profile privacy.
+- Chrome theme reading. Pages cannot read it.
+
+## Contradictions with AGENTS.md and the Desktop plan
+
+Source: `/home/nothingos/Desktop/implementation_plan.md` and `AGENTS.md`.
+
+- `FEATURE_PARITY.md` previously said most of the list was verified in the browser. This audit did not find a Playwright suite or screenshots in that commit.
+- Chart area fill uses `linearGradient` `m3eLineGrad` in `src/components/progress/TelemetryCharts.tsx`.
+- Onboarding overlay uses `backdrop-blur-xs` and `bg-black/60`.
+- `--md-sys-color-surface-container-lowest` and several `on-*` roles in `src/index.css` are `#ffffff` before the runtime theme runs.
+- `rounded-2xl` and `rounded-3xl` are used on most cards. The Desktop plan asks for a 28px extra-large step. `--md-shape-xxl` is 32px.
+- Progress and Plan use three-column card rows. Progress icons use Tailwind palette classes (`text-emerald-600`, `text-orange-500`, `text-indigo-600`, `text-cyan-600`) instead of M3 roles.
+- Dialogs use `shadow-xl` or `shadow-2xl`.
+- Default tasks, a 4-day streak, 35 coins, test goals, and `generateDefaultSessionLogs()` load as if they were the user's history. Friends is the only block labeled demo in the UI.
+- Privacy and Terms describe Firebase sign-in and Google Tasks or Calendar. Those integrations are not implemented.
+- `arrow_back` on the legal pages is not mirrored for RTL.
+- `.env.example` still has a placeholder `GEMINI_API_KEY`. No live key was found in git history. `@google/genai` is a dependency and is not imported by `src/`.
+- `DEPLOY.md` is named by the Desktop plan and is not in the repo.
