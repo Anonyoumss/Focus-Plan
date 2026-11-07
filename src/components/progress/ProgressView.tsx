@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../../store/useAppStore';
-import { TRANSLATIONS } from '../../i18n/translations';
+import { TRANSLATIONS, lookupTranslationString } from '../../i18n/translations';
 import { MaterialIcon } from '../common/MaterialIcon';
 import { calculateGoalPercent, evaluateBadges } from '../../lib/streakCalculator';
 import { SkeletonLoader } from '../common/SkeletonLoader';
@@ -15,6 +15,7 @@ export const ProgressView: React.FC = () => {
     dailyGoalSessions,
     completedFocusSessions,
     testGoals,
+    sessionLogs,
   } = useAppStore();
 
   const t = TRANSLATIONS[locale];
@@ -22,7 +23,7 @@ export const ProgressView: React.FC = () => {
   const [showWeeklyReportModal, setShowWeeklyReportModal] = useState(false);
 
   const goalPercent = calculateGoalPercent(todaySessionsCount, dailyGoalSessions);
-  const totalFocusMinutes = completedFocusSessions * 25;
+  const totalFocusMinutes = sessionLogs.reduce((sum, s) => sum + s.durationMinutes, 0);
   const totalFocusHours = (totalFocusMinutes / 60).toFixed(1);
 
   const hasLoggedTestScore = testGoals.some((g) => g.scoresHistory.length > 0);
@@ -36,16 +37,18 @@ export const ProgressView: React.FC = () => {
     hasScoreImprovement
   );
 
-  // Past 7 days dummy distribution for weekly consistency
-  const daysOfWeek = [
-    { label: 'Mon', count: 4, active: true },
-    { label: 'Tue', count: 5, active: true },
-    { label: 'Wed', count: 3, active: true },
-    { label: 'Thu', count: 4, active: true },
-    { label: 'Fri', count: 2, active: false },
-    { label: 'Sat', count: 5, active: true },
-    { label: 'Sun', count: todaySessionsCount, active: todaySessionsCount >= 3 },
-  ];
+  // Past 7 days derived from real session logs (3+ sessions = streak day)
+  const daysOfWeek = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const count = sessionLogs.filter((s) => s.dateStr === dateStr).length;
+    return {
+      label: d.toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', { weekday: 'short' }),
+      count,
+      active: count >= 3,
+    };
+  });
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-8">
@@ -255,7 +258,7 @@ export const ProgressView: React.FC = () => {
                     style={{ color: day.active ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-outline)' }}
                   />
                   <span className="text-xs font-timer font-bold tabular-nums">
-                    {day.count} {locale === 'ar' ? 'جلسة' : 'p'}
+                    {day.count} {locale === 'ar' ? 'جلسة' : 'sess'}
                   </span>
                 </div>
               ))}
@@ -277,8 +280,8 @@ export const ProgressView: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
               {badges.map((badge) => {
                 const isUnlocked = badge.unlockedAt !== null;
-                const titleText = (t.badges as any)[badge.titleKey] || badge.titleKey;
-                const descText = (t.badges as any)[badge.descKey] || badge.descKey;
+                const titleText = lookupTranslationString(t, badge.titleKey) || badge.titleKey;
+                const descText = lookupTranslationString(t, badge.descKey) || badge.descKey;
 
                 return (
                   <div

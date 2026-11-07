@@ -7,6 +7,12 @@ export interface TestSection {
   defaultTargetScore: number;
 }
 
+export interface CatalogSources {
+  scoreScale?: string;
+  sections?: string;
+  dates?: string;
+}
+
 export interface StandardizedTestDefinition {
   id: string;
   code: string;
@@ -18,6 +24,10 @@ export interface StandardizedTestDefinition {
   scoreUnit: string;
   typicalPrepWeeks: number;
   officialPortal: string;
+  /** Official source URL per data field. Absent = unconfirmed, show "verify on official site". */
+  sourceUrls: CatalogSources;
+  /** Data fields not confirmed against an official page. */
+  unverifiedFields: (keyof CatalogSources)[];
   sections: TestSection[];
   descriptionEn: string;
   descriptionAr: string;
@@ -35,6 +45,8 @@ export const TEST_CATALOG: StandardizedTestDefinition[] = [
     scoreUnit: 'Points',
     typicalPrepWeeks: 8,
     officialPortal: 'https://etec.gov.sa',
+    sourceUrls: {},
+    unverifiedFields: ['scoreScale', 'sections', 'dates'],
     descriptionEn: 'General Aptitude Test evaluating analytical and deductive abilities.',
     descriptionAr: 'اختبار يقيس القدرة التحليلية والاستدلالية للقبول الجامعي.',
     sections: [
@@ -67,6 +79,8 @@ export const TEST_CATALOG: StandardizedTestDefinition[] = [
     scoreUnit: 'Points',
     typicalPrepWeeks: 10,
     officialPortal: 'https://etec.gov.sa',
+    sourceUrls: {},
+    unverifiedFields: ['scoreScale', 'sections', 'dates'],
     descriptionEn: 'Standard Achievement Admission Test covering secondary STEM subjects.',
     descriptionAr: 'اختبار يقيس التحصيل العلمي في الرياضيات والفيزياء والكيمياء والأحياء.',
     sections: [
@@ -87,6 +101,8 @@ export const TEST_CATALOG: StandardizedTestDefinition[] = [
     scoreUnit: 'Points',
     typicalPrepWeeks: 6,
     officialPortal: 'https://etec.gov.sa',
+    sourceUrls: {},
+    unverifiedFields: ['scoreScale', 'sections', 'dates'],
     descriptionEn: 'Standardized Test of English Proficiency for academic & military admission.',
     descriptionAr: 'اختبار تحديد كفاءة اللغة الإنجليزية للجامعات والمؤسسات الحكومية.',
     sections: [
@@ -107,6 +123,10 @@ export const TEST_CATALOG: StandardizedTestDefinition[] = [
     scoreUnit: 'Points',
     typicalPrepWeeks: 12,
     officialPortal: 'https://admissions.kfupm.edu.sa',
+    sourceUrls: {
+      dates: 'https://admissions.kfupm.edu.sa/important-dates',
+    },
+    unverifiedFields: ['scoreScale', 'sections'],
     descriptionEn: 'Competitive early admission tracking for top STEM students at KFUPM.',
     descriptionAr: 'المسار التنافسي للقبول المبكر لطلاب التخصصات العلمية والهندسية.',
     sections: [
@@ -127,6 +147,12 @@ export const TEST_CATALOG: StandardizedTestDefinition[] = [
     scoreUnit: 'Score',
     typicalPrepWeeks: 12,
     officialPortal: 'https://satsuite.collegeboard.org',
+    sourceUrls: {
+      scoreScale: 'https://satsuite.collegeboard.org/scores/what-scores-mean',
+      sections: 'https://satsuite.collegeboard.org/sat/whats-on-the-test',
+      dates: 'https://satsuite.collegeboard.org/sat/dates-deadlines',
+    },
+    unverifiedFields: [],
     descriptionEn: 'Global college admissions test measuring Reading, Writing, and Math.',
     descriptionAr: 'الاختبار المعياري العالمي للقبول الجامعي في أمريكا والجامعات العالمية.',
     sections: [
@@ -159,6 +185,11 @@ export const TEST_CATALOG: StandardizedTestDefinition[] = [
     scoreUnit: 'Composite',
     typicalPrepWeeks: 10,
     officialPortal: 'https://www.act.org',
+    sourceUrls: {
+      scoreScale: 'https://www.act.org/content/act/en/products-and-services/the-act/scores.html',
+      dates: 'https://www.act.org/content/act/en/products-and-services/the-act/scores.html',
+    },
+    unverifiedFields: ['sections'],
     descriptionEn: 'Standardized assessment covering English, Mathematics, Reading, and Science.',
     descriptionAr: 'اختبار القياس الأكاديمي الشامل للقبول بالجامعات الدولية.',
     sections: [
@@ -179,6 +210,12 @@ export const TEST_CATALOG: StandardizedTestDefinition[] = [
     scoreUnit: 'Band',
     typicalPrepWeeks: 8,
     officialPortal: 'https://ielts.org',
+    sourceUrls: {
+      scoreScale: 'https://ielts.org/take-a-test/your-results/ielts-scoring-in-detail',
+      sections: 'https://ielts.org/take-a-test/test-types/ielts-academic-test',
+      dates: 'https://ielts.org/take-a-test/booking-your-test',
+    },
+    unverifiedFields: [],
     descriptionEn: 'International English Language Testing System for global study visas.',
     descriptionAr: 'النظام الدولي لاختبار اللغة الإنجليزية للهجرة والابتعاث والدراسة.',
     sections: [
@@ -199,6 +236,10 @@ export const TEST_CATALOG: StandardizedTestDefinition[] = [
     scoreUnit: 'Points',
     typicalPrepWeeks: 8,
     officialPortal: 'https://www.ets.org/toefl',
+    sourceUrls: {
+      scoreScale: 'https://www.ets.org/toefl/test-takers/ibt/scores.html',
+    },
+    unverifiedFields: ['sections', 'dates'],
     descriptionEn: 'Test of English as a Foreign Language for university study.',
     descriptionAr: 'اختبار إتقان الإنجليزية المعتمد عالمياً في الجامعات الأمريكية والأوروبية.',
     sections: [
@@ -219,6 +260,8 @@ export const TEST_CATALOG: StandardizedTestDefinition[] = [
     scoreUnit: 'Score',
     typicalPrepWeeks: 4,
     officialPortal: 'https://englishtest.duolingo.com',
+    sourceUrls: {},
+    unverifiedFields: ['scoreScale', 'sections', 'dates'],
     descriptionEn: 'Fast online adaptive English test accepted by 5,000+ institutions.',
     descriptionAr: 'اختبار الكفاءة اللغوية التكيفي المعتمد في أكثر من 5000 جامعة.',
     sections: [

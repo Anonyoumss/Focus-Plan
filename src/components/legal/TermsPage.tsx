@@ -59,6 +59,9 @@ export const TermsPage: React.FC = () => {
           <p>
             Future releases will introduce optional Google sign-in and Workspace synchronizations (Google Tasks and Google Calendar). When released, these integrations will strictly require explicit user authorization. No credentials or tokens are currently collected.
           </p>
+          <p className="pt-2">
+            Scheduled push notifications and calendar reminders are not part of this release. The only alerts today are in-app notification permission requests for session completion while the app is open.
+          </p>
         </section>
 
         <section className="space-y-2 text-sm leading-relaxed" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
@@ -75,7 +78,7 @@ export const TermsPage: React.FC = () => {
             4. User Accountability & Fair Play
           </h2>
           <p>
-            Study circles and leaderboards are designed for honest mutual motivation. Automated scripts or attempts to manipulate coin balances or focus hours may result in leaderboard disqualification.
+            The Friends screen is currently a local preview only. There are no real groups, invite links, leaderboards, or point awards yet, so nothing you enter there is shared with anyone. Study data you create yourself is yours to export or delete at any time in Settings.
           </p>
         </section>
       </div>

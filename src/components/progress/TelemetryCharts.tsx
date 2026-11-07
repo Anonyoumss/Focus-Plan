@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useAppStore } from '../../store/useAppStore';
-import { TRANSLATIONS } from '../../i18n/translations';
+import { TRANSLATIONS, getCategoryLabel } from '../../i18n/translations';
 import { MaterialIcon } from '../common/MaterialIcon';
 import {
   TimeFilter,
@@ -205,7 +205,7 @@ export const TelemetryCharts: React.FC = () => {
             {t.analytics.topCategory}
           </div>
           <div className="text-base font-bold truncate mt-1" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-            {categoriesData[0]?.category || 'General'}
+            {categoriesData[0] ? getCategoryLabel(t, categoriesData[0].category) : 'General'}
           </div>
           <div className="text-[11px] mt-0.5" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
             {categoriesData[0]?.percentage || 0}% of focus effort
@@ -356,7 +356,7 @@ export const TelemetryCharts: React.FC = () => {
                 </span>
                 {hoveredPoint.topCategory && (
                   <span className="text-[11px]" style={{ color: 'var(--md-sys-color-outline)' }}>
-                    · {hoveredPoint.topCategory}
+                    · {getCategoryLabel(t, hoveredPoint.topCategory)}
                   </span>
                 )}
               </div>
@@ -377,23 +377,17 @@ export const TelemetryCharts: React.FC = () => {
               className="w-full h-52 overflow-visible"
               preserveAspectRatio="none"
             >
-              <defs>
-                <linearGradient id="m3eLineGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--md-sys-color-primary)" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="var(--md-sys-color-primary)" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-
               {/* Gridlines */}
               <line x1="32" y1="32" x2="608" y2="32" stroke="var(--md-sys-color-outline-variant)" strokeDasharray="3 3" opacity="0.5" />
               <line x1="32" y1="88" x2="608" y2="88" stroke="var(--md-sys-color-outline-variant)" strokeDasharray="3 3" opacity="0.5" />
               <line x1="32" y1="148" x2="608" y2="148" stroke="var(--md-sys-color-outline-variant)" strokeWidth="1" opacity="0.75" />
 
-              {/* Area fill */}
+              {/* Flat tonal area fill */}
               {linePoints.path && (
                 <path
                   d={`${linePoints.path} L 608 148 L 32 148 Z`}
-                  fill="url(#m3eLineGrad)"
+                  fill="var(--md-sys-color-primary-container)"
+                  fillOpacity="0.45"
                 />
               )}
 
@@ -484,7 +478,7 @@ export const TelemetryCharts: React.FC = () => {
                     className="text-sm font-semibold truncate"
                     style={{ color: 'var(--md-sys-color-on-surface)' }}
                   >
-                    {cat.category}
+                    {getCategoryLabel(t, cat.category)}
                   </span>
                 </div>
 
@@ -496,7 +490,7 @@ export const TelemetryCharts: React.FC = () => {
                     className="block text-[11px]"
                     style={{ color: 'var(--md-sys-color-outline)' }}
                   >
-                    {cat.percentage}% ({cat.sessions} p)
+                    {cat.percentage}% ({cat.sessions} {locale === 'ar' ? 'جلسة' : 'sess'})
                   </span>
                 </div>
               </div>
@@ -544,7 +538,9 @@ export const TelemetryCharts: React.FC = () => {
                   }}
                   title={`${cell.dateStr}: ${cell.sessions} sessions (${cell.minutes} min)`}
                 >
-                  <span className="text-[10px] opacity-75 font-semibold">{cell.dayLabel}</span>
+                  <span className="text-[10px] opacity-75 font-semibold">
+                    {new Date(`${cell.dateStr}T12:00:00`).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', { weekday: 'narrow' })}
+                  </span>
                   <span className="text-xs font-bold font-timer tabular-nums">{cell.sessions}</span>
                 </div>
               );
@@ -596,7 +592,7 @@ export const TelemetryCharts: React.FC = () => {
                         color: 'var(--md-sys-color-on-surface)',
                       }}
                     >
-                      {s.category}
+                      {getCategoryLabel(t, s.category)}
                     </span>
                   </td>
                   <td className="py-2.5 px-3 truncate max-w-xs font-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>

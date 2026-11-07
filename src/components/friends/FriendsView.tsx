@@ -7,7 +7,7 @@ export const FriendsView: React.FC = () => {
   const { locale, focusPoints } = useAppStore();
   const t = TRANSLATIONS[locale];
 
-  const [groupCode, setGroupCode] = useState('FOCUS7');
+  const [groupCode] = useState('FOCUS7');
   const [copied, setCopied] = useState(false);
   const [joinCodeInput, setJoinCodeInput] = useState('');
   const [publicLeaderboardOptIn, setPublicLeaderboardOptIn] = useState(false);

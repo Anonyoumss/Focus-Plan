@@ -66,7 +66,7 @@ export const PrivacyPage: React.FC = () => {
             3. Leaderboards & Public Visibility
           </h2>
           <p>
-            Your profile and focus minutes are only visible to members of study circles you explicitly join. The public global leaderboard is opt-in and disabled by default. You can change your privacy settings at any time in Settings.
+            Focus Plan M3E currently has no accounts and no social features. The Friends screen is a local preview: group names, codes, and standings you see are demonstration data stored only in your browser and are never sent anywhere. No public leaderboard exists in this release, and there is no way for other people to view your data.
           </p>
         </section>
 

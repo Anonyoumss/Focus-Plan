@@ -17,10 +17,12 @@ export const SettingsView: React.FC = () => {
     exportDataJson,
     exportDataCsv,
     resetAllData,
+    demoDataLoaded,
+    loadDemoData,
   } = useAppStore();
 
   const t = TRANSLATIONS[locale];
-  const [customHex, setCustomHex] = useState(seedHex);
+  const [, setCustomHex] = useState(seedHex);
   const [notificationStatus, setNotificationStatus] = useState<string>(
     typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'
   );
@@ -422,6 +424,73 @@ export const SettingsView: React.FC = () => {
               <MaterialIcon name="download" size={16} />
               <span>{t.settings.downloadJson}</span>
             </button>
+          </div>
+        </div>
+
+        {/* Demo Data */}
+        <div
+          className="p-6 rounded-3xl border"
+          style={{
+            backgroundColor: 'var(--md-sys-color-surface-container-low)',
+            borderColor: 'var(--md-sys-color-outline-variant)',
+          }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <MaterialIcon name="science" size={20} style={{ color: 'var(--md-sys-color-primary)' }} />
+            <h2
+              className="text-base font-bold"
+              style={{ color: 'var(--md-sys-color-on-surface)' }}
+            >
+              {t.settings.demoDataTitle}
+            </h2>
+            {demoDataLoaded && (
+              <span
+                className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider"
+                style={{
+                  backgroundColor: 'var(--md-sys-color-tertiary-container)',
+                  color: 'var(--md-sys-color-on-tertiary-container)',
+                }}
+              >
+                {locale === 'ar' ? 'تجريبي' : 'Demo'}
+              </span>
+            )}
+          </div>
+          <p
+            className="text-xs mb-4"
+            style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+          >
+            {demoDataLoaded ? t.settings.demoDataLoaded : t.settings.demoDataDescription}
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            {!demoDataLoaded ? (
+              <button
+                onClick={loadDemoData}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border cursor-pointer transition-colors"
+                style={{
+                  borderColor: 'var(--md-sys-color-primary)',
+                  color: 'var(--md-sys-color-primary)',
+                }}
+              >
+                <MaterialIcon name="download" size={16} />
+                <span>{t.settings.loadDemoData}</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  if (confirm(locale === 'ar' ? 'إزالة جميع البيانات التجريبية؟' : 'Remove all demo data?')) {
+                    resetAllData();
+                  }
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border cursor-pointer transition-colors"
+                style={{
+                  borderColor: 'var(--md-sys-color-error)',
+                  color: 'var(--md-sys-color-error)',
+                }}
+              >
+                <MaterialIcon name="delete" size={16} />
+                <span>{t.settings.clearDemoData}</span>
+              </button>
+            )}
           </div>
         </div>
 

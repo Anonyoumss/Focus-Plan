@@ -14,6 +14,7 @@ const copy = {
     friends: 'Friends',
     store: 'Store',
     settings: 'Settings',
+    more: 'More',
     terms: 'Terms of Service',
     privacy: 'Privacy Policy',
     start: 'Start Focus',
@@ -28,6 +29,7 @@ const copy = {
     friends: 'الأصدقاء',
     store: 'المتجر',
     settings: 'الإعدادات',
+    more: 'المزيد',
     terms: 'شروط الخدمة',
     privacy: 'سياسة الخصوصية',
     start: 'بدء التركيز',
@@ -72,6 +74,8 @@ for (const locale of ['en', 'ar'] as const) {
         await page.goto('/');
         await expect(page.locator('html')).toHaveAttribute('dir', locale === 'ar' ? 'rtl' : 'ltr');
         await expect(page.locator('html')).toHaveAttribute('lang', locale);
+        const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+        expect(scrollWidth, `horizontal overflow at ${viewport.width}px`).toBeLessThanOrEqual(viewport.width + 1);
         if (theme === 'dark') {
           await expect(page.locator('html')).toHaveClass(/dark/);
         }
@@ -91,8 +95,13 @@ for (const locale of ['en', 'ar'] as const) {
           ['settings', labels.settings],
         ] as const;
 
+        const overflowIds = new Set(['friends', 'store', 'settings']);
         for (const [id, label] of railScreens) {
-          const button = nav.getByRole('button', { name: label });
+          let button = nav.getByRole('button', { name: label });
+          if (viewport.name === 'phone' && overflowIds.has(id)) {
+            await nav.getByRole('button', { name: labels.more }).click();
+            button = page.getByRole('dialog').getByRole('button', { name: label });
+          }
           if ((await button.count()) === 0) {
             fs.writeFileSync(
               path.join(dir, `${id}.unreachable.txt`),

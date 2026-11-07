@@ -40,7 +40,7 @@ export interface TaskItem {
   completedSessions: number;
   minGoal: number;
   maxGoal: number;
-  cadence: 'daily' | 'weekly' | 'monthly';
+  cadence: 'hourly' | 'daily' | 'weekly' | 'monthly';
   notes: string;
   isCompleted: boolean;
   createdAt: number;
@@ -92,6 +92,7 @@ export interface AppState {
 
   // Session Logs & Telemetry
   sessionLogs: FocusSessionRecord[];
+  demoDataLoaded: boolean;
 
   // Actions
   setLocale: (locale: Locale) => void;
@@ -135,6 +136,7 @@ export interface AppState {
   exportDataJson: () => string;
   exportDataCsv: () => string;
   resetAllData: () => void;
+  loadDemoData: () => void;
 }
 
 const STORAGE_KEY = 'focus_plan_m3e_v1';
@@ -172,6 +174,7 @@ function persistState(state: AppState) {
       transactions: state.transactions,
       activeTaskId: state.activeTaskId,
       sessionLogs: state.sessionLogs,
+      demoDataLoaded: state.demoDataLoaded,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   } catch (e) {
@@ -181,7 +184,7 @@ function persistState(state: AppState) {
 
 const initialPersisted = loadPersistedState();
 
-const defaultTasks: TaskItem[] = [
+const DEMO_TASKS: TaskItem[] = [
   {
     id: 'sample_task_1',
     title: 'GAT Quantitative Reasoning Problem Set',
@@ -210,6 +213,37 @@ const defaultTasks: TaskItem[] = [
   },
 ];
 
+const DEMO_TEST_GOALS: UserTestGoal[] = [
+  {
+    id: 'demo_gat_goal',
+    testId: 'gat_qudurat',
+    testName: 'Saudi GAT (Qudurat)',
+    testDate: '2026-12-15',
+    targetScore: 92,
+    currentBaselineScore: 81,
+    sectionTargets: { gat_quant: 94, gat_verbal: 90 },
+    weeklyHours: 12,
+    weeklyPomodoros: 24,
+    completedPomodoros: 14,
+    scoresHistory: [
+      { date: '2026-10-15', score: 81, sectionScores: { gat_quant: 83, gat_verbal: 79 }, notes: 'Diagnostic baseline' },
+    ],
+  },
+  {
+    id: 'demo_sat_goal',
+    testId: 'sat_collegeboard',
+    testName: 'SAT Digital',
+    testDate: '2026-12-05',
+    targetScore: 1480,
+    currentBaselineScore: 1360,
+    sectionTargets: { sat_reading_writing: 720, sat_math: 760 },
+    weeklyHours: 10,
+    weeklyPomodoros: 20,
+    completedPomodoros: 8,
+    scoresHistory: [],
+  },
+];
+
 export const useAppStore = create<AppState>((set, get) => ({
   locale: initialPersisted.locale || 'en',
   themeMode: initialPersisted.themeMode || 'system',
@@ -225,58 +259,28 @@ export const useAppStore = create<AppState>((set, get) => ({
   completedFocusSessions: initialPersisted.completedFocusSessions || 0,
   dailyGoalSessions: initialPersisted.dailyGoalSessions || 4,
   todaySessionsCount: initialPersisted.todaySessionsCount || 0,
-  activeTaskId: initialPersisted.activeTaskId || 'sample_task_1',
+  activeTaskId: initialPersisted.activeTaskId || null,
   ambientSound: 'none',
   alarmVolume: 0.7,
   ambientVolume: 0.5,
   timerConfig: initialPersisted.timerConfig || DEFAULT_TIMER_CONFIG,
 
-  tasks: initialPersisted.tasks || defaultTasks,
-  testGoals: initialPersisted.testGoals || [
-    {
-      id: 'default_gat_goal',
-      testId: 'gat_qudurat',
-      testName: 'Saudi GAT (Qudurat)',
-      testDate: '2026-12-15',
-      targetScore: 92,
-      currentBaselineScore: 81,
-      sectionTargets: { gat_quant: 94, gat_verbal: 90 },
-      weeklyHours: 12,
-      weeklyPomodoros: 24,
-      completedPomodoros: 14,
-      scoresHistory: [
-        { date: '2026-10-15', score: 81, sectionScores: { gat_quant: 83, gat_verbal: 79 }, notes: 'Diagnostic baseline' },
-      ],
-    },
-    {
-      id: 'default_sat_goal',
-      testId: 'sat_collegeboard',
-      testName: 'SAT Digital',
-      testDate: '2026-12-05',
-      targetScore: 1480,
-      currentBaselineScore: 1360,
-      sectionTargets: { sat_reading_writing: 720, sat_math: 760 },
-      weeklyHours: 10,
-      weeklyPomodoros: 20,
-      completedPomodoros: 8,
-      scoresHistory: [],
-    },
-  ],
+  tasks: initialPersisted.tasks || [],
+  testGoals: initialPersisted.testGoals || [],
 
   streak: initialPersisted.streak || {
-    currentStreak: 4,
-    bestStreak: 7,
-    lastActiveDate: getTodayDateString(),
-    streakFreezes: 1,
+    currentStreak: 0,
+    bestStreak: 0,
+    lastActiveDate: null,
+    streakFreezes: 0,
     freezeUsedDates: [],
   },
-  coins: initialPersisted.coins ?? 35,
-  focusPoints: initialPersisted.focusPoints ?? 12,
-  inventory: initialPersisted.inventory || { streak_freeze: 1 },
-  transactions: initialPersisted.transactions || [
-    { id: 'tx_init', timestamp: Date.now() - 86400000, amount: 15, type: 'earn', reason: 'Welcome focus bonus' },
-  ],
-  sessionLogs: initialPersisted.sessionLogs || generateDefaultSessionLogs(),
+  coins: initialPersisted.coins ?? 0,
+  focusPoints: initialPersisted.focusPoints ?? 0,
+  inventory: initialPersisted.inventory || {},
+  transactions: initialPersisted.transactions || [],
+  sessionLogs: initialPersisted.sessionLogs || [],
+  demoDataLoaded: initialPersisted.demoDataLoaded || false,
 
   setLocale: (locale) => {
     set({ locale });
@@ -622,6 +626,33 @@ export const useAppStore = create<AppState>((set, get) => ({
       todaySessionsCount: 0,
       completedFocusSessions: 0,
       sessionLogs: [],
+      demoDataLoaded: false,
     });
+  },
+
+  loadDemoData: () => {
+    set({
+      tasks: DEMO_TASKS,
+      testGoals: DEMO_TEST_GOALS,
+      activeTaskId: DEMO_TASKS[0]?.id || null,
+      streak: {
+        currentStreak: 4,
+        bestStreak: 7,
+        lastActiveDate: getTodayDateString(),
+        streakFreezes: 1,
+        freezeUsedDates: [],
+      },
+      coins: 35,
+      focusPoints: 12,
+      inventory: { streak_freeze: 1 },
+      transactions: [
+        { id: 'tx_demo_init', timestamp: Date.now() - 86400000, amount: 15, type: 'earn', reason: 'Demo welcome bonus' },
+      ],
+      todaySessionsCount: 4,
+      completedFocusSessions: 26,
+      sessionLogs: generateDefaultSessionLogs(),
+      demoDataLoaded: true,
+    });
+    persistState(get());
   },
 }));

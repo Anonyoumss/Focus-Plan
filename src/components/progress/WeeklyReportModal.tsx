@@ -11,7 +11,6 @@ import {
   calculateCategoryBreakdown,
   calculateTaskCompletionRatio,
   exportSessionsToCsv,
-  FocusSessionRecord,
 } from '../../lib/analyticsEngine';
 
 interface WeeklyReportModalProps {

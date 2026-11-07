@@ -1,41 +1,40 @@
 # HANDOFF — Focus Plan M3E
 
-## State (verified 2026-11-07, Devin taking over from Cursor)
+## State (verified 2026-11-07, milestone 2a complete)
 
-- Repo: Anonyoumss/Focus-Plan, branch main, 4 commits, clean tree except untracked `.cursor/` plan file.
-- Stack: React 19 + Vite 8 + TS + Zustand + Tailwind v4 + Vitest + Playwright. No router, no Firebase yet.
+- Repo: Anonyoumss/Focus-Plan, branch main. Do not push.
+- Stack: React 19 + Vite 8 + TS ~5.9 + Zustand + Tailwind v4 + Vitest 3.2.7 + Playwright 1.65 + ESLint flat config. No router, no Firebase yet.
+- Milestone 2a (honesty and bugs) is done and verified. Next: milestone 2b (hash routes, landing page, wavy ring, Start/Pause morph, @material/web, anime.js, task reorder + N shortcut).
 
-## Verified command results
+## Verified command results (post-2a)
 
-- `npm install`: OK. 3 audit vulns, all dev-only via vitest chain: `@vitest/mocker` <=4.1.11 (moderate), `tinypool` <=2.1.1 (critical x2 advisories). Fix requires vitest 5 (breaking).
-- `npx tsc --noEmit`: pass.
-- `npm test` (vitest run): FAILS at file level — vitest picks up `e2e/audit-screenshots.spec.ts` (Playwright spec) because there is no vitest config excluding `e2e/`. The 18 real unit tests pass.
-- `npm run build`: pass.
-- `npx playwright test`: 8/8 pass (needed `npx playwright install chromium`; browsers now in `~/.cache/ms-playwright`). Screenshots refreshed in `docs/screenshots/`.
+- `npm run lint` (`tsc --noEmit`): pass. `npx eslint .`: 0 errors, 0 warnings.
+- `npm test`: 5 files, 22 tests pass. `vitest.config.ts` excludes `e2e/`.
+- `npm run build`: pass (~458 kB JS, ~35 kB CSS).
+- `npx playwright test`: 8/8 pass including a 360px horizontal-overflow assertion. Screenshots refreshed in `docs/screenshots/`.
+- `npm audit`: 13 paths / 3 advisories, all dev-only (vitest chain + eslint's minimatch). Accepted per owner; see DECISIONS.md Decision 8. Do NOT run `npm audit fix --force`.
 
-## Known broken / half-done (verified in code)
+## What changed in 2a
 
-- New users get fake data: `useAppStore.ts` seeds 2 sample tasks, 2 test goals (dates 2026-12-15 / 2026-12-05), streak 4, coins 35, 42 generated session logs.
-- `ProgressView.tsx` `daysOfWeek` is hardcoded dummy data; total focus hours = completedFocusSessions*25 ignores real session durations.
-- Badge raw key bug: `evaluateBadges` returns `descKey: 'streakRuleNotice'` which lives under `t.streaks`, but ProgressView looks it up in `t.badges` → raw key shown. EN/AR dictionaries are actually in parity (240 keys each); no test enforces it.
-- Gradient chart fill `m3eLineGrad` in TelemetryCharts.tsx; onboarding uses `backdrop-blur-xs`.
-- Store unreachable on phone bottom nav (only first 5 items + settings button).
-- No hash routes, no landing page, no wavy ring (plain dash-offset circle), no Start/Pause morph.
-- Deps to remove or use: `@google/genai`, `dotenv`, `express`, `tsx`, `canvas-confetti`, `@types/express`; `motion` installed unused; `anime.js` and `@material/web` absent. `.env.example` still has GEMINI_API_KEY placeholder.
-- Cadence union lacks 'hourly'. No task reorder, no N shortcut.
-- Terms/Privacy already describe local-only accurately; Privacy mentions an opt-in public leaderboard that does not exist yet (minor).
-- Test catalog has `officialPortal` URLs but no per-field source URLs; no "verify on official site" labeling seen in UI copy yet.
+- Empty defaults; labeled "Load demo data" button in Settings (`loadDemoData`, persisted `demoDataLoaded` flag).
+- Progress: real `sessionLogs` durations for total focus; week row computed from real logs; badge `descKey` resolved via `lookupTranslationString`.
+- i18n: `getCategoryLabel`, `getCadenceLabel`, `lookupTranslationString` helpers; `hourly` cadence added end-to-end; EN/AR parity test in `src/i18n/__tests__/translations.test.ts`.
+- Phone nav: bottom bar = Focus, Plan, Tests, Progress, More (sheet with Friends, Store, Settings). Desktop rail unchanged.
+- 360px overflow fixed: ambient select constrained, Start row wraps, `.material-symbols-rounded` gets `overflow: hidden` (ligature fallback no longer widens layout).
+- Charts: flat tonal fills, no `linearGradient`. Onboarding: scrim only, no blur.
+- Terms/Privacy: local-only wording; no leaderboard claim; Terms says scheduled push/Calendar reminders are not shipped. Goal/test-date reminders moved to milestone 5.
+- Catalog: `sourceUrls` + `unverifiedFields` per test; "Verify on official site" chip in UI; no prefilled dates. Only officially-confirmed URLs filled (SAT, ACT scores, IELTS, TOEFL scores, KFUPM dates).
+- Deps removed: `@google/genai`, `dotenv`, `express`, `tsx`, `@types/express`, `canvas-confetti`. `motion` kept for 2b. `.env.example` has no GEMINI_API_KEY.
+- ESLint added; `typescript` pinned ~5.9 (typescript-eslint can't parse TS 7) — DECISIONS.md Decision 9.
+- `docs/cursor-plan.md` committed from `.cursor/` plan.
 
-## Milestone status
+## Known gaps / cautions
 
-- 2a honesty/bugs: not started (all items confirmed still broken).
-- 2b build: not started.
-- 3 Firebase: not started. DECISIONS.md already records Spark honor-system decision.
-- 4 Social/store: not started (Friends is labeled local demo).
-- 5 Study tools: not started.
-- 6 Publish: not started (README/CODEBASE exist but describe aspirational features; CONTRIBUTING.md missing).
+- Catalog sections for unverified tests are editable defaults flagged "verify on official site", not confirmed facts. Saudi score scales unconfirmed.
+- Store purchase, score entry, task edit flow, sounds, wake lock, export: compiled only, not browser-verified.
+- `docs/original-brief.md` and `docs/ai-studio-plan.md` are being added by the owner; they are not in the repo yet.
+- TypeScript is ~5.9, not 7.x — required by typescript-eslint. Revisit when TS-eslint supports 7.
 
 ## Commands
 
-- Dev: `npm run dev` (port 3000). Tests: `npx vitest run` (broken, see above), `npm test`. E2E: `npx playwright test`.
-- Lint is only `tsc --noEmit`; no ESLint config yet.
+- Dev: `npm run dev` (port 3000). Unit: `npm test`. Lint: `npm run lint && npm run lint:eslint`. Build: `npm run build`. E2E: `npx playwright test` (Chromium already installed).

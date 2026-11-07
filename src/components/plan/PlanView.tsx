@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppStore } from '../../store/useAppStore';
-import { TRANSLATIONS } from '../../i18n/translations';
+import { TRANSLATIONS, getCategoryLabel, getCadenceLabel } from '../../i18n/translations';
 import { MaterialIcon } from '../common/MaterialIcon';
 
 export const PlanView: React.FC = () => {
@@ -111,7 +111,7 @@ export const PlanView: React.FC = () => {
                 borderColor: 'var(--md-sys-color-outline-variant)',
               }}
             >
-              <div className="truncate text-start">
+              <div className="min-w-0 flex-1 text-start">
                 <div
                   className="text-sm font-semibold truncate"
                   style={{ color: 'var(--md-sys-color-on-surface)' }}
@@ -119,15 +119,15 @@ export const PlanView: React.FC = () => {
                   {task.title}
                 </div>
                 <div
-                  className="flex items-center gap-2 text-xs mt-1"
+                  className="flex items-center gap-2 text-xs mt-1 min-w-0"
                   style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                 >
-                  <span className="font-medium">{task.category}</span>
+                  <span className="font-medium shrink-0">{getCategoryLabel(t, task.category)}</span>
                   <span aria-hidden="true">·</span>
-                  <span className="capitalize">{task.cadence}</span>
+                  <span>{getCadenceLabel(t, task.cadence)}</span>
                   <span aria-hidden="true">·</span>
-                  <span>
-                    Min: {task.minGoal} / Max: {task.maxGoal} {t.timer.sessionNumber.toLowerCase()}s
+                  <span className="truncate">
+                    {t.tasks.minGoal}: {task.minGoal} / {t.tasks.maxGoal}: {task.maxGoal}
                   </span>
                 </div>
               </div>

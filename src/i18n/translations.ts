@@ -11,6 +11,7 @@ export interface Translations {
     friends: string;
     store: string;
     settings: string;
+    more: string;
     terms: string;
     privacy: string;
   };
@@ -48,6 +49,7 @@ export interface Translations {
     cadenceDaily: string;
     cadenceWeekly: string;
     cadenceMonthly: string;
+    cadenceHourly: string;
     notes: string;
     markDone: string;
     delete: string;
@@ -80,6 +82,7 @@ export interface Translations {
     sessionsPerWeek: string;
     daysRemaining: string;
     verifyNotice: string;
+    verifyOnOfficialSite: string;
     customTest: string;
     logScore: string;
     scoreLoopPrompt: string;
@@ -177,6 +180,11 @@ export interface Translations {
     account: string;
     guestMode: string;
     signInGoogle: string;
+    demoDataTitle: string;
+    demoDataDescription: string;
+    loadDemoData: string;
+    demoDataLoaded: string;
+    clearDemoData: string;
   };
   onboarding: {
     welcomeTitle: string;
@@ -287,6 +295,7 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       friends: 'Friends',
       store: 'Store',
       settings: 'Settings',
+      more: 'More',
       terms: 'Terms of Service',
       privacy: 'Privacy Policy',
     },
@@ -324,6 +333,7 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       cadenceDaily: 'Daily',
       cadenceWeekly: 'Weekly',
       cadenceMonthly: 'Monthly',
+      cadenceHourly: 'Hourly',
       notes: 'Notes or Syllabus details',
       markDone: 'Mark Complete',
       delete: 'Delete Task',
@@ -356,6 +366,7 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       sessionsPerWeek: 'Weekly Pomodoros',
       daysRemaining: 'Days Left',
       verifyNotice: 'Please verify exact test dates and registration deadlines on the official testing portal.',
+      verifyOnOfficialSite: 'Verify on official site',
       customTest: 'Custom Exam',
       logScore: 'Log Real Exam Score',
       scoreLoopPrompt: 'Have you completed your test? Enter your real scores to review progress and adjust your next plan.',
@@ -453,6 +464,11 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       account: 'Account & Synchronization',
       guestMode: 'Guest Mode (Local Storage Only)',
       signInGoogle: 'Sign In with Google',
+      demoDataTitle: 'Demo Data',
+      demoDataDescription: 'Load sample tasks, test goals, a streak, coins, and session history to explore the app. This is clearly labeled demo content and can be removed at any time.',
+      loadDemoData: 'Load demo data',
+      demoDataLoaded: 'Demo data is currently loaded in this browser.',
+      clearDemoData: 'Remove demo data',
     },
     onboarding: {
       welcomeTitle: 'Welcome to Focus Plan M3E',
@@ -561,6 +577,7 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       friends: 'الأصدقاء',
       store: 'المتجر',
       settings: 'الإعدادات',
+      more: 'المزيد',
       terms: 'شروط الخدمة',
       privacy: 'سياسة الخصوصية',
     },
@@ -598,6 +615,7 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       cadenceDaily: 'يومياً',
       cadenceWeekly: 'أسبوعياً',
       cadenceMonthly: 'شهرياً',
+      cadenceHourly: 'كل ساعة',
       notes: 'ملاحظات وتفاصيل المنهج',
       markDone: 'اكتمال المهمة',
       delete: 'حذف المهمة',
@@ -630,6 +648,7 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       sessionsPerWeek: 'جلسات البومودورو الأسبوعية',
       daysRemaining: 'الأيام المتبقية',
       verifyNotice: 'يرجى مراجعة وتأكيد مواعيد الاختبارات والتسجيل الرسمية عبر موقع الجهة المنظمة للاختبار.',
+      verifyOnOfficialSite: 'تحقق من الموقع الرسمي',
       customTest: 'اختبار مخصص',
       logScore: 'تسجيل الدرجة الفعلية',
       scoreLoopPrompt: 'هل انتهيت من اختبارك؟ أدخل درجاتك الحقيقية لمقارنة تقدمك وتعديل الخطة القادمة.',
@@ -727,6 +746,11 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       account: 'الحساب والمزامنة',
       guestMode: 'وضع الضيف (حفظ محلي فقط)',
       signInGoogle: 'تسجيل الدخول عبر Google',
+      demoDataTitle: 'بيانات تجريبية',
+      demoDataDescription: 'حمّل مهاماً وأهداف اختبارات وسلسلة عملات وسجلات جلسات تجريبية لاستكشاف التطبيق. هذا محتوى تجريبي موسوم بوضوح ويمكن إزالته في أي وقت.',
+      loadDemoData: 'تحميل بيانات تجريبية',
+      demoDataLoaded: 'البيانات التجريبية محمّلة حالياً في هذا المتصفح.',
+      clearDemoData: 'إزالة البيانات التجريبية',
     },
     onboarding: {
       welcomeTitle: 'أهلاً بك في فوكس بلان M3E',
@@ -825,3 +849,41 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
     },
   },
 };
+
+const CATEGORY_KEY_MAP: Record<string, keyof Translations['categories']> = {
+  'Standardized Tests': 'standardizedTests',
+  Study: 'study',
+  School: 'school',
+  Work: 'work',
+  Extracurriculars: 'extracurriculars',
+  Personal: 'personal',
+};
+
+export function getCategoryLabel(t: Translations, category: string): string {
+  const key = CATEGORY_KEY_MAP[category];
+  return key ? t.categories[key] : category;
+}
+
+const CADENCE_KEY_MAP: Record<string, keyof Translations['tasks']> = {
+  hourly: 'cadenceHourly',
+  daily: 'cadenceDaily',
+  weekly: 'cadenceWeekly',
+  monthly: 'cadenceMonthly',
+};
+
+export function getCadenceLabel(t: Translations, cadence: string): string {
+  const key = CADENCE_KEY_MAP[cadence];
+  return key ? (t.tasks[key] as string) : cadence;
+}
+
+export function lookupTranslationString(tree: unknown, key: string): string | undefined {
+  if (!tree || typeof tree !== 'object') return undefined;
+  for (const [k, v] of Object.entries(tree as Record<string, unknown>)) {
+    if (k === key && typeof v === 'string') return v;
+    if (v && typeof v === 'object') {
+      const found = lookupTranslationString(v, key);
+      if (found !== undefined) return found;
+    }
+  }
+  return undefined;
+}

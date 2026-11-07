@@ -23,7 +23,7 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose })
     return TEST_CATALOG.find((x) => x.id === goal.testId);
   }, [goal.testId]);
 
-  const sections = definition?.sections || [];
+  const sections = useMemo(() => definition?.sections || [], [definition]);
 
   // Analysis
   const analysis = useMemo(() => {

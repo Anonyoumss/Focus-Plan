@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppStore, TaskItem } from '../../store/useAppStore';
-import { TRANSLATIONS } from '../../i18n/translations';
+import { TRANSLATIONS, getCategoryLabel } from '../../i18n/translations';
 import { MaterialIcon } from '../common/MaterialIcon';
 
 export const TaskList: React.FC = () => {
@@ -25,7 +25,7 @@ export const TaskList: React.FC = () => {
   const [estimatedSessions, setEstimatedSessions] = useState(4);
   const [minGoal, setMinGoal] = useState(2);
   const [maxGoal, setMaxGoal] = useState(6);
-  const [cadence, setCadence] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [cadence, setCadence] = useState<'hourly' | 'daily' | 'weekly' | 'monthly'>('daily');
   const [notes, setNotes] = useState('');
 
   const openNewTaskModal = () => {
@@ -159,7 +159,7 @@ export const TaskList: React.FC = () => {
                   boxShadow: isSelected ? '0 0 0 2px var(--md-sys-color-primary)' : 'none',
                 }}
               >
-                <div className="flex items-start gap-3 truncate">
+                <div className="flex items-start gap-3 min-w-0 flex-1">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -185,7 +185,7 @@ export const TaskList: React.FC = () => {
                     />
                   </button>
 
-                  <div className="truncate text-start">
+                  <div className="min-w-0 flex-1 text-start">
                     <div
                       className={`text-sm font-semibold truncate ${
                         task.isCompleted ? 'line-through opacity-50' : ''
@@ -196,18 +196,18 @@ export const TaskList: React.FC = () => {
                     </div>
 
                     <div
-                      className="flex items-center gap-2 text-xs mt-1"
+                      className="flex items-center gap-2 text-xs mt-1 min-w-0"
                       style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                     >
-                      <span>{task.category}</span>
+                      <span className="shrink-0">{getCategoryLabel(t, task.category)}</span>
                       <span aria-hidden="true">·</span>
-                      <span>
+                      <span className="shrink-0">
                         {task.completedSessions}/{task.estimatedSessions} {t.timer.sessionNumber.toLowerCase()}s
                       </span>
                       {task.notes && (
                         <>
                           <span aria-hidden="true">·</span>
-                          <span className="truncate max-w-40">{task.notes}</span>
+                          <span className="truncate min-w-0">{task.notes}</span>
                         </>
                       )}
                     </div>
@@ -336,6 +336,7 @@ export const TaskList: React.FC = () => {
                       color: 'var(--md-sys-color-on-surface)',
                     }}
                   >
+                    <option value="hourly">{t.tasks.cadenceHourly}</option>
                     <option value="daily">{t.tasks.cadenceDaily}</option>
                     <option value="weekly">{t.tasks.cadenceWeekly}</option>
                     <option value="monthly">{t.tasks.cadenceMonthly}</option>

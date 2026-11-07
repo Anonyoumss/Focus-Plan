@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppStore, TabDestination } from '../../store/useAppStore';
 import { TRANSLATIONS } from '../../i18n/translations';
 import { MaterialIcon } from '../common/MaterialIcon';
@@ -25,6 +25,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
   } = useAppStore();
 
   const t = TRANSLATIONS[locale];
+  const [showMoreSheet, setShowMoreSheet] = useState(false);
 
   // Global Keyboard shortcuts handler
   useEffect(() => {
@@ -78,6 +79,10 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
     { id: 'store', label: t.nav.store, icon: 'shopping_bag' },
     { id: 'settings', label: t.nav.settings, icon: 'settings' },
   ];
+
+  const primaryNavItems = navItems.slice(0, 4);
+  const overflowNavItems = navItems.slice(4);
+  const moreIsActive = overflowNavItems.some((item) => item.id === activeTab);
 
   const toggleTheme = () => {
     if (themeMode === 'light') setThemeMode('dark');
@@ -290,7 +295,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
         }}
         aria-label="Mobile Bottom Navigation"
       >
-        {navItems.slice(0, 5).map((item) => {
+        {primaryNavItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
             <button
@@ -327,38 +332,90 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
           );
         })}
 
-        {/* More/Settings button for remaining items */}
+        {/* More button opens a sheet with Friends, Store, and Settings */}
         <button
-          onClick={() => setActiveTab('settings')}
+          onClick={() => setShowMoreSheet(true)}
           className="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] cursor-pointer"
+          aria-haspopup="dialog"
+          aria-expanded={showMoreSheet}
         >
           <div
             className={`w-12 h-7 rounded-full flex items-center justify-center transition-colors ${
-              activeTab === 'settings' || activeTab === 'store' ? 'shadow-xs' : ''
+              moreIsActive ? 'shadow-xs' : ''
             }`}
             style={{
-              backgroundColor: activeTab === 'settings' || activeTab === 'store'
+              backgroundColor: moreIsActive
                 ? 'var(--md-sys-color-primary)'
                 : 'transparent',
-              color: activeTab === 'settings' || activeTab === 'store'
+              color: moreIsActive
                 ? 'var(--md-sys-color-on-primary)'
                 : 'var(--md-sys-color-on-surface-variant)',
             }}
           >
-            <MaterialIcon name="settings" size={20} filled={activeTab === 'settings'} />
+            <MaterialIcon name={moreIsActive ? 'menu_open' : 'menu'} size={20} filled={moreIsActive} />
           </div>
           <span
             className="text-[10px] font-medium tracking-tight mt-0.5 truncate"
             style={{
-              color: activeTab === 'settings'
+              color: moreIsActive
                 ? 'var(--md-sys-color-primary)'
                 : 'var(--md-sys-color-on-surface-variant)',
             }}
           >
-            {t.nav.settings}
+            {t.nav.more}
           </span>
         </button>
       </nav>
+
+      {/* Mobile "More" bottom sheet */}
+      {showMoreSheet && (
+        <div
+          className="fixed inset-0 z-50 flex items-end md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t.nav.more}
+        >
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowMoreSheet(false)}
+          />
+          <div
+            className="relative w-full rounded-t-3xl border-t p-4 pb-8"
+            style={{
+              backgroundColor: 'var(--md-sys-color-surface-container-low)',
+              borderColor: 'var(--md-sys-color-outline-variant)',
+            }}
+          >
+            <div className="w-10 h-1 rounded-full mx-auto mb-4" style={{ backgroundColor: 'var(--md-sys-color-outline-variant)' }} />
+            <div className="space-y-1">
+              {overflowNavItems.map((item) => {
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveTab(item.id);
+                      setShowMoreSheet(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold cursor-pointer text-start"
+                    style={{
+                      backgroundColor: isActive
+                        ? 'var(--md-sys-color-primary-container)'
+                        : 'transparent',
+                      color: isActive
+                        ? 'var(--md-sys-color-on-primary-container)'
+                        : 'var(--md-sys-color-on-surface)',
+                    }}
+                  >
+                    <MaterialIcon name={item.icon} size={22} filled={isActive} />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

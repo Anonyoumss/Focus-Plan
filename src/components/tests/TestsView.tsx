@@ -6,7 +6,7 @@ import { MaterialIcon } from '../common/MaterialIcon';
 import { ScoreLoopModal } from './ScoreLoopModal';
 
 export const TestsView: React.FC = () => {
-  const { locale, testGoals, addTestGoal, updateTestGoal, deleteTestGoal } = useAppStore();
+  const { locale, testGoals, addTestGoal, deleteTestGoal } = useAppStore();
   const t = TRANSLATIONS[locale];
 
   const [activeScoreLoopGoal, setActiveScoreLoopGoal] = useState<UserTestGoal | null>(null);
@@ -35,7 +35,7 @@ export const TestsView: React.FC = () => {
     });
 
     const newGoal: UserTestGoal = {
-      id: `goal_${Date.now()}_${test.code.toLowerCase()}`,
+      id: `goal_${test.id}`,
       testId: test.id,
       testName: locale === 'ar' ? test.nameAr : test.nameEn,
       testDate: dateStr,
@@ -323,32 +323,79 @@ export const TestsView: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="pt-2 border-t flex items-center justify-between" style={{ borderColor: 'var(--md-sys-color-outline-variant)' }}>
-                  <a
-                    href={test.officialPortal}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs hover:underline flex items-center gap-1"
-                    style={{ color: 'var(--md-sys-color-primary)' }}
-                  >
-                    <span>{locale === 'ar' ? 'الموقع الرسمي' : 'Official Portal'}</span>
-                    <MaterialIcon name="open_in_new" size={14} />
-                  </a>
+                  <div className="pt-2 border-t space-y-2" style={{ borderColor: 'var(--md-sys-color-outline-variant)' }}>
+                    <div className="flex items-center justify-between gap-2">
+                      <a
+                        href={test.officialPortal}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs hover:underline flex items-center gap-1"
+                        style={{ color: 'var(--md-sys-color-primary)' }}
+                      >
+                        <span>{locale === 'ar' ? 'الموقع الرسمي' : 'Official Portal'}</span>
+                        <MaterialIcon name="open_in_new" size={14} />
+                      </a>
 
-                  <button
-                    disabled={isAlreadyAdded}
-                    onClick={() => adoptTestGoal(test)}
-                    className="text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer transition-colors disabled:opacity-40"
-                    style={{
-                      backgroundColor: isAlreadyAdded ? 'transparent' : 'var(--md-sys-color-primary)',
-                      color: isAlreadyAdded ? 'var(--md-sys-color-outline)' : 'var(--md-sys-color-on-primary)',
-                      border: isAlreadyAdded ? '1px solid var(--md-sys-color-outline-variant)' : 'none',
-                    }}
-                  >
-                    {isAlreadyAdded ? (locale === 'ar' ? 'مضاف' : 'Added') : (locale === 'ar' ? '+ إضافة هدف' : '+ Add Goal')}
-                  </button>
+                      {test.unverifiedFields.length > 0 && (
+                        <span
+                          className="text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1"
+                          style={{
+                            backgroundColor: 'var(--md-sys-color-surface-container-highest)',
+                            color: 'var(--md-sys-color-on-surface-variant)',
+                          }}
+                          title={test.unverifiedFields.join(', ')}
+                        >
+                          <MaterialIcon name="help" size={12} />
+                          <span>{t.tests.verifyOnOfficialSite}</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Per-field official source links where confirmed */}
+                    {Object.entries(test.sourceUrls).length > 0 && (
+                      <div className="flex flex-wrap gap-x-3 gap-y-1">
+                        {(['scoreScale', 'sections', 'dates'] as const).map((field) => {
+                          const url = test.sourceUrls[field];
+                          if (!url) return null;
+                          const fieldLabel =
+                            field === 'scoreScale'
+                              ? t.tests.scoreScale
+                              : field === 'sections'
+                              ? t.tests.sections
+                              : t.tests.testDate;
+                          return (
+                            <a
+                              key={field}
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[10px] hover:underline flex items-center gap-0.5"
+                              style={{ color: 'var(--md-sys-color-outline)' }}
+                            >
+                              <span>{fieldLabel}</span>
+                              <MaterialIcon name="open_in_new" size={10} />
+                            </a>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    <div className="flex justify-end pt-1">
+                      <button
+                        disabled={isAlreadyAdded}
+                        onClick={() => adoptTestGoal(test)}
+                        className="text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer transition-colors disabled:opacity-40"
+                        style={{
+                          backgroundColor: isAlreadyAdded ? 'transparent' : 'var(--md-sys-color-primary)',
+                          color: isAlreadyAdded ? 'var(--md-sys-color-outline)' : 'var(--md-sys-color-on-primary)',
+                          border: isAlreadyAdded ? '1px solid var(--md-sys-color-outline-variant)' : 'none',
+                        }}
+                      >
+                        {isAlreadyAdded ? (locale === 'ar' ? 'مضاف' : 'Added') : (locale === 'ar' ? '+ إضافة هدف' : '+ Add Goal')}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
             );
           })}
         </div>

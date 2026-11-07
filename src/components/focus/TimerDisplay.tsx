@@ -168,7 +168,7 @@ export const TimerDisplay: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-6">
         <button
           onClick={resetTimer}
           className="w-12 h-12 rounded-full flex items-center justify-center transition-transform active:scale-95 cursor-pointer"
@@ -184,7 +184,7 @@ export const TimerDisplay: React.FC = () => {
 
         <button
           onClick={isRunning ? pauseTimer : startTimer}
-          className="min-w-44 h-14 px-8 rounded-2xl flex items-center justify-center gap-3 font-semibold text-base transition-all duration-200 active:scale-98 cursor-pointer shadow-md"
+          className="min-w-44 max-w-full h-14 px-6 sm:px-8 rounded-2xl flex items-center justify-center gap-3 font-semibold text-base transition-all duration-200 active:scale-98 cursor-pointer shadow-md"
           style={{
             backgroundColor: 'var(--md-sys-color-primary)',
             color: 'var(--md-sys-color-on-primary)',
@@ -255,23 +255,23 @@ export const TimerDisplay: React.FC = () => {
         )}
       </div>
 
-      <div className="flex items-center justify-between w-full mt-4 px-2 text-xs" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-        <div className="flex items-center gap-2">
-          <MaterialIcon name="graphic_eq" size={18} />
-          <span>{t.timer.ambientSound}:</span>
+      <div className="flex flex-wrap items-center justify-between gap-y-2 w-full mt-4 px-2 text-xs" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+        <div className="flex items-center gap-2 min-w-0">
+          <MaterialIcon name="graphic_eq" size={18} className="shrink-0" />
+          <span className="shrink-0">{t.timer.ambientSound}:</span>
           <select
             value={ambientSound}
             onChange={(e) => setAmbientSound(e.target.value as any)}
-            className="bg-transparent border rounded-md px-2 py-1 text-xs outline-none cursor-pointer"
+            className="bg-transparent border rounded-md px-2 py-1 text-xs outline-none cursor-pointer max-w-36 truncate"
             style={{ borderColor: 'var(--md-sys-color-outline-variant)' }}
           >
-            <option value="none">Off</option>
-            <option value="whitenoise">Pink Noise</option>
-            <option value="binaural">Alpha Waves (Binaural)</option>
+            <option value="none">{locale === 'ar' ? 'إيقاف' : 'Off'}</option>
+            <option value="whitenoise">{locale === 'ar' ? 'ضوضاء وردية' : 'Pink Noise'}</option>
+            <option value="binaural">{locale === 'ar' ? 'موجات ألفا (ثنائية الأذن)' : 'Alpha Waves (Binaural)'}</option>
           </select>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <MaterialIcon name="volume_up" size={18} />
           <input
             type="range"
