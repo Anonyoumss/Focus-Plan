@@ -20,6 +20,13 @@ export const SettingsView: React.FC = () => {
     resetAllData,
     demoDataLoaded,
     loadDemoData,
+    firebaseEnabled,
+    authStatus,
+    user,
+    cloudSyncEnabled,
+    syncError,
+    signIn,
+    signOutAccount,
   } = useAppStore();
 
   const t = TRANSLATIONS[locale];
@@ -493,7 +500,7 @@ export const SettingsView: React.FC = () => {
             borderColor: 'var(--md-sys-color-outline-variant)',
           }}
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
               <h2
                 className="text-base font-bold"
@@ -505,11 +512,56 @@ export const SettingsView: React.FC = () => {
                 className="text-xs mt-0.5"
                 style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
               >
-                {t.settings.guestMode}
+                {!firebaseEnabled
+                  ? t.settings.cloudNotConfigured
+                  : authStatus === 'loading'
+                  ? '…'
+                  : user
+                  ? `${t.settings.signedInAs} ${user.email ?? user.displayName ?? user.uid}`
+                  : t.settings.guestMode}
               </p>
+              {firebaseEnabled && user && (
+                <p
+                  className="text-xs mt-0.5"
+                  style={{
+                    color: syncError
+                      ? 'var(--md-sys-color-error)'
+                      : cloudSyncEnabled
+                      ? 'var(--md-sys-color-primary)'
+                      : 'var(--md-sys-color-outline)',
+                  }}
+                >
+                  {syncError ? t.settings.syncFailed : cloudSyncEnabled ? t.settings.syncActive : t.settings.syncPaused}
+                </p>
+              )}
             </div>
 
-            <button
+            <div className="flex items-center gap-2">
+              {firebaseEnabled && !user && authStatus === 'ready' && (
+                <button
+                  onClick={() => void signIn()}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer"
+                  style={{
+                    backgroundColor: 'var(--md-sys-color-primary)',
+                    color: 'var(--md-sys-color-on-primary)',
+                  }}
+                >
+                  {t.settings.signInGoogle}
+                </button>
+              )}
+              {user && (
+                <button
+                  onClick={() => void signOutAccount()}
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer"
+                  style={{
+                    borderColor: 'var(--md-sys-color-outline-variant)',
+                    color: 'var(--md-sys-color-on-surface-variant)',
+                  }}
+                >
+                  {t.settings.signOut}
+                </button>
+              )}
+              <button
               onClick={() => {
                 if (confirm(locale === 'ar' ? 'هل أنت متأكد من مسح جميع البيانات المحلية؟' : 'Are you sure you want to reset all local data?')) {
                   resetAllData();
@@ -524,6 +576,7 @@ export const SettingsView: React.FC = () => {
             >
               {locale === 'ar' ? 'إعادة ضبط البيانات' : 'Reset Local Data'}
             </button>
+            </div>
           </div>
         </div>
       </div>

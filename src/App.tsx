@@ -18,6 +18,7 @@ import { SettingsView } from './components/settings/SettingsView';
 import { TermsPage } from './components/legal/TermsPage';
 import { PrivacyPage } from './components/legal/PrivacyPage';
 import { OnboardingModal } from './components/onboarding/OnboardingModal';
+import { MigrationDialog } from './components/auth/MigrationDialog';
 import { ShortcutsModal } from './components/common/ShortcutsModal';
 import { LandingPage } from './components/landing/LandingPage';
 import { InvitePage } from './components/landing/InvitePage';
@@ -92,6 +93,7 @@ export default function App() {
     <Shell>
       {renderActiveView()}
       <OnboardingModal />
+      <MigrationDialog />
       <ShortcutsModal />
     </Shell>
   );

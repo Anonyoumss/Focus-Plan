@@ -1,0 +1,187 @@
+rules_version = '2';
+
+// Focus Plan M3E Firestore security rules.
+// Scope: per-user data under users/{uid}/... Only the signed-in owner may
+// read or write their own subtree. Wallet/points fields are NOT freely
+// writable: balance changes must come with a matching ledger row in the
+// same transaction (batched write), enforced here because there are no
+// Cloud Functions on the Spark plan. See DECISIONS.md for what this
+// cannot prevent (an honor system, not cheat-proof).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function docSizeOk(data, maxKeys) {
+      return data.keys().size() <= maxKeys;
+    }
+
+    function isStr(v, maxLen) {
+      return v is string && v.size() <= maxLen;
+    }
+
+    function isNum(v, min, max) {
+      return v is number && v >= min && v <= max;
+    }
+
+    function isBool(v) {
+      return v is bool;
+    }
+
+    // ---- Synced collections (guest-migratable user data) ----
+
+    match /users/{uid}/tasks/{taskId} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && docSizeOk(request.resource.data, 20)
+        && isStr(request.resource.data.title, 200)
+        && isStr(request.resource.data.category, 100)
+        && isNum(request.resource.data.estimatedSessions, 0, 10000)
+        && isNum(request.resource.data.completedSessions, 0, 10000)
+        && isNum(request.resource.data.minGoal, 0, 10000)
+        && isNum(request.resource.data.maxGoal, 0, 10000)
+        && request.resource.data.cadence in ['hourly', 'daily', 'weekly', 'monthly']
+        && isStr(request.resource.data.notes, 2000)
+        && isBool(request.resource.data.isCompleted)
+        && isNum(request.resource.data.createdAt, 0, 4102444800000);
+      allow delete: if isOwner(uid);
+    }
+
+    match /users/{uid}/sessionLogs/{logId} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid)
+        && docSizeOk(request.resource.data, 12)
+        && isStr(request.resource.data.id, 64)
+        && isNum(request.resource.data.timestamp, 0, 4102444800000)
+        && isStr(request.resource.data.dateStr, 10)
+        && isNum(request.resource.data.durationMinutes, 1, 600)
+        && (request.resource.data.taskId == null || isStr(request.resource.data.taskId, 64))
+        && isStr(request.resource.data.taskTitle, 200)
+        && isStr(request.resource.data.category, 100);
+      // Session logs are append-only facts; updates/deletes are not allowed
+      // so history cannot be rewritten silently.
+      allow update, delete: if false;
+    }
+
+    match /users/{uid}/testGoals/{goalId} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && docSizeOk(request.resource.data, 20)
+        && isStr(request.resource.data.id, 64)
+        && isStr(request.resource.data.testId, 64)
+        && isStr(request.resource.data.testName, 200)
+        && isStr(request.resource.data.testDate, 10)
+        && isNum(request.resource.data.targetScore, 0, 100000)
+        && isNum(request.resource.data.currentBaselineScore, 0, 100000)
+        && isNum(request.resource.data.weeklyHours, 0, 168)
+        && isNum(request.resource.data.weeklyPomodoros, 0, 1008)
+        && isNum(request.resource.data.completedPomodoros, 0, 100000)
+        && request.resource.data.sectionTargets is map
+        && request.resource.data.scoresHistory is list
+        && request.resource.data.scoresHistory.size() <= 200;
+      allow delete: if isOwner(uid);
+    }
+
+    match /users/{uid}/templates/{templateId} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && docSizeOk(request.resource.data, 16)
+        && isStr(request.resource.data.title, 200)
+        && isStr(request.resource.data.category, 100)
+        && request.resource.data.cadence in ['hourly', 'daily', 'weekly', 'monthly']
+        && isNum(request.resource.data.minGoal, 0, 10000)
+        && isNum(request.resource.data.maxGoal, 0, 10000);
+      allow delete: if isOwner(uid);
+    }
+
+    match /users/{uid}/settings/{docId} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && docSizeOk(request.resource.data, 30)
+        && (request.resource.data.locale == 'en' || request.resource.data.locale == 'ar')
+        && request.resource.data.themeMode in ['system', 'light', 'dark']
+        && isStr(request.resource.data.seedHex, 16)
+        && isNum(request.resource.data.dailyGoalSessions, 1, 50);
+      allow delete: if isOwner(uid);
+    }
+
+    match /users/{uid}/meta/{docId} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && docSizeOk(request.resource.data, 10);
+      allow delete: if isOwner(uid);
+    }
+
+    // ---- Wallet, points and ledger (M4 surface, rules enforced now) ----
+    // A balance change is only valid when the same transaction also writes
+    // a ledger document whose amount equals the balance delta, and spend
+    // amounts match the store catalog prices below. Positive awards are
+    // capped per write; per-day caps cannot be enforced without a server.
+
+    // Store catalog prices (coinsEngine STORE_ITEMS): spend deltas must be
+    // one of these negatives.
+    function spendDeltas() {
+      return [-10, -25, -15]; // streak_freeze, break_multiplier, palette_token
+    }
+
+    function ledgerPath(uid, ledgerId) {
+      return /databases/$(database)/documents/users/$(uid)/ledger/$(ledgerId);
+    }
+
+    function walletDeltaOk(uid) {
+      let wallet = request.resource.data;
+      let old = resource.data;
+      let delta = wallet.coins - old.coins;
+      let fpDelta = wallet.focusPoints - old.focusPoints;
+      let ledgerId = wallet.ledgerId;
+      return ledgerId is string
+        && existsAfter(ledgerPath(uid, ledgerId))
+        && getAfter(ledgerPath(uid, ledgerId)).data.amount == delta
+        && getAfter(ledgerPath(uid, ledgerId)).data.userId == uid
+        && (
+          // spend: delta negative and equals a catalog price
+          (delta in spendDeltas())
+          // award: delta positive, small, and no focus-point change bundled
+          || (delta > 0 && delta <= 20 && fpDelta == 0)
+          // focus-point-only award with matching ledger
+          || (delta == 0 && fpDelta > 0 && fpDelta <= 5)
+        )
+        && wallet.coins >= 0
+        && wallet.coins <= 1000000
+        && wallet.focusPoints >= 0
+        && wallet.focusPoints <= 1000000;
+    }
+
+    match /users/{uid}/wallet/{walletId} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid)
+        && request.resource.data.coins == 0
+        && request.resource.data.focusPoints == 0;
+      allow update: if isOwner(uid) && walletDeltaOk(uid);
+      allow delete: if false;
+    }
+
+    match /users/{uid}/ledger/{ledgerId} {
+      allow read: if isOwner(uid);
+      // Ledger rows are append-only and must be created in the same
+      // transaction as the wallet change they justify.
+      allow create: if isOwner(uid)
+        && docSizeOk(request.resource.data, 10)
+        && request.resource.data.userId == uid
+        && request.resource.data.amount is number
+        && request.resource.data.amount != 0
+        && request.resource.data.amount >= -1000000
+        && request.resource.data.amount <= 1000000
+        && isStr(request.resource.data.reason, 200)
+        && isStr(request.resource.data.itemId, 64);
+      allow update, delete: if false;
+    }
+  }
+}

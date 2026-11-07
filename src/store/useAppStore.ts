@@ -31,6 +31,22 @@ import {
   generateDefaultSessionLogs,
   exportSessionsToCsv,
 } from '../lib/analyticsEngine';
+import { isFirebaseConfigured } from '../lib/firebase/client';
+import { signInWithGoogle, signOutUser, subscribeAuth } from '../lib/firebase/auth';
+import {
+  cloudHasData,
+  hasMigratableLocalData,
+  isMigrationComplete,
+  markMigrationComplete,
+  pullCloudState,
+  pushCloudState,
+  type CloudStateSlice,
+  type SyncedState,
+} from '../lib/firebase/sync';
+import {
+  enqueueCloudSync,
+  setCloudSyncContext,
+} from '../lib/firebase/cloudSync';
 
 export interface TaskItem {
   id: string;
@@ -94,6 +110,15 @@ export interface AppState {
   sessionLogs: FocusSessionRecord[];
   demoDataLoaded: boolean;
 
+  // Cloud sync (Firebase Auth + Firestore)
+  firebaseEnabled: boolean;
+  authStatus: 'loading' | 'ready';
+  user: { uid: string; email: string | null; displayName: string | null } | null;
+  cloudSyncEnabled: boolean;
+  /** Set when sign-in finds both local and cloud data (or local-only data). */
+  migrationChoice: 'local-only' | 'both' | null;
+  syncError: string | null;
+
   // Actions
   setLocale: (locale: Locale) => void;
   setThemeMode: (mode: ThemeMode) => void;
@@ -138,6 +163,11 @@ export interface AppState {
   exportDataCsv: () => string;
   resetAllData: () => void;
   loadDemoData: () => void;
+
+  // Cloud sync actions
+  signIn: () => Promise<void>;
+  signOutAccount: () => Promise<void>;
+  resolveMigration: (choice: 'import' | 'cloud' | 'later') => Promise<void>;
 }
 
 const STORAGE_KEY = 'focus_plan_m3e_v1';
@@ -156,34 +186,35 @@ function loadPersistedState(): Partial<AppState> {
 
 function persistState(state: AppState) {
   if (typeof window === 'undefined') return;
+  const toSave = {
+    locale: state.locale,
+    themeMode: state.themeMode,
+    seedHex: state.seedHex,
+    onboardingCompleted: state.onboardingCompleted,
+    dailyGoalSessions: state.dailyGoalSessions,
+    todaySessionsCount: state.todaySessionsCount,
+    completedFocusSessions: state.completedFocusSessions,
+    timerConfig: state.timerConfig,
+    tasks: state.tasks,
+    testGoals: state.testGoals,
+    streak: state.streak,
+    coins: state.coins,
+    focusPoints: state.focusPoints,
+    inventory: state.inventory,
+    transactions: state.transactions,
+    activeTaskId: state.activeTaskId,
+    sessionLogs: state.sessionLogs,
+    demoDataLoaded: state.demoDataLoaded,
+    timerMode: state.timerMode,
+    isRunning: state.isRunning,
+    targetEndTime: state.targetEndTime,
+  };
   try {
-    const toSave = {
-      locale: state.locale,
-      themeMode: state.themeMode,
-      seedHex: state.seedHex,
-      onboardingCompleted: state.onboardingCompleted,
-      dailyGoalSessions: state.dailyGoalSessions,
-      todaySessionsCount: state.todaySessionsCount,
-      completedFocusSessions: state.completedFocusSessions,
-      timerConfig: state.timerConfig,
-      tasks: state.tasks,
-      testGoals: state.testGoals,
-      streak: state.streak,
-      coins: state.coins,
-      focusPoints: state.focusPoints,
-      inventory: state.inventory,
-      transactions: state.transactions,
-      activeTaskId: state.activeTaskId,
-      sessionLogs: state.sessionLogs,
-      demoDataLoaded: state.demoDataLoaded,
-      timerMode: state.timerMode,
-      isRunning: state.isRunning,
-      targetEndTime: state.targetEndTime,
-    };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   } catch (e) {
     console.warn('Failed to persist state:', e);
   }
+  enqueueCloudSync(toSave as CloudStateSlice);
 }
 
 const initialPersisted = loadPersistedState();
@@ -301,6 +332,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   transactions: initialPersisted.transactions || [],
   sessionLogs: initialPersisted.sessionLogs || [],
   demoDataLoaded: initialPersisted.demoDataLoaded || false,
+
+  firebaseEnabled: isFirebaseConfigured(),
+  authStatus: isFirebaseConfigured() ? 'loading' : 'ready',
+  user: null,
+  cloudSyncEnabled: false,
+  migrationChoice: null,
+  syncError: null,
 
   setLocale: (locale) => {
     set({ locale });
@@ -688,4 +726,196 @@ export const useAppStore = create<AppState>((set, get) => ({
     });
     persistState(get());
   },
+
+  signIn: async () => {
+    try {
+      set({ syncError: null });
+      await signInWithGoogle();
+      // Auth state listener drives the rest (migration check / pull).
+    } catch (e) {
+      console.warn('Google sign-in failed:', e);
+      set({ syncError: 'sign-in-failed' });
+    }
+  },
+
+  signOutAccount: async () => {
+    try {
+      await signOutUser();
+    } catch (e) {
+      console.warn('Sign-out failed:', e);
+      set({ syncError: 'sign-out-failed' });
+    }
+  },
+
+  resolveMigration: async (choice) => {
+    const uid = get().user?.uid;
+    if (!uid) return;
+    try {
+      if (choice === 'import') {
+        await pushCloudState(uid, syncedSliceOf(get()));
+        await markMigrationComplete(uid);
+        setCloudSyncContext(uid, true);
+        set({ cloudSyncEnabled: true, migrationChoice: null, syncError: null });
+        enqueueCloudSync(syncedSliceOf(get()));
+      } else if (choice === 'cloud') {
+        const remote = await pullCloudState(uid);
+        applyCloudState(remote);
+        await markMigrationComplete(uid);
+        setCloudSyncContext(uid, true);
+        set({ cloudSyncEnabled: true, migrationChoice: null, syncError: null });
+      } else {
+        // "Later": keep local data, leave cloud sync off until next sign-in.
+        setCloudSyncContext(uid, false);
+        set({ cloudSyncEnabled: false, migrationChoice: null });
+      }
+    } catch (e) {
+      console.warn('Migration failed:', e);
+      set({ syncError: 'migration-failed' });
+    }
+  },
 }));
+
+// ---- Cloud auth lifecycle (module scope; uses store statics) ----
+
+function syncedSliceOf(s: AppState): CloudStateSlice {
+  return {
+    tasks: s.tasks,
+    sessionLogs: s.sessionLogs,
+    testGoals: s.testGoals,
+    locale: s.locale,
+    themeMode: s.themeMode,
+    seedHex: s.seedHex,
+    dailyGoalSessions: s.dailyGoalSessions,
+    timerConfig: s.timerConfig,
+    onboardingCompleted: s.onboardingCompleted,
+  };
+}
+
+function applyCloudState(remote: SyncedState) {
+  const patch: Partial<AppState> = {};
+  patch.tasks = remote.tasks;
+  patch.sessionLogs = remote.sessionLogs;
+  patch.testGoals = remote.testGoals;
+  const st = remote.settings;
+  if (st) {
+    if (st.locale === 'en' || st.locale === 'ar') patch.locale = st.locale;
+    if (st.themeMode === 'system' || st.themeMode === 'light' || st.themeMode === 'dark') {
+      patch.themeMode = st.themeMode;
+    }
+    if (typeof st.seedHex === 'string') patch.seedHex = st.seedHex;
+    if (typeof st.dailyGoalSessions === 'number') patch.dailyGoalSessions = st.dailyGoalSessions;
+    if (st.timerConfig) patch.timerConfig = st.timerConfig as TimerConfig;
+    if (typeof st.onboardingCompleted === 'boolean') {
+      patch.onboardingCompleted = st.onboardingCompleted;
+    }
+  }
+  useAppStore.setState(patch);
+  persistState(useAppStore.getState());
+}
+
+function wipeUserData() {
+  localStorage.removeItem(STORAGE_KEY);
+  useAppStore.setState({
+    tasks: [],
+    testGoals: [],
+    sessionLogs: [],
+    activeTaskId: null,
+    streak: {
+      currentStreak: 0,
+      bestStreak: 0,
+      lastActiveDate: null,
+      streakFreezes: 0,
+      freezeUsedDates: [],
+    },
+    coins: 0,
+    focusPoints: 0,
+    inventory: {},
+    transactions: [],
+    todaySessionsCount: 0,
+    completedFocusSessions: 0,
+    demoDataLoaded: false,
+    timerMode: 'focus',
+    isRunning: false,
+    targetEndTime: null,
+    remainingSeconds: DEFAULT_TIMER_CONFIG.focusDuration,
+    migrationChoice: null,
+    cloudSyncEnabled: false,
+    syncError: null,
+  });
+}
+
+let previousUid: string | null = null;
+
+async function handleAuthUser(user: { uid: string; email: string | null; displayName: string | null } | null) {
+  if (!user) {
+    const wasSignedIn = previousUid !== null;
+    previousUid = null;
+    setCloudSyncContext(null, false);
+    useAppStore.setState({
+      user: null,
+      authStatus: 'ready',
+      cloudSyncEnabled: false,
+      migrationChoice: null,
+    });
+    // Sign-out must not leave the previous user's data on screen.
+    if (wasSignedIn) wipeUserData();
+    return;
+  }
+
+  previousUid = user.uid;
+  useAppStore.setState({
+    user: { uid: user.uid, email: user.email, displayName: user.displayName },
+    authStatus: 'ready',
+    syncError: null,
+  });
+
+  try {
+    // Once the guest->cloud choice is resolved, later sign-ins (including
+    // reloads) must not re-prompt: both sides legitimately hold data.
+    if (await isMigrationComplete(user.uid)) {
+      const remote = await pullCloudState(user.uid);
+      applyCloudState(remote);
+      setCloudSyncContext(user.uid, true);
+      useAppStore.setState({ cloudSyncEnabled: true, migrationChoice: null });
+      return;
+    }
+
+    const store = useAppStore.getState();
+    const localHas = hasMigratableLocalData(syncedSliceOf(store));
+    const cloudHas = await cloudHasData(user.uid);
+
+    if (localHas && !cloudHas) {
+      setCloudSyncContext(user.uid, false);
+      useAppStore.setState({ migrationChoice: 'local-only', cloudSyncEnabled: false });
+      return;
+    }
+    if (localHas && cloudHas) {
+      setCloudSyncContext(user.uid, false);
+      useAppStore.setState({ migrationChoice: 'both', cloudSyncEnabled: false });
+      return;
+    }
+
+    const remote = await pullCloudState(user.uid);
+    applyCloudState(remote);
+    setCloudSyncContext(user.uid, true);
+    useAppStore.setState({ cloudSyncEnabled: true, migrationChoice: null });
+  } catch (e) {
+    console.warn('Cloud sync init failed:', e);
+    setCloudSyncContext(user.uid, false);
+    useAppStore.setState({ syncError: 'cloud-sync-failed', cloudSyncEnabled: false });
+  }
+}
+
+if (isFirebaseConfigured()) {
+  subscribeAuth((firebaseUser) => {
+    void handleAuthUser(
+      firebaseUser
+        ? {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName,
+          }
+        : null,
+    );
+  });
+}

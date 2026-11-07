@@ -182,11 +182,25 @@ export interface Translations {
     account: string;
     guestMode: string;
     signInGoogle: string;
+    signOut: string;
+    signedInAs: string;
+    cloudNotConfigured: string;
+    syncActive: string;
+    syncPaused: string;
+    syncFailed: string;
     demoDataTitle: string;
     demoDataDescription: string;
     loadDemoData: string;
     demoDataLoaded: string;
     clearDemoData: string;
+  };
+  migration: {
+    title: string;
+    bodyLocal: string;
+    bodyBoth: string;
+    import: string;
+    useCloud: string;
+    later: string;
   };
   onboarding: {
     welcomeTitle: string;
@@ -491,11 +505,25 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       account: 'Account & Synchronization',
       guestMode: 'Guest Mode (Local Storage Only)',
       signInGoogle: 'Sign In with Google',
+      signOut: 'Sign Out',
+      signedInAs: 'Signed in as',
+      cloudNotConfigured: 'Cloud sync is not configured for this build. Your data stays in this browser.',
+      syncActive: 'Cloud sync is on. Tasks, sessions, test goals and settings sync to your account.',
+      syncPaused: 'Cloud sync is paused. Sign in again to merge your data.',
+      syncFailed: 'Cloud sync failed. Check your connection and try again.',
       demoDataTitle: 'Demo Data',
       demoDataDescription: 'Load sample tasks, test goals, a streak, coins, and session history to explore the app. This is clearly labeled demo content and can be removed at any time.',
       loadDemoData: 'Load demo data',
       demoDataLoaded: 'Demo data is currently loaded in this browser.',
       clearDemoData: 'Remove demo data',
+    },
+    migration: {
+      title: 'Merge your data',
+      bodyLocal: 'We found study data on this device and your cloud account is empty. Import it so it syncs across your devices?',
+      bodyBoth: 'This device and your cloud account both have study data. Choose which one to keep. The other stays untouched on its side only if you pick later.',
+      import: 'Import device data',
+      useCloud: 'Use cloud data',
+      later: 'Decide later',
     },
     onboarding: {
       welcomeTitle: 'Welcome to Focus Plan M3E',
@@ -798,11 +826,25 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       account: 'الحساب والمزامنة',
       guestMode: 'وضع الضيف (حفظ محلي فقط)',
       signInGoogle: 'تسجيل الدخول عبر Google',
+      signOut: 'تسجيل الخروج',
+      signedInAs: 'تم تسجيل الدخول كـ',
+      cloudNotConfigured: 'المزامنة السحابية غير مهيأة في هذا الإصدار. تبقى بياناتك في هذا المتصفح.',
+      syncActive: 'المزامنة السحابية مفعّلة. تتم مزامنة المهام والجلسات وأهداف الاختبارات والإعدادات مع حسابك.',
+      syncPaused: 'المزامنة السحابية متوقفة. سجّل الدخول مجددًا لدمج بياناتك.',
+      syncFailed: 'فشلت المزامنة السحابية. تحقق من الاتصال وحاول مجددًا.',
       demoDataTitle: 'بيانات تجريبية',
       demoDataDescription: 'حمّل مهاماً وأهداف اختبارات وسلسلة عملات وسجلات جلسات تجريبية لاستكشاف التطبيق. هذا محتوى تجريبي موسوم بوضوح ويمكن إزالته في أي وقت.',
       loadDemoData: 'تحميل بيانات تجريبية',
       demoDataLoaded: 'البيانات التجريبية محمّلة حالياً في هذا المتصفح.',
       clearDemoData: 'إزالة البيانات التجريبية',
+    },
+    migration: {
+      title: 'دمج بياناتك',
+      bodyLocal: 'وجدنا بيانات دراسة على هذا الجهاز وحسابك السحابي فارغ. هل تريد استيرادها لتتم مزامنتها عبر أجهزتك؟',
+      bodyBoth: 'يوجد بيانات دراسة على هذا الجهاز وفي حسابك السحابي. اختر البيانات التي تريد الاحتفاظ بها.',
+      import: 'استيراد بيانات الجهاز',
+      useCloud: 'استخدام البيانات السحابية',
+      later: 'لاحقًا',
     },
     onboarding: {
       welcomeTitle: 'أهلاً بك في فوكس بلان M3E',

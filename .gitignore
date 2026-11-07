@@ -6,3 +6,7 @@ dist
 test-results/
 playwright-report/
 blob-report/
+firestore-debug.log
+firebase-debug.log
+ui-debug.log
+.firebase/

@@ -49,16 +49,16 @@ export const TermsPage: React.FC = () => {
             1. Purpose and Current Local State
           </h2>
           <p>
-            Focus Plan M3E is currently operating exclusively as a client-side web application. All session timers, task goals, streak records, and mock leaderboards are stored solely within your local browser storage. No data is transmitted to Firebase, Google Cloud, or third-party servers at this time.
+            Focus Plan M3E works fully as a guest: timers, task goals, streaks, coins, and test records are stored in your browser's local storage. If cloud sync is configured for this build, you may optionally sign in with Google. Signing in syncs your tasks, session logs, test goals, templates, and settings to Google Cloud Firestore under a private per-user path. Coins, points, streaks, and wallet data are not synced to the cloud. No data leaves your device unless you choose to sign in.
           </p>
         </section>
 
         <section className="space-y-2 text-sm leading-relaxed" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
           <h2 className="text-base font-bold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-            2. Future Google Workspace & Cloud Services
+            2. Google Sign-In & Future Integrations
           </h2>
           <p>
-            Future releases will introduce optional Google sign-in and Workspace synchronizations (Google Tasks and Google Calendar). When released, these integrations will strictly require explicit user authorization. No credentials or tokens are currently collected.
+            Google sign-in uses Firebase Authentication and requests only basic profile scopes. On first sign-in you choose whether to import existing local data or keep the cloud copy; nothing is merged silently. Future releases may add Google Tasks and Google Calendar integrations, which will strictly require explicit user authorization.
           </p>
           <p className="pt-2">
             Scheduled push notifications and calendar reminders are not part of this release. The only alerts today are in-app notification permission requests for session completion while the app is open.

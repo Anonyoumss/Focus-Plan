@@ -1,42 +1,65 @@
 # HANDOFF — Focus Plan M3E
 
-## State (verified 2026-11-08, milestone 2b complete)
+## State (verified 2026-11-08, milestone 3 complete)
 
-- Repo: Anonyoumss/Focus-Plan, branch main. Do not push.
-- Stack: React 19 + Vite 8 + TS ~5.9 + Zustand + Tailwind v4 + Vitest 3.2.7 + Playwright 1.65 + ESLint flat config + `motion` + `animejs` + `@material/web`.
-- Milestone 2a (honesty/bugs) and 2b (build) are done and verified. Next: milestone 3 (Firebase Spark: Auth, Firestore, rules, emulator, guest migration).
+- Repo: Anonyoumss/Focus-Plan, branch main. Milestone 3 committed locally; do not push unless asked.
+- Stack: React 19 + Vite 8 + TS ~5.9 + Zustand + Tailwind v4 + Vitest 3.2.7 + Playwright 1.65 + ESLint flat config + `motion` + `animejs` + `@material/web` + `firebase` 13.1.0.
+- Milestones 2a (honesty), 2b (build), and 3 (Firebase, emulator-first) are done and verified. Next: milestone 4 (social/store) or 5 (study tools) per owner.
 
-## Verified command results (post-2b)
+## Verified command results (post-3)
 
 - `npm run lint` (`tsc --noEmit`): pass. `npx eslint .`: 0 errors, 0 warnings.
 - `npm test`: 5 files, 22 tests pass. `vitest.config.ts` excludes `e2e/`.
-- `npm run build`: pass (~750 kB JS, ~36 kB CSS; chunk-size warning only).
-- `npx playwright test`: 15/15 pass — 8 screenshot/overflow combos + 7 functional flows (`e2e/app-flows.spec.ts`: onboarding, timer start/pause/reload, expired-timer exactly-once across reloads, `N` shortcut `/app`-only scope, store purchase, score entry, task create/edit/reorder).
-- Reduced-motion: probed via Playwright `reducedMotion: 'reduce'` context — paused WavyRing path is static; without it the path animates. Not a committed spec.
-- `npm audit`: 13 paths / 3 advisories, all dev-only. Accepted per owner; DECISIONS.md Decision 8. Do NOT run `npm audit fix --force`.
+- `npm run build`: pass (~750 kB JS chunk warning only).
+- `npx playwright test`: 15/15 pass; `e2e/firebase-emulators.spec.ts` self-skips without Firebase env.
+- `npm run test:rules`: 14/14 Firestore rules tests pass (Auth not needed; project `demo-focus-plan-test`).
+- `npm run test:e2e:firebase`: 1/1 pass — real Google sign-in popup against the Auth emulator, migration dialog, task sync, reload persistence, sign-out wipe.
+- `npm audit`: dev-only advisories (vitest/eslint chains + firebase-tools deps). Accepted per owner; DECISIONS.md Decisions 8 and 16. Do NOT run `npm audit fix --force`.
 
-## What changed in 2b
+## Emulator prerequisites (already installed on this machine)
 
-- Hash router `src/lib/router.ts`: `#/` landing, `#/app/<tab>`, `#/terms`, `#/privacy`, `#/invite/<code>` placeholder. `App.tsx` parses hash on load + `hashchange`.
-- `LandingPage` reuses real `TimerDisplay`, `TaskList`, `ProgressStatCards`, catalog list, footer Terms/Privacy, single primary CTA "Start focusing" → `#/app`.
-- `WavyRing.tsx`: anime.js-driven SVG wave; reduced-motion freezes phase. `TimerDisplay` Start/Pause uses `motion.button` borderRadius spring + `AnimatePresence`, disabled under `useReducedMotion`.
-- `@material/web` selective: `MdSwitch`, `MdSlider`, `MdSelect`-style select, `MdDialog`, `MdFilledButton` wrappers in `MdControls.tsx`; registered in `material-web.ts`, typed in `types/material-web.d.ts`. Gotcha: md-dialog children MUST be wrapped in `slot="content"` (Decision 15).
-- Task reorder: HTML5 drag + up/down buttons (`moveTask` in store, `moveUp`/`moveDown` i18n keys). `N` shortcut lives in `Shell.tsx` (app routes only) and dispatches `focus-plan:new-task`; TaskList opens the dialog and focuses the title input. Scope verified by Playwright.
-- `manifest.json` `start_url` is `/#/app` so installed PWAs skip the landing page.
-- Timer persistence: `isRunning` + `targetEndTime` persisted; reload recovery verified by Playwright.
-- New i18n keys: `landing.*`, `invite.*`, `tasks.moveUp/moveDown`.
-- Screenshots refreshed incl. `landing.png` and `invite.png` per combo.
+- `firebase-tools` 15.35.0 is a devDependency (`npx firebase`). It requires **Java 21+**; Java 17 fails with "firebase-tools no longer supports Java version before 21".
+- Java 21.0.13 (Temurin JRE) is installed user-local at `~/tools/jdk-21.0.13+9-jre` — no sudo. To use it, prefix commands:
+  `JAVA_HOME=~/tools/jdk-21.0.13+9-jre PATH=~/tools/jdk-21.0.13+9-jre/bin:$PATH`
+  or add that `bin` dir to PATH permanently in `~/.bashrc`.
+- First emulator run downloads `cloud-firestore-emulator-v1.22.0.jar` into `~/.cache/firebase/emulators` (~few hundred MB).
+- Emulator ports (firebase.json): Auth 9099, Firestore 8080, UI 4000. Demo project IDs: `demo-focus-plan-test` (rules tests), `demo-focus-plan-m3e` (app e2e).
+
+## Firebase console setup (only needed for a REAL project — everything above works without it)
+
+1. console.firebase.google.com → Add project → name it (e.g. `focus-plan`), Spark plan (free). No need to enable Analytics.
+2. Project settings → Your apps → `</>` Web → register app (any nickname). Copy the config values.
+3. Authentication → Sign-in method → enable **Google** provider (support email required).
+4. Authentication → Settings → Authorized domains: add `localhost` and `anonyoumss.github.io` (GitHub Pages). Firebase auth domains also allow `*.firebaseapp.com` by default.
+5. Create `firestore.rules` content in Firestore → Rules tab (paste `firestore.rules` from repo) and publish. Create the Firestore database itself (production mode, closest region).
+6. Put the web config in `.env.local` (gitignored) using the names in `.env.example`:
+   `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`. Leave `VITE_USE_EMULATORS=false` (or unset) for the real project; set `true` only for local emulator work.
+7. Optional but recommended before real users: Firebase App Check (reCAPTCHA) — currently a documented placeholder, see DECISIONS.md.
+
+## What changed in 3
+
+- `src/lib/firebase/`: `client.ts` (lazy init gated on env vars, emulator connect, offline persistence), `auth.ts` (Google popup sign-in/out, `subscribeAuth`), `sync.ts` (Firestore layout `users/{uid}/{tasks,sessionLogs,testGoals,templates,settings/main,meta/migration}`, pull/push, idempotent setDoc writes, `isMigrationComplete`), `cloudSync.ts` (800ms debounced push with signature diffing).
+- Store: `user`, `authStatus`, `cloudSyncEnabled`, `migrationChoice`, `syncError` state; `signIn`, `signOutAccount`, `resolveMigration`; `handleAuthUser` runs the migration check on every auth event; `wipeUserData` clears local data on sign-out.
+- UI: Settings "Account & Synchronization" section (signed-in email, sign-in/sign-out buttons, cloud-not-configured state), `MigrationDialog` ("Merge your data": import / use cloud / decide later), EN+AR strings.
+- Legal: Terms/Privacy describe Google sign-in + Firestore sync only; no social features claimed.
+- Rules: `firestore.rules` (per-user isolation, shape/size validation, append-only logs, ledger-gated wallet), `tests/rules/firestore.rules.test.ts` (14 tests), `vitest.rules.config.ts`, `firebase.json`, `.firebaserc`.
+- E2E: `e2e/firebase-emulators.spec.ts` + `npm run test:e2e:firebase`.
 
 ## Known gaps / cautions
 
+- Rules cannot prove sessions happened or cap awards per day without Cloud Functions (Blaze) — honor system, DECISIONS.md Decision 17.
+- Last-write-wins per document; offline edits while signed in can be overwritten by the cloud pull on next sign-in. No conflict UI yet.
+- "Decide later" re-prompts on every sign-in by design; "import"/"cloud" write `meta/migration` and never re-prompt.
+- Wallet/ledger collections exist in rules but no client writes them yet (milestone 4).
 - Functional Playwright flows are EN-only; AR/RTL coverage is screenshots + overflow assertions.
-- Pointer drag reorder compiled only; button reorder is browser-tested.
-- `md-slider`/`md-select` not interaction-tested; they render in screenshots.
-- Catalog unverified defaults (GAT/SAAT/STEP/Duolingo etc.) accepted by owner as flagged "verify on official site".
-- `docs/original-brief.md` and `docs/ai-studio-plan.md` still not in repo (owner adding).
-- TypeScript ~5.9 (typescript-eslint constraint). Revisit at milestone 3+.
-- Landing header has a secondary "Open app" link besides the primary "Start focusing" CTA — intentional nav affordance, noted in FEATURE_PARITY.
+- Catalog unverified defaults accepted by owner as flagged.
+- `docs/original-brief.md` and `docs/ai-studio-plan.md` are in repo (owner-added, commit 5888cee).
+- TypeScript ~5.9 (typescript-eslint constraint).
+- GitHub Pages `/Focus-Plan/` base path and manifest `start_url` base-path handling is milestone 6 work (owner flagged).
 
 ## Commands
 
 - Dev: `npm run dev` (port 3000). Unit: `npm test`. Lint: `npm run lint && npm run lint:eslint`. Build: `npm run build`. E2E: `npx playwright test` (Chromium installed).
+- Rules tests: `JAVA_HOME=~/tools/jdk-21.0.13+9-jre PATH=~/tools/jdk-21.0.13+9-jre/bin:$PATH npm run test:rules`.
+- Emulator app e2e: same env prefix + `npm run test:e2e:firebase`.
+- Emulators manually: `npm run firebase:emulators` (auth 9099, firestore 8080, UI http://127.0.0.1:4000).

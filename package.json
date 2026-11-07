@@ -10,7 +10,10 @@
     "lint": "tsc --noEmit",
     "lint:eslint": "eslint .",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-focus-plan-test \"vitest run --config vitest.rules.config.ts\"",
+    "firebase:emulators": "firebase emulators:start --only auth,firestore --project demo-focus-plan-m3e",
+    "test:e2e:firebase": "VITE_USE_EMULATORS=true VITE_FIREBASE_API_KEY=demo-api-key VITE_FIREBASE_AUTH_DOMAIN=demo-focus-plan-m3e.firebaseapp.com VITE_FIREBASE_PROJECT_ID=demo-focus-plan-m3e VITE_FIREBASE_STORAGE_BUCKET=demo-focus-plan-m3e.appspot.com VITE_FIREBASE_MESSAGING_SENDER_ID=000000000000 VITE_FIREBASE_APP_ID=1:000000000000:web:demo firebase emulators:exec --only auth,firestore --project demo-focus-plan-m3e \"npx playwright test e2e/firebase-emulators.spec.ts\""
   },
   "dependencies": {
     "@material/material-color-utilities": "^0.3.0",
@@ -18,6 +21,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-react": "^6.1.1",
     "animejs": "^4.5.0",
+    "firebase": "^13.1.0",
     "motion": "^12.23.24",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
@@ -26,6 +30,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@firebase/rules-unit-testing": "^6.0.0",
     "@playwright/test": "^1.65.0",
     "@types/node": "^22.14.0",
     "@types/react": "^19.3.0",
@@ -34,6 +39,7 @@
     "esbuild": "^0.28.2",
     "eslint": "^10.14.0",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "firebase-tools": "^15.35.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.72.1",

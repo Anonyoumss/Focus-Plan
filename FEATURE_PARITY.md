@@ -1,14 +1,17 @@
 # Feature parity
 
-Checked on milestone 2b (build), 2026-11-08. Milestone 2a honesty fixes remain in place.
+Checked on milestone 3 (Firebase, emulator-first), 2026-11-08. Milestones 2a and 2b remain in place.
 
 Commands that ran:
 
-- `npm install` succeeded. `npm audit` reports 13 vulnerability paths collapsing to 3 advisories, all dev-only. See DECISIONS.md Decision 8. Vitest was not upgraded per owner decision.
+- `npm install` succeeded. `npm audit` reports dev-only advisories (vitest/eslint chains plus firebase-tools). See DECISIONS.md Decisions 8 and 16. Vitest was not upgraded per owner decision; do NOT run `npm audit fix --force`.
 - `npm run lint` (`tsc --noEmit`) exited 0. `npx eslint .` exited 0 with 0 errors, 0 warnings.
 - `npm test` (Vitest 3.2.7, config `vitest.config.ts` excludes `e2e/`): 5 files, 22 tests, all passed.
 - `npm run build` (Vite 8.3.6) exited 0.
-- `npx playwright test` (`@playwright/test` 1.65.0, Chromium): 15 passed, 0 failed. `e2e/audit-screenshots.spec.ts` asserts `document.documentElement.scrollWidth <= viewport width + 1` at 360px and 1280px in all 8 locale/theme/viewport combinations and captures landing and invite screenshots. `e2e/app-flows.spec.ts` drives real interactions.
+- `npx playwright test` (`@playwright/test` 1.65.0, Chromium): 15 passed, 0 failed; `e2e/firebase-emulators.spec.ts` self-skips without Firebase env vars.
+- `npm run test:rules` (`firebase emulators:exec --only firestore`): 14/14 rules tests passed (`tests/rules/firestore.rules.test.ts`).
+- `npm run test:e2e:firebase` (Auth + Firestore emulators + Playwright): 1/1 passed — Google sign-in via the emulator popup, guest-data migration dialog, task create + cloud sync, reload persistence, sign-out wiping on-screen and persisted data.
+- Emulator toolchain: `firebase-tools` 15.35.0 (devDependency), `firebase` JS SDK 13.1.0, `@firebase/rules-unit-testing` 6.0.0, Firestore emulator v1.22.0, Java 21.0.13 (Temurin JRE installed user-local at `~/tools/jdk-21.0.13+9-jre`; firebase-tools 15.x requires Java 21+).
 
 Labels mean only what was run. A screen that rendered is not proof that its buttons do the real job.
 
@@ -35,6 +38,11 @@ Playwright opened the app in all 8 combinations (en/ar × light/dark × 360px/12
 | Material Web controls | `md-switch` in Settings toggles `selected` on click. `md-dialog` opens on `N`, closes on Escape. `md-filled-button` drives store purchase. Rendered in AR screenshots with no overflow; no RTL-specific defect observed, so no custom fallback was needed. |
 | `lang`/`dir`, theme, overflow | Unchanged from 2a; still asserted in all 8 combinations including the new landing and invite screenshots. |
 | Friends screen, progress real data, Arabic phone, empty default state | Unchanged from 2a, still verified. |
+| Guest mode without Firebase config | With no `VITE_FIREBASE_*` vars the app boots cleanly, Settings shows "Cloud sync is not configured", and the sign-in button is absent (Playwright probe, no console errors). |
+| Firebase sign-in (emulator) | `npm run test:e2e:firebase` drives the real popup flow against the Auth emulator: "Add new account" → email → "Sign in with Google.com" → popup closes → app shows "Signed in as". |
+| Guest-to-cloud migration | First sign-in with local data shows the "Merge your data" dialog (never silent). "Import device data" pushes the local slice to Firestore, writes `meta/migration`, and enables sync. Repeated/reload sign-ins do not re-prompt (marker check). Verified in the emulator e2e. |
+| Cloud sync persistence | Task created while signed in appears in Firestore and survives `page.reload()`; the migrated guest task also persists. Sign-out wipes the previous user's tasks from screen and from `localStorage`. |
+| Firestore Security Rules | 14 emulator tests: cross-user read/write denied, unauthenticated denied, invalid cadence/oversized title/settings shape denied, append-only session logs, wallet nonzero-create denied, balance edit without ledger row denied, catalog-price spend with matching ledger row allowed, non-catalog amount denied, oversized award denied, ledger rows immutable. |
 
 Not exercised in the browser: completing a pomodoro end-to-end (session log write on finish), sounds, notifications, wake lock, export downloads, print, drag-and-drop reorder by pointer (keyboard/button path tested; HTML5 drag handlers are compiled only), Join.
 
@@ -72,12 +80,23 @@ Present in source and included in the production build. Not verified by the chec
 ## Not in this codebase
 
 - Path-based URL routes. Routing is hash-based (`#/...`); a static host serves `index.html` for any path, and deep links/refresh work through the hash parser.
-- Firebase Auth, Firestore, rules, or emulator tests.
+- Real Firebase project wiring. Everything was verified against the Emulator Suite with demo config; no production Firebase project exists yet. App Check is a documented placeholder, not implemented.
+- Multi-device conflict resolution beyond last-write-wins per document. Offline edits made while signed in can be overwritten by a cloud pull on the next sign-in (DECISIONS.md).
 - Google Tasks, Google Calendar, Gemini, FCM.
 - Per-topic timer lengths.
 - Real friend groups, working invite links, shared tasks, public leaderboard, or profile privacy. The invite route is a placeholder.
 - Goal and test-date reminders (in-app Notifications API). Moved to milestone 5; scheduled push is later work.
 - Chrome theme reading. Pages cannot read it.
+
+## Fixed in milestone 3 (Firebase, emulator-first)
+
+- Firebase JS SDK 13.1.0 modular client (`src/lib/firebase/client.ts`) gated entirely on `VITE_FIREBASE_*` env vars; guest mode with zero config, no crashes, sign-in hidden.
+- Google sign-in (`auth.ts`, `signInWithPopup` + `GoogleAuthProvider`), sign-out that wipes the previous user's local data (`wipeUserData` in `useAppStore.ts`), auth loading handled before the shell renders.
+- Firestore sync (`sync.ts`, `cloudSync.ts`): tasks, sessionLogs, testGoals, templates, settings under `users/{uid}/...`; 800ms debounced push with signature diffing; pull on sign-in; Firestore offline persistence enabled.
+- Guest-to-cloud migration dialog (`MigrationDialog.tsx`): explicit import/cloud/later choice, idempotent writes keyed by entity id, `meta/migration` completion marker so reloads do not re-prompt (Decision 18).
+- `firestore.rules` + 14 emulator rules tests covering isolation, shape/size validation, append-only logs, and the ledger-gated wallet model (Decision 17).
+- Terms/Privacy updated to describe only what exists: Google sign-in and Firestore sync. No friends/leaderboard claims.
+- Playwright emulator spec `e2e/firebase-emulators.spec.ts` (sign-in, migrate, sync, reload, sign-out) run via `npm run test:e2e:firebase`.
 
 ## Fixed in milestone 2b (was missing in the 2a audit)
 
@@ -105,10 +124,9 @@ Present in source and included in the production build. Not verified by the chec
 
 ## Remaining known issues
 
-- `npm audit` dev-chain findings remain by owner decision (DECISIONS.md Decision 8).
+- `npm audit` dev-chain findings remain by owner decision (DECISIONS.md Decision 8); installing `firebase-tools` 15.35.0 raised the count — still dev-only, still no `--force` fix.
 - Catalog sections for unverified tests (GAT, SAAT, STEP, KFUPM Early SAAT, ACT sections, TOEFL sections, Duolingo) are plausible defaults flagged "verify on official site", not confirmed data. Saudi test score scales are unconfirmed. Owner accepted these as flagged.
 - Dialogs still use `shadow-xl`/`shadow-2xl`; some cards still use `rounded-2xl`/`rounded-3xl` rather than the full varied shape scale.
-- `.env.example` no longer documents any keys; Firebase config keys arrive in milestone 3.
-- No `docs/original-brief.md` or `docs/ai-studio-plan.md` in repo yet (owner adding them).
+- `.env.example` documents the `VITE_FIREBASE_*` keys (empty) and `VITE_USE_EMULATORS`; real values go in `.env.local` (gitignored).
 - Functional Playwright flows run in English only; Arabic/RTL coverage is screenshot + overflow assertions.
 - `md-dialog`/`md-slider`/`md-select` RTL behavior was checked via rendered screenshots without dedicated interaction tests.

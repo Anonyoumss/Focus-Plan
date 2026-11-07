@@ -95,3 +95,18 @@ This log documents all technical, structural, and design decisions made during t
 ## Decision 15: Selective @material/web with a content-slot wrapper
 - **Decision**: `@material/web` is used for switches (Settings), sliders (timer durations), selects (ambient sound), dialogs (task create/edit), and filled buttons (Store). `MdDialog` wraps children in `<div slot="content">` because md-dialog only renders slotted `content`; without it the dialog body is empty (found via Playwright). Custom components were kept for the timer ring, charts, nav, and cards. No RTL-specific defect was observed in AR screenshots, so no custom fallback was needed; RTL interaction coverage is thinner than LTR and is noted in FEATURE_PARITY.md.
 - **Rationale**: Milestone 2b "no wholesale rewrite" constraint.
+
+## Decision 16: Firebase SDK 13.1.0, emulator-first, env-only config
+- **Decision**: `firebase` 13.1.0 (modular SDK) with `@firebase/rules-unit-testing` 6.0.0 for rules tests and `firebase-tools` 15.35.0 as a devDependency for the Emulator Suite. All config comes from `VITE_FIREBASE_*` env vars; `.env.example` ships empty values plus `VITE_USE_EMULATORS`. With no config the app runs fully as a guest: sign-in UI is hidden and Settings shows a "cloud sync not configured" state. App Check is a documented placeholder only, not implemented.
+- **Rationale**: Milestone 3 requirement; the emulator needs no real project, and missing env must never crash the app.
+- **Source**: `npm view firebase version` and firebase.google.com docs, 2026-11-08.
+
+## Decision 17: What Firestore Rules can and cannot enforce without Cloud Functions
+- **Decision**: Rules enforce per-user isolation (`users/{uid}/...` readable/writable only by that uid), field types and size caps, append-only session logs, and a wallet model where balance changes require a matching ledger row in the same transaction and spend amounts must equal catalog prices. Rules CANNOT prove a focus session really happened, cap awards per day, or prevent a modified client from writing plausible-looking ledger rows within the allowed deltas. Coins, points, streaks and wallet fields are therefore client-writable within tight rule bounds — an honor system, same as Decision 6. Real enforcement needs Cloud Functions (Blaze plan) or a trusted server; until then leaderboards must not be presented as cheat-proof.
+- **Rationale**: Milestone 3 requirement to record the rules boundary honestly.
+- **Source**: `firestore.rules`, `tests/rules/firestore.rules.test.ts` (14 emulator tests).
+
+## Decision 18: Migration completion is marked in Firestore, not localStorage
+- **Decision**: Guest-to-cloud resolution writes `users/{uid}/meta/migration {completed:true}`. `handleAuthUser` checks this marker before comparing local vs cloud data; without it every reload after a successful import re-detected "both sides have data" and re-opened the merge dialog (found by the Playwright emulator test). "Decide later" writes no marker, so the prompt returns on the next sign-in as intended. Both "Import device data" and "Use cloud data" mark completion; "Use cloud data" also writes the marker so the prompt does not return.
+- **Rationale**: The marker is the only durable record that survives reloads and devices; localStorage cannot distinguish "already migrated" from "new conflict".
+- **Source**: e2e/firebase-emulators.spec.ts failure and fix, 2026-11-08.
