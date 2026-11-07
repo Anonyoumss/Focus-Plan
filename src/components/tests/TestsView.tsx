@@ -270,7 +270,7 @@ export const TestsView: React.FC = () => {
                         }}
                       >
                         <MaterialIcon name="assignment_turned_in" size={15} />
-                        <span>{locale === 'ar' ? 'سجّل درجتك بعد الاختبار' : 'Log your score — test date passed'}</span>
+                        <span>{locale === 'ar' ? 'سجّل درجتك بعد الاختبار' : 'Log your score: test date passed'}</span>
                       </button>
                     )}
 

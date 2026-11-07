@@ -1,138 +1,148 @@
-# Focus Plan M3E — Material 3 Expressive Pomodoro & Study Tracker
+# Focus Plan M3E
 
-> A responsive, installable Progressive Web App (PWA) uniting the core focus ergonomics of **Pomofocus** and **Tomato** with a goal-driven study tracking engine tailored for Saudi entrance examinations (**GAT / Qudurat**, **SAAT / Tahsili**, **STEP**, **KFUPM Early SAAT**) and International tests (**SAT**, **ACT**, **IELTS**, **TOEFL**, **Duolingo**).
+A responsive, installable PWA that combines Pomodoro-style focus timing
+with a goal-driven study tracker for standardized tests. English and
+Arabic with full RTL. Built with React, TypeScript, Vite, and Material 3
+Expressive design tokens. Optional Firebase backend (Auth + Firestore)
+for cloud sync, groups, and leaderboards — the app works fully as a
+guest with no configuration.
 
----
+Live demo: _placeholder — GitHub Pages URL after first deploy_
 
-## Highlights & Key Capabilities
+## Features (what actually exists today)
 
-- **Material 3 Expressive Design**:
-  - Dynamic color scheme generated at runtime using `@material/material-color-utilities` from seed colors or uploaded images.
-  - Soft tonal surfaces adhering to Google M3 Expressive tokens (`--md-sys-color-*`).
-  - Connected segmented controls for modes (`Focus | Short Break | Long Break`) with asymmetric shape scale radii.
-  - Wavy SVG circular progress ring and spring-morphing Start/Pause button.
-  - Expressive `Roboto Flex` tabular digits for zero-jitter countdowns, paired with `Plus Jakarta Sans` and `Readex Pro`.
-  - Exclusively uses Google **Material Symbols Rounded** with **zero emojis** in UI controls.
-- **Bilingual & Full Arabic RTL Support**:
-  - Seamless instant toggle between English (LTR) and Arabic (العربية - RTL).
-  - Designed with CSS logical properties (`margin-inline-start`, `padding-inline-end`, `text-start`).
-- **Resilient Timestamp Timer Engine (`/src/lib/timerEngine.ts`)**:
-  - Framework-free logic immune to browser tab throttling, mobile sleep, and page reloads.
-  - Screen Wake Lock API keeping the screen active during sessions.
-  - Web Audio API synthesizer generating harmonic bell chimes and ambient pink noise with zero external audio assets.
-- **Goal-Driven Study Engine**:
-  - Categories (Work, School, Extracurriculars, Study, Standardized Tests, Personal) with min/max session thresholds and cadences (daily, weekly, monthly).
-  - Standardized test catalog with section score breakdowns, days remaining countdowns, and real score logging loop.
-- **Streaks & Focus Coins Economy**:
-  - 3+ completed Pomodoros daily required to maintain streak.
-  - Streak freeze protection against missed days.
-  - Overachievement goal calculation (e.g. 4 goal, 8 completed = 200%).
-  - Focus coins earned through focus sessions and redeemable in the Rewards Store.
-- **Study Circles & Leaderboards**:
-  - Collaborative study groups with 6-character invite codes (`FOCUS7`).
-  - Weekly standings with 1 point daily and 7 points weekly bonuses.
-  - Opt-in public leaderboard.
-- **Full Privacy & Legal Pages**:
-  - Plain-language Terms of Service (`/terms`) and Privacy Policy (`/privacy`) linked in the footer.
-  - Local-storage first with full JSON/CSV export and data purge capability.
+- **Focus timer**: focus / short break / long break modes, animated wavy
+  SVG progress ring, Start/Pause shape morph, keyboard shortcuts,
+  reload recovery, exactly-once session completion, screen wake lock,
+  Web Audio chimes, ambient sound, optional tick sound.
+- **Tasks**: categories, min/max session goals, cadences
+  (hourly/daily/weekly/monthly), drag + keyboard reorder, edit, templates
+  (single task or whole list, cloud-synced), JSON/CSV import and export
+  with validation.
+- **Standardized tests**: catalog for GAT, SAAT, STEP, KFUPM Early SAAT,
+  SAT, ACT, IELTS, TOEFL, Duolingo, plus custom tests. Editable sections
+  (add/rename/remove, score ranges, targets), score history, score-loop
+  gap analysis with per-section percent-of-goal, history chart vs goal
+  line, and an adjustable weekly plan recommendation. Post-test-date
+  "log your score" prompt. Catalog entries carry "verify on official
+  site" labels where data is unconfirmed.
+- **Streaks & economy**: streak requires 3+ focus sessions per local
+  day, streak freezes, focus coins, focus points, badges, inventory,
+  store items. Wallet balances are rule-enforced via ledger transactions
+  when signed in.
+- **Groups (signed in)**: create/join by 6-char code or invite link,
+  shared group task, member roster, shared session minutes,
+  day/week leaderboards (minutes → focus points → streak), group daily
+  (+1 FP) and weekly (+7 FP) awards claimed idempotently on app open.
+- **Profiles & public board (opt-in)**: private profile plus a public
+  projection containing only fields the member enabled; opt-in public
+  leaderboard (alias, weekly minutes, streak). Stats refresh when the
+  member opens the app.
+- **Reports**: weekly and monthly summaries — total focus time,
+  sessions, daily breakdown table, streak, points per category, task
+  completion, test-goal progress. Older periods reachable. CSV export
+  (UTF-8 BOM) and print-to-PDF.
+- **Reminders (in-app only)**: while the app is open, browser
+  Notifications for daily-goal tasks and upcoming test dates, with
+  quiet hours and a permission flow. No background push — scheduled
+  delivery is not shipped.
+- **Bilingual**: English and Arabic, full RTL, logical CSS properties.
+- **PWA**: installable manifest, hash routing (`#/`, `#/app/*`,
+  `#/terms`, `#/privacy`, `#/invite/<code>`), works offline as guest.
 
----
+## Tech stack
 
-## Project Structure & Architecture
+React 19, TypeScript, Vite, Zustand-style store, Tailwind CSS 4,
+`@material/web` + Material Symbols Rounded, `motion` (springs),
+`anime.js` (SVG ring), Firebase JS SDK 13 (Auth + Firestore, optional),
+Vitest, Playwright, `@firebase/rules-unit-testing`.
 
-```
-/
-├── index.html                   # HTML entry point with fonts & metadata
-├── metadata.json                # AI Studio manifest
-├── manifest.json                # PWA manifest
-├── package.json                 # Dependencies & scripts
-├── src/
-│   ├── App.tsx                  # Root router & theme synchronization
-│   ├── main.tsx                 # React entry mount
-│   ├── index.css                # Tailwind v4 & M3 CSS custom properties
-│   ├── design/
-│   │   └── theme.ts             # @material/material-color-utilities dynamic engine
-│   ├── i18n/
-│   │   └── translations.ts      # English & Arabic bilingual dictionary
-│   ├── lib/                     # Framework-free pure TypeScript core
-│   │   ├── timerEngine.ts       # Timestamp-accurate timer calculations
-│   │   ├── soundEngine.ts       # Web Audio API sound synthesizer
-│   │   ├── streakCalculator.ts  # 3+ session streak logic & badges
-│   │   ├── coinsEngine.ts       # Focus coins & store transactions
-│   │   └── __tests__/           # Vitest unit test suites
-│   ├── data/
-│   │   └── tests/
-│   │       └── catalog.ts       # Saudi & International test specifications
-│   ├── store/
-│   │   └── useAppStore.ts       # Central Zustand state store with persistence
-│   └── components/
-│       ├── layout/              # Responsive Nav Rail & Mobile Bottom Bar
-│       ├── focus/               # Timer display, wavy ring, task list
-│       ├── plan/                # Categories, repetition cadences
-│       ├── tests/               # Exam benchmarks, countdowns, score log
-│       ├── progress/            # Streaks, consistency row, badges shelf
-│       ├── friends/             # Study circles, codes, leaderboards
-│       ├── store/               # Focus coins store & inventory
-│       ├── settings/            # Theme seeds, language, data export
-│       ├── legal/               # Terms of Service & Privacy Policy
-│       ├── onboarding/          # 3-step first-launch walkthrough
-│       └── common/              # MaterialIcon, SkeletonLoader, Shortcuts
-```
-
----
-
-## How to Download as ZIP or Push to GitHub
-
-### 1. Download as ZIP
-In Google AI Studio:
-1. Click the **Project Options** menu (gear or three dots icon in the top header).
-2. Click **Download Project as ZIP**.
-3. Extract the archive locally and run:
-   ```bash
-   npm install
-   npm run dev
-   ```
-
-### 2. Export / Push to GitHub
-1. In the project toolbar, select the **Git / Version Control** icon.
-2. Authenticate your GitHub account and specify your desired repository name.
-3. AI Studio pushes all commits and branches directly to your GitHub repository.
-4. Alternatively, initialize locally from your downloaded ZIP:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit of Focus Plan M3E"
-   git branch -M main
-   git remote add origin https://github.com/<your-username>/<your-repo-name>.git
-   git push -u origin main
-   ```
-
----
-
-## Running Locally
+## Local setup
 
 ```bash
-# Install dependencies
 npm install
-
-# Start Vite dev server on port 3000
-npm run dev
-
-# Run Vitest unit tests
-npx vitest run
-
-# Build for production
-npm run build
+npm run dev        # http://localhost:3000
 ```
 
----
+Checks:
 
-## Contributing & PRs
+```bash
+npm run lint         # tsc --noEmit
+npm run lint:eslint  # eslint
+npm test             # Vitest unit tests
+npm run build        # production build (base /Focus-Plan/)
+npx playwright test  # browser e2e (emulator specs self-skip)
+```
 
-Contributions, feature suggestions, and pull requests are warmly welcomed! Please read `CONTRIBUTING.md` and check `FEATURE_PARITY.md` for current roadmap items.
+### Firebase emulators (for sync/groups work)
 
-## License & Credits
+Requires **Java 21** (firebase-tools 15.x; Java 17 fails). No sudo
+needed — a user-local JRE works:
 
-- Inspired by **Pomofocus** (by bermarte) and **Tomato** (by nsh07).
-- UI governed by Google **Material 3 Expressive** guidelines.
-- Licensed under the Apache-2.0 / MIT License.
+```bash
+# one-time: download Temurin JRE 21 to ~/tools/jdk-21.0.13+9-jre
+JAVA_HOME=~/tools/jdk-21.0.13+9-jre PATH=~/tools/jdk-21.0.13+9-jre/bin:$PATH \
+  npm run test:e2e:firebase   # auth+firestore emulators + Playwright
+npm run test:rules            # Firestore Security Rules tests
+npm run firebase:emulators    # emulators UI at http://127.0.0.1:4000
+```
+
+### Environment variables
+
+Copy `.env.example` to `.env.local`. All optional — with none set the
+app runs as a guest.
+
+| Variable | Purpose |
+|---|---|
+| `VITE_FIREBASE_API_KEY` | Firebase web API key (public config) |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Auth domain |
+| `VITE_FIREBASE_PROJECT_ID` | Project id |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Storage bucket |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Sender id |
+| `VITE_FIREBASE_APP_ID` | Web app id |
+| `VITE_USE_EMULATORS` | `true` to use local emulators |
+
+### Real Firebase project setup
+
+1. Create a project on the **Spark (free) plan**.
+2. Register a Web app; copy the config values into `.env.local`.
+3. Enable **Google** sign-in provider.
+4. Authorized domains: `localhost` and `anonyoumss.github.io`.
+5. Publish `firestore.rules` in the Firestore Rules tab.
+6. App Check (reCAPTCHA) is recommended before real users — placeholder
+   only today.
+
+## Honest limits
+
+- Group leaderboards, wallet deltas, and award claims are written by
+  the client inside Security-Rule bounds — an **honor system, not
+  cheat-proof** without Cloud Functions (see DECISIONS.md).
+- Public leaderboard stats refresh when the member opens the app.
+- Reminders only fire while the app tab is open; no push when closed.
+- Sync is last-write-wins per record with `updatedAt` merge; offline
+  edits survive pulls, but there is no conflict-resolution UI.
+- Test catalog defaults for unverified exams are plausible placeholders
+  labeled "verify on official site" — corrections welcome via the
+  catalog issue template with an official source URL.
+- Everything cloud-related is verified on emulators only; no production
+  Firebase project is wired yet.
+
+## Roadmap
+
+Google Tasks API, Google Calendar API, Gemini via Firebase AI Logic,
+FCM web push reminders, Capacitor Android shell, richer reports.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Please read [AGENTS.md](AGENTS.md)
+for design and honesty rules. Security reports: [SECURITY.md](SECURITY.md).
+
+## Credits & licenses
+
+Built with: React, TypeScript, Vite, Tailwind CSS, `@material/web`
+(Apache-2.0), `@material/material-color-utilities` (Apache-2.0),
+`motion` (MIT), `anime.js` (MIT), Firebase JS SDK (Apache-2.0),
+Vitest (MIT), Playwright (Apache-2.0). Fonts: Roboto Flex, Plus Jakarta
+Sans, Readex Pro (SIL Open Font License); icons: Material Symbols
+Rounded (Apache-2.0). This project is MIT licensed — see [LICENSE](LICENSE).
+No code, assets, or copy from Pomofocus or Tomato was used.

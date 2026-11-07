@@ -1,0 +1,19 @@
+name: Test catalog correction
+description: Fix wrong exam data (sections, score ranges, dates)
+title: "[Catalog] "
+labels: [catalog]
+body:
+  - type: textarea
+    id: test
+    attributes: { label: Which test, placeholder: e.g. GAT, SAAT, SAT }
+    validations: { required: true }
+  - type: textarea
+    id: correction
+    attributes: { label: What is wrong and what it should be }
+    validations: { required: true }
+  - type: input
+    id: source
+    attributes:
+      label: Official source URL (required)
+      description: Must be an official exam body page. Unverifiable claims will be rejected.
+    validations: { required: true }

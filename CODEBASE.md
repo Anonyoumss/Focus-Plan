@@ -1,121 +1,107 @@
-# CODEBASE ARCHITECTURE & SYSTEM DESIGN: Focus Plan M3E
+# Codebase map
 
-This document outlines the codebase architecture, data model, token system, extension patterns, and cross-platform native readiness of **Focus Plan M3E**.
+## Layout
 
----
-
-## 1. Architectural Philosophy: Decoupled Framework-Free Core
-
-A central architectural decision in Focus Plan M3E is the decoupling of **business logic** from the UI view layer:
-
-- **UI Layer (`/src/components/`, `/src/App.tsx`)**: React 19 functional components utilizing Tailwind CSS v4 and Material 3 Expressive CSS tokens.
-- **State Layer (`/src/store/useAppStore.ts`)**: Zustand reactive store maintaining transient UI state and synchronizing persistence with `localStorage` (with a clean upgrade path to Firebase Firestore in Phase 3).
-- **Core Engine (`/src/lib/`)**: Pure TypeScript functions with zero React or DOM dependencies.
-
-### Why This Matters for Android / Native Expansion:
-Because the timer calculations, streak validations, score scaling formulas, and coin ledgers are located in pure TypeScript files (`/src/lib/`), they can be:
-1. Reused 100% inside a **Capacitor** Android shell.
-2. Directly ported 1:1 to **Kotlin and Jetpack Compose** data models and ViewModels without deciphering tangled React component lifecycle hooks.
-
----
-
-## 2. Directory Map
-
-| Directory | Responsibility |
-| :--- | :--- |
-| `/src/design/theme.ts` | Dynamic M3 palette generator using `@material/material-color-utilities`. Injects CSS variables into `:root` and `.dark`. |
-| `/src/i18n/translations.ts` | Dictionary of strings in English and Arabic, supporting bidirectional text rendering (`dir="ltr"` and `dir="rtl"`). |
-| `/src/lib/timerEngine.ts` | Target-timestamp countdown logic, time formatting, progress calculation, and screen wake lock integration. |
-| `/src/lib/soundEngine.ts` | Browser Web Audio API synthesizer for harmonic completion chimes and ambient noise filters. |
-| `/src/lib/streakCalculator.ts` | 3+ daily sessions streak validation, timezone date conversion, and streak freeze deductions. |
-| `/src/lib/coinsEngine.ts` | Coins economy, transaction auditing, and store inventory ledger. |
-| `/src/lib/analyticsEngine.ts` | Telemetry aggregation, SVG bezier line pathing, activity heatmap generation, score gap analysis, and CSV formatting. |
-| `/src/lib/__tests__/` | Automated Vitest test suites verifying logic correctness across edge cases (18 tests passing). |
-| `/src/data/tests/catalog.ts` | Structured schemas for Saudi and International standardized tests with sections, score ranges, and target defaults. |
-| `/src/components/common/` | Reusable primitives: `MaterialIcon.tsx` (Google Material Symbols), `SkeletonLoader.tsx`, `ShortcutsModal.tsx`. |
-| `/src/components/focus/` | Timer display with SVG wavy progress ring and connected mode buttons, plus the task list manager. |
-| `/src/components/plan/` | Category grid, session thresholds, and repeat cadence matrix. |
-| `/src/components/tests/` | Test catalog browser, active goals, countdowns, and `ScoreLoopModal.tsx` for per-section gap analysis. |
-| `/src/components/progress/` | Telemetry cards, `TelemetryCharts.tsx` (Bar/Line/Category/Heatmap/Table), and `WeeklyReportModal.tsx` printable dossiers. |
-| `/src/components/friends/` | Study circles, 6-character code sharing, and weekly standings. |
-| `/src/components/store/` | Rewards store for redeeming streak freezes, break multipliers, and palette tokens. |
-| `/src/components/settings/` | Theme customizer, language toggle, durations config, and JSON/CSV export. |
-| `/src/components/legal/` | Terms of Service (`TermsPage.tsx`) and Privacy Policy (`PrivacyPage.tsx`). |
-| `/src/components/onboarding/` | 3-step skippable onboarding wizard for first-time visitors. |
-
----
-
-## 3. Material 3 Expressive Tokens & Shape Scale
-
-The color tokens conform strictly to Google Material Design 3 Expressive specifications:
-
-```css
---md-sys-color-primary
---md-sys-color-on-primary
---md-sys-color-primary-container
---md-sys-color-on-primary-container
---md-sys-color-secondary
---md-sys-color-surface
---md-sys-color-surface-container-low
---md-sys-color-surface-container
---md-sys-color-surface-container-high
---md-sys-color-outline
---md-sys-color-outline-variant
+```
+src/
+  App.tsx                 hash router + theme/locale effects + ambient stop
+  main.tsx                entry, dev-only emulator hook
+  store/useAppStore.ts    Zustand store: all state, actions, persistence,
+                          cloud sync lifecycle, reminder loop
+  lib/                    framework-free logic (Vitest-tested)
+    timerEngine.ts        countdown math, modes, durations
+    streakCalculator.ts   3+/day streaks, freezes
+    coinsEngine.ts        coins/points/badges rules
+    analyticsEngine.ts    category breakdown, heatmap, score-loop analysis,
+                          CSV export
+    groupStats.ts         leaderboard ranking, award period math
+    syncMerge.ts          per-record updatedAt LWW merge + tombstones
+    templates.ts          task-template validate/blueprint/apply
+    dataPort.ts           JSON/CSV task import/export validation
+    testSections.ts       editable test-section validation/resolution
+    reminders.ts          quiet hours, cooldown, candidate building
+    soundEngine.ts        Web Audio chimes/ambient/tick
+    router.ts             hash route parse/navigate
+    firebase/             client.ts (env config), auth.ts, sync.ts
+                          (pull/push/tombstones), cloudSync.ts (debounced
+                          diff push), groups.ts (groups/wallet/awards/
+                          profiles/leaderboard), emulatorHook.ts (dev only)
+  components/             focus/, plan/, tests/, progress/, friends/,
+                          store/, settings/, legal/, landing/, layout/,
+                          auth/, onboarding/, common/
+  data/tests/catalog.ts   standardized-test definitions + UserTestGoal
+  design/theme.ts         M3 tonal palette sync, seed colors
+  i18n/translations.ts    EN/AR string tables (parity-tested)
+e2e/                      Playwright specs + emulator-helpers.ts
+tests/rules/              Firestore rules unit tests (emulator)
+docs/                     HANDOFF, screenshots, plans
+firestore.rules           Security Rules
+.github/workflows/        ci.yml, deploy.yml (GitHub Pages)
 ```
 
-### Shape Scale:
-Rather than uniform pills, Focus Plan M3E adheres to the M3 shape hierarchy:
-- **Extra Small (4px)**: Micro tags and indicators.
-- **Small (8px)**: Segmented control tabs and action chips.
-- **Medium (12px)**: Buttons, inputs, and category badges.
-- **Large (16px)**: Connected button group ends and list rows.
-- **Extra Large (24px - 28px)**: Cards, dialogue containers, and navigation rail anchors.
-- **Full (9999px)**: Floating circular action triggers and segmented track capsules.
+## Data model (localStorage `focus_plan_m3e_v1`)
 
----
+`locale, themeMode, seedHex, onboardingCompleted, timerConfig, tasks[],
+taskTemplates[], testGoals[], streak, coins, focusPoints, inventory,
+transactions[], sessionLogs[], activeTaskId, timerMode, isRunning,
+targetEndTime, activeGroupId, groupFocusTaskId, reminderSettings,
+tickSoundEnabled, tickVolume, syncMeta`.
 
-## 4. How to Extend the Codebase
+- `TaskItem`: id, title, category, estimatedSessions, completedSessions,
+  minGoal, maxGoal, cadence, notes, isCompleted, createdAt.
+- `TaskTemplate`: id, title, kind(task|list), items[] (blueprints),
+  createdAt + rules-required fields.
+- `UserTestGoal`: testId, testName, testDate, targetScore,
+  currentBaselineScore, sectionTargets{}, customSections? (TestSection[]),
+  weeklyPomodoros, scoresHistory[].
+- `FocusSessionRecord`: id, timestamp, dateStr, durationMinutes,
+  taskId, taskTitle, category.
 
-### Adding a New Standardized Test
-1. Open `/src/data/tests/catalog.ts`.
-2. Append a new `StandardizedTestDefinition` object to `TEST_CATALOG`:
-   ```ts
-   {
-     id: 'gre_general',
-     code: 'GRE',
-     nameEn: 'GRE General Test',
-     nameAr: 'اختبار تقييم الخريجين (GRE)',
-     category: 'international',
-     minScore: 260,
-     maxScore: 340,
-     scoreUnit: 'Points',
-     typicalPrepWeeks: 12,
-     officialPortal: 'https://ets.org/gre',
-     descriptionEn: 'Graduate record examination for masters and doctoral admissions.',
-     descriptionAr: 'اختبار قياس القدرات للدراسات العليا والماجستير والدكتوراه.',
-     sections: [
-       { id: 'gre_verbal', nameEn: 'Verbal Reasoning', nameAr: 'الاستدلال اللفظي', minScore: 130, maxScore: 170, defaultTargetScore: 160 },
-       { id: 'gre_quant', nameEn: 'Quantitative Reasoning', nameAr: 'الاستدلال الكمي', minScore: 130, maxScore: 170, defaultTargetScore: 165 },
-     ],
-   }
-   ```
-3. It will immediately appear in the catalog view with section breakdowns, target calculations, and portal links.
+## Sync & merge
 
-### Adding a New Language
-1. Open `/src/i18n/translations.ts`.
-2. Add your new language code to `Locale` (e.g. `export type Locale = 'en' | 'ar' | 'es'`).
-3. Add the translated dictionary inside `TRANSLATIONS`.
-4. In `useAppStore.ts` and `Shell.tsx`, the layout automatically applies `dir="ltr"` or `dir="rtl"` based on the locale definition.
+Guest = localStorage only. Signed-in = Firestore under
+`users/{uid}/` with offline persistence. `persistState` stamps
+`updatedAt` per record into the cloud slice only (via hash→meta map in
+`syncMeta`) and enqueues a debounced (800ms) diff push
+(`cloudSync.ts`). Pulls merge per record: newer `updatedAt` wins, ties
+keep local, remote tombstones (`{_deleted:true,updatedAt}`) delete.
+Synced collections: tasks, sessionLogs (append-only), testGoals,
+templates; settings as `settings/main` doc. Deletes are tombstones,
+never hard deletes (rules deny them).
 
----
+## Firestore rules summary
 
-## 5. Automated Testing Strategy
+Per-user isolation on `users/{uid}/**`. Shape/size validation on every
+doc. Wallet balances are NOT client-writable: rules require matching
+ledger rows and catalog-price deltas in the same transaction. Group
+subtree: invite-code capability join, member-only reads, owner role
+transfer, append-only sessions, create-only award docs
+(`groupId_day_YYYY-MM-DD`, `groupId_week_YYYY-Www`). Public visibility
+only via whitelisted projection docs + opt-in `publicLeaderboard`.
+31 rules tests in `tests/rules/`.
 
-Vitest is configured for instantaneous unit testing. Run tests at any time with:
-```bash
-npx vitest run
-```
-Test suites located in `/src/lib/__tests__/` verify:
-1. `timerEngine.test.ts`: Timestamp accuracy, MM:SS formatting, progress math, interval-based mode transitions.
-2. `streakCalculator.test.ts`: 3+ session daily minimum, freeze consumption, 200%+ overachievement.
-3. `coinsEngine.test.ts`: Purchase authorization, inventory incrementation, and audit transactions.
+## Design tokens
+
+`src/design/theme.ts` generates the full `--md-sys-color-*` set from a
+seed hex via `@material/material-color-utilities`; Roboto Flex for
+timer/headlines, Plus Jakarta Sans body, Readex Pro Arabic; Material
+Symbols Rounded icons; `prefers-reduced-motion` respected; logical CSS
+properties for RTL. Anti-template rules in AGENTS.md are enforced by
+review + screenshot suite (`e2e/audit-screenshots.spec.ts`).
+
+## How to…
+
+- **Add a catalog test**: append a `StandardizedTestDefinition` to
+  `TEST_CATALOG` in `src/data/tests/catalog.ts` — id, code, names EN/AR,
+  score scale, `sections[]` (id/nameEn/nameAr/min/max/defaultTarget),
+  `sourceUrls` + `unverifiedFields` (mark unconfirmed fields so the UI
+  shows "verify on official site"), `officialPortal`, description.
+- **Add a language**: add a `Translations` block in
+  `src/i18n/translations.ts` (the type enforces parity), extend the
+  `locale` union in the store, and check RTL (`dir`) handling in
+  `App.tsx`.
+- **Add a badge**: add the rule in `src/lib/coinsEngine.ts`, a
+  translation key, and it appears in Progress automatically.
+- **Add a synced collection**: extend `SYNCED_COLLECTIONS` + merge in
+  `syncMerge.ts`, pull/push in `firebase/sync.ts`, rules match + tests,
+  `syncedSliceOf`/`persistState` mapping in the store.

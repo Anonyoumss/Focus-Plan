@@ -139,3 +139,8 @@ This log documents all technical, structural, and design decisions made during t
 - **Decision**: `tickSoundEnabled`/`tickVolume` are restored from persisted state (they were hardcoded defaults, silently ignoring user settings across reloads). The cloud push slice maps local `taskTemplates` to the synced `templates` collection inside `persistState`; previously the mismatch meant template writes were always empty and remote templates could be tombstoned by unrelated pushes.
 - **Rationale**: Found by the template emulator round-trip and the sounds spec; both are covered by regression tests now.
 - **Source**: `useAppStore.ts` persistState/syncedSliceOf, `e2e/templates-emulator.spec.ts`, `e2e/m6-sounds.spec.ts`.
+
+## Decision 25: GitHub Pages deployment shape
+- **Decision**: Vite `base: '/Focus-Plan/'` for the repo-name subpath; manifest uses relative `./` URLs (`start_url './#/app'`, `scope './'`) so the installed PWA works under any base; `public/404.html` redirects unknown paths to `./#/`; manifest and icon live in `public/` so they deploy. Firebase config injected at build time from GitHub repository variables; absent vars produce a working guest build. SPA uses hash routes so no server rewrite rules are needed beyond the 404 fallback.
+- **Rationale**: Owner deploys to `anonyoumss.github.io/Focus-Plan/`; relative manifest URLs survive both the subpath and future domain changes.
+- **Source**: `vite.config.ts`, `public/manifest.json`, `public/404.html`, `.github/workflows/deploy.yml`, `e2e/prod-pages.spec.ts`.

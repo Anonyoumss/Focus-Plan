@@ -73,3 +73,10 @@
 - Bugs found and fixed: templates were never pushed to Firestore (`taskTemplates` vs `templates` key mismatch in the persist slice); tick sound settings ignored persisted values; `isQuietHour` test expectations corrected; score-loop modal gained aria-label and post-test-date prompt.
 - Reports now export CSV with UTF-8 BOM for Excel/Arabic; PDF verified by content extraction, not just screenshots.
 - Still untested: real Notification permission prompt UX in a headed browser, audible output (spied engine calls instead), PDF visual RTL inspection by eye (content verified via pdftotext; screenshots saved under docs/screenshots/report-print-*.png).
+
+## Milestone 6 (publish prep)
+
+- Pages deploy workflow + CI workflow added; prod build verified under `/Focus-Plan/` via `vite preview` + Playwright.
+- README/CODEBASE/CONTRIBUTING/CoC/SECURITY/LICENSE(MIT)/issue+PR templates written to match the code.
+- Scan: clean — no secrets in tree or history; tool dirs removed; no history rewrite required.
+- Owner actions remaining: push, make repo public, enable Pages (GitHub Actions source), add `VITE_FIREBASE_*` repo variables, add `anonyoumss.github.io` to Firebase authorized domains, publish `firestore.rules`.

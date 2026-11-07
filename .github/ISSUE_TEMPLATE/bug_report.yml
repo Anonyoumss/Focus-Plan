@@ -1,0 +1,18 @@
+name: Bug report
+description: Something is broken
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes: { label: What happened, placeholder: Steps to reproduce, expected vs actual }
+    validations: { required: true }
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [Timer, Tasks, Tests/goals, Progress/reports, Friends/groups, Store, Settings, Sync, Other]
+    validations: { required: true }
+  - type: textarea
+    id: env
+    attributes: { label: Environment, placeholder: "Browser, OS, locale (en/ar), guest or signed in" }

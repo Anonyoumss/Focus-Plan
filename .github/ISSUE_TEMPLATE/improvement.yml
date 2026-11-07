@@ -1,0 +1,15 @@
+name: Improvement
+description: Suggest an improvement to an existing feature
+title: "[Improvement] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: what
+    attributes: { label: What should change and why }
+    validations: { required: true }
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [Timer, Tasks, Tests/goals, Progress/reports, Friends/groups, Store, Settings, Sync, Design, Other]
+    validations: { required: true }

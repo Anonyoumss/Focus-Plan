@@ -125,6 +125,14 @@ Present in source and included in the production build. Not verified by the chec
 - Editable test sections: add/rename/remove sections, min/max ranges, per-section targets, validation (min < max, target within range), custom badge, "restore catalog"; works for catalog and custom tests (`src/lib/testSections.ts`, `EditSectionsModal.tsx`, custom-test goal button). Verified in browser (sections spec).
 - Score loop uses resolved (custom-aware) sections; score attempt logging and adjusted-plan suggestion already existed and now respect custom sections. Verified in browser end-to-end incl. custom sections and recommendation apply.
 
+## Added in milestone 6 (publish prep)
+
+- GitHub Pages deploy: Vite `base: '/Focus-Plan/'`, manifest `start_url './#/app'` + `scope './'` + relative icon, `public/404.html` redirect fallback, `public/manifest.json` + `public/icon.svg` so assets deploy under the base path. Verified in browser against `vite preview` (`e2e/prod-pages.spec.ts`: landing, #/app, #/terms, #/privacy, #/invite, reloads, manifest/icon fetch, zero failed same-origin requests).
+- CI: `.github/workflows/ci.yml` (lint, eslint, unit, rules tests on Java 21, build); `.github/workflows/deploy.yml` (Pages artifact deploy, Firebase config from repo variables, guest-mode build when unset).
+- Public repo files: README (verified feature list only), CODEBASE.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, MIT LICENSE, issue templates (bug, improvement, suggestion, catalog correction requiring official source URL), PR template.
+- Secret/privacy scan: no keys/tokens/private keys in tree or history; `.aistudio/`, `.cursor/`, `docs/cursor-plan.md` removed; `.gitignore` updated. No history rewrite needed.
+- Anti-template audit: no gradients, no Lucide, correct fonts, no glassmorphism; em dash removed from a UI label.
+
 ## Hardened in post-M5 pass
 
 - Score loop end-to-end (Verified in browser, `e2e/m6-hardening.spec.ts`): post-test-date "Log your score" prompt opens the entry form; per-section scores persist; percent-of-goal per section; SVG history chart against the goal line; apply-recommendation updates weekly pomodoros; custom-sections goal covered.

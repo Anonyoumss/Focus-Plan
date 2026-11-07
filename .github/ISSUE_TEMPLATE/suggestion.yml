@@ -1,0 +1,9 @@
+name: Suggestion
+description: Propose a new feature or idea
+title: "[Suggestion] "
+labels: [suggestion]
+body:
+  - type: textarea
+    id: idea
+    attributes: { label: Your idea, placeholder: What problem does it solve? }
+    validations: { required: true }

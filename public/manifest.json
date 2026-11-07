@@ -2,17 +2,18 @@
   "name": "Focus Plan M3E",
   "short_name": "Focus Plan",
   "description": "Material 3 Expressive Pomodoro & Study Tracker for Saudi and International Exams",
-  "start_url": "/#/app",
+  "start_url": "./#/app",
   "display": "standalone",
   "background_color": "#121b16",
   "theme_color": "#1b4332",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icon.svg",
-      "sizes": "192x192 512x512",
+      "src": "./icon.svg",
+      "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "scope": "./"
 }
