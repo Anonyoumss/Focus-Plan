@@ -6,6 +6,7 @@ interface MaterialIconProps {
   className?: string;
   size?: number;
   ariaLabel?: string;
+  style?: React.CSSProperties;
 }
 
 export const MaterialIcon: React.FC<MaterialIconProps> = ({
@@ -14,6 +15,7 @@ export const MaterialIcon: React.FC<MaterialIconProps> = ({
   className = '',
   size = 24,
   ariaLabel,
+  style,
 }) => {
   return (
     <span
@@ -23,6 +25,7 @@ export const MaterialIcon: React.FC<MaterialIconProps> = ({
         width: `${size}px`,
         height: `${size}px`,
         verticalAlign: 'middle',
+        ...style,
       }}
       aria-hidden={!ariaLabel}
       aria-label={ariaLabel}

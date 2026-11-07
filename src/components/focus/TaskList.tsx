@@ -165,14 +165,23 @@ export const TaskList: React.FC = () => {
                       e.stopPropagation();
                       toggleTaskDone(task.id);
                     }}
-                    className="mt-0.5 text-slate-400 hover:text-emerald-600 transition-colors cursor-pointer shrink-0"
+                    className="mt-0.5 transition-colors cursor-pointer shrink-0"
+                    style={{
+                      color: task.isCompleted
+                        ? 'var(--md-sys-color-primary)'
+                        : 'var(--md-sys-color-outline)',
+                    }}
                     aria-label={t.tasks.markDone}
                   >
                     <MaterialIcon
                       name={task.isCompleted ? 'check_circle' : 'radio_button_unchecked'}
                       size={20}
                       filled={task.isCompleted}
-                      className={task.isCompleted ? 'text-emerald-600' : ''}
+                      style={{
+                        color: task.isCompleted
+                          ? 'var(--md-sys-color-primary)'
+                          : 'var(--md-sys-color-outline)',
+                      }}
                     />
                   </button>
 
@@ -208,7 +217,7 @@ export const TaskList: React.FC = () => {
                 <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => openEditModal(task)}
-                    className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                    className="p-1 rounded transition-colors cursor-pointer"
                     style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                     title={t.tasks.editTask}
                     aria-label={t.tasks.editTask}
@@ -217,7 +226,8 @@ export const TaskList: React.FC = () => {
                   </button>
                   <button
                     onClick={() => deleteTask(task.id)}
-                    className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-950/40 text-red-600 transition-colors cursor-pointer"
+                    className="p-1 rounded transition-colors cursor-pointer"
+                    style={{ color: 'var(--md-sys-color-error)' }}
                     title={t.tasks.delete}
                     aria-label={t.tasks.delete}
                   >
@@ -252,7 +262,7 @@ export const TaskList: React.FC = () => {
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 cursor-pointer"
+                className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
                 style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
               >
                 <MaterialIcon name="close" size={20} />

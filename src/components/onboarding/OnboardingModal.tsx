@@ -178,7 +178,7 @@ export const OnboardingModal: React.FC = () => {
                     key={sample}
                     type="button"
                     onClick={() => setFirstTaskName(sample)}
-                    className="px-2.5 py-1 rounded-lg border hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                    className="px-2.5 py-1 rounded-lg border hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                     style={{
                       borderColor: 'var(--md-sys-color-outline-variant)',
                       color: 'var(--md-sys-color-on-surface-variant)',
@@ -227,7 +227,10 @@ export const OnboardingModal: React.FC = () => {
               <div className="text-[11px] uppercase font-semibold mb-1" style={{ color: 'var(--md-sys-color-outline)' }}>
                 {locale === 'ar' ? 'رمز دائرة المذاكرة المبدئية' : 'Your Starter Circle Code'}
               </div>
-              <div className="text-2xl font-timer font-bold tracking-widest tabular-nums text-emerald-600 mb-2">
+              <div
+                className="text-2xl font-timer font-bold tracking-widest tabular-nums mb-2"
+                style={{ color: 'var(--md-sys-color-primary)' }}
+              >
                 FOCUS7
               </div>
               <p className="text-xs" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>

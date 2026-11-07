@@ -62,16 +62,16 @@ export const FriendsView: React.FC = () => {
                 className="text-xs font-semibold uppercase tracking-wider"
                 style={{ color: 'var(--md-sys-color-outline)' }}
               >
-                {locale === 'ar' ? 'حلقة المذاكرة النشطة' : 'Active Circle'}
+                {locale === 'ar' ? 'معاينة تجريبية محلية' : 'Local Demo Preview'}
               </span>
               <span
                 className="text-xs font-bold px-2 py-0.5 rounded"
                 style={{
-                  backgroundColor: 'var(--md-sys-color-primary-container)',
-                  color: 'var(--md-sys-color-on-primary-container)',
+                  backgroundColor: 'var(--md-sys-color-surface-container-highest)',
+                  color: 'var(--md-sys-color-on-surface-variant)',
                 }}
               >
-                4 {locale === 'ar' ? 'أعضاء' : 'Members'}
+                {locale === 'ar' ? 'بيانات تجريبية (المرحلة 3)' : 'Demo Data · Phase 3 Sync'}
               </span>
             </div>
 
@@ -79,15 +79,15 @@ export const FriendsView: React.FC = () => {
               className="text-base font-bold mb-1"
               style={{ color: 'var(--md-sys-color-on-surface)' }}
             >
-              GAT & SAT Champions 2026
+              GAT & SAT Champions 2026 (Demo)
             </h3>
             <p
               className="text-xs mb-4"
               style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
             >
               {locale === 'ar'
-                ? 'مجموعة مخصصة للتحضير المكثف للاختبارات القادمة ومشاركة التقدم.'
-                : 'Dedicated circle for intensive admissions prep and mutual focus streaks.'}
+                ? 'معاينة تجريبية لحلقات المذاكرة قبل ربط المزامنة الحية بقاعدة بيانات فايربيس في المرحلة 3.'
+                : 'Local demonstration of study circles before live Firebase multi-user backend connects in Phase 3.'}
             </p>
           </div>
 
@@ -200,7 +200,7 @@ export const FriendsView: React.FC = () => {
               className="text-base font-bold"
               style={{ color: 'var(--md-sys-color-on-surface)' }}
             >
-              {t.friends.weeklyLeaderboard}
+              {t.friends.weeklyLeaderboard} ({locale === 'ar' ? 'معاينة محلية' : 'Local Demo'})
             </h2>
             <div
               className="flex items-center gap-3 text-xs mt-0.5"
@@ -219,7 +219,7 @@ export const FriendsView: React.FC = () => {
               color: 'var(--md-sys-color-on-surface-variant)',
             }}
           >
-            <MaterialIcon name="stars" size={16} className="text-amber-500" />
+            <MaterialIcon name="stars" size={16} style={{ color: 'var(--md-sys-color-primary)' }} />
             <span>{focusPoints} {t.store.focusPoints}</span>
           </div>
         </div>
@@ -283,7 +283,7 @@ export const FriendsView: React.FC = () => {
             className="text-sm font-bold"
             style={{ color: 'var(--md-sys-color-on-surface)' }}
           >
-            {t.friends.publicLeaderboard}
+            {t.friends.publicLeaderboard} ({locale === 'ar' ? 'تجريبي - ينشط بالمرحلة 3' : 'Preview - Active in Phase 3'})
           </h3>
           <p
             className="text-xs mt-0.5"
@@ -297,7 +297,8 @@ export const FriendsView: React.FC = () => {
           type="checkbox"
           checked={publicLeaderboardOptIn}
           onChange={(e) => setPublicLeaderboardOptIn(e.target.checked)}
-          className="w-5 h-5 accent-emerald-600 rounded cursor-pointer shrink-0"
+          className="w-5 h-5 rounded cursor-pointer shrink-0"
+          style={{ accentColor: 'var(--md-sys-color-primary)' }}
         />
       </div>
     </div>

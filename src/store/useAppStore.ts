@@ -26,6 +26,11 @@ import {
   awardPoints,
 } from '../lib/coinsEngine';
 import { UserTestGoal } from '../data/tests/catalog';
+import {
+  FocusSessionRecord,
+  generateDefaultSessionLogs,
+  exportSessionsToCsv,
+} from '../lib/analyticsEngine';
 
 export interface TaskItem {
   id: string;
@@ -85,6 +90,9 @@ export interface AppState {
   inventory: Record<string, number>;
   transactions: CoinTransaction[];
 
+  // Session Logs & Telemetry
+  sessionLogs: FocusSessionRecord[];
+
   // Actions
   setLocale: (locale: Locale) => void;
   setThemeMode: (mode: ThemeMode) => void;
@@ -106,6 +114,7 @@ export interface AppState {
   setAmbientVolume: (vol: number) => void;
   updateTimerConfig: (config: Partial<TimerConfig>) => void;
   setDailyGoalSessions: (goal: number) => void;
+  addSessionLog: (record: FocusSessionRecord) => void;
 
   // Task actions
   addTask: (task: Omit<TaskItem, 'id' | 'createdAt' | 'completedSessions' | 'isCompleted'>) => void;
@@ -124,6 +133,7 @@ export interface AppState {
 
   // Export / Reset
   exportDataJson: () => string;
+  exportDataCsv: () => string;
   resetAllData: () => void;
 }
 
@@ -161,6 +171,7 @@ function persistState(state: AppState) {
       inventory: state.inventory,
       transactions: state.transactions,
       activeTaskId: state.activeTaskId,
+      sessionLogs: state.sessionLogs,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   } catch (e) {
@@ -265,6 +276,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   transactions: initialPersisted.transactions || [
     { id: 'tx_init', timestamp: Date.now() - 86400000, amount: 15, type: 'earn', reason: 'Welcome focus bonus' },
   ],
+  sessionLogs: initialPersisted.sessionLogs || generateDefaultSessionLogs(),
 
   setLocale: (locale) => {
     set({ locale });
@@ -392,6 +404,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     let newCoins = coins;
     let newFocusPoints = focusPoints;
     let newTransactions = get().transactions;
+    let newSessionLogs = get().sessionLogs;
 
     if (isFocus) {
       newStreak = updateStreakOnSessionComplete(streak, newTodaySessions);
@@ -405,6 +418,18 @@ export const useAppStore = create<AppState>((set, get) => ({
         newTransactions = [streakBonus.transaction, ...newTransactions];
         newFocusPoints += 1;
       }
+
+      const activeTask = tasks.find((t) => t.id === activeTaskId);
+      const newSessionRecord: FocusSessionRecord = {
+        id: `sess_${Date.now()}`,
+        timestamp: Date.now(),
+        dateStr: getTodayDateString(),
+        durationMinutes: Math.round(timerConfig.focusDuration / 60),
+        taskId: activeTaskId,
+        taskTitle: activeTask ? activeTask.title : 'Deep Focus Session',
+        category: activeTask ? activeTask.category : 'Study',
+      };
+      newSessionLogs = [newSessionRecord, ...newSessionLogs];
     }
 
     sendWebNotification(
@@ -429,6 +454,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       coins: newCoins,
       focusPoints: newFocusPoints,
       transactions: newTransactions,
+      sessionLogs: newSessionLogs,
     });
 
     persistState(get());
@@ -471,6 +497,12 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setDailyGoalSessions: (dailyGoalSessions) => {
     set({ dailyGoalSessions });
+    persistState(get());
+  },
+
+  addSessionLog: (record) => {
+    const sessionLogs = [record, ...get().sessionLogs];
+    set({ sessionLogs });
     persistState(get());
   },
 
@@ -561,8 +593,14 @@ export const useAppStore = create<AppState>((set, get) => ({
       focusPoints: state.focusPoints,
       todaySessionsCount: state.todaySessionsCount,
       completedFocusSessions: state.completedFocusSessions,
+      sessionLogs: state.sessionLogs,
     };
     return JSON.stringify(exportable, null, 2);
+  },
+
+  exportDataCsv: () => {
+    const state = get();
+    return exportSessionsToCsv(state.sessionLogs);
   },
 
   resetAllData: () => {
@@ -583,6 +621,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       transactions: [],
       todaySessionsCount: 0,
       completedFocusSessions: 0,
+      sessionLogs: [],
     });
   },
 }));

@@ -17,7 +17,7 @@ export const TermsPage: React.FC = () => {
           color: 'var(--md-sys-color-primary)',
         }}
       >
-        <MaterialIcon name="arrow_back" size={16} />
+        <MaterialIcon name="arrow_back" size={16} className="rtl:rotate-180" />
         <span>{t.legal.backToApp}</span>
       </button>
 
@@ -45,19 +45,19 @@ export const TermsPage: React.FC = () => {
 
         <section className="space-y-2 text-sm leading-relaxed" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
           <h2 className="text-base font-bold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-            1. Purpose of the Application
+            1. Purpose and Current Local State
           </h2>
           <p>
-            Focus Plan M3E is a productivity and standardized study tracking application designed to help users structure their focus sessions, monitor test preparation progress, and engage in study circles.
+            Focus Plan M3E is currently operating exclusively as a client-side web application. All session timers, task goals, streak records, and mock leaderboards are stored solely within your local browser storage. No data is transmitted to Firebase, Google Cloud, or third-party servers at this time.
           </p>
         </section>
 
         <section className="space-y-2 text-sm leading-relaxed" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
           <h2 className="text-base font-bold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-            2. Google Account & Workspace Services
+            2. Future Google Workspace & Cloud Services
           </h2>
           <p>
-            When utilizing optional Google sign-in and integration features (such as Google Tasks and Google Calendar), the application requests access only to the scopes you explicitly authorize. We do not sell your personal data or access your credentials outside the necessary synchronization workflows.
+            Future releases will introduce optional Google sign-in and Workspace synchronizations (Google Tasks and Google Calendar). When released, these integrations will strictly require explicit user authorization. No credentials or tokens are currently collected.
           </p>
         </section>
 

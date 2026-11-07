@@ -33,7 +33,7 @@ export const ShortcutsModal: React.FC = () => {
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <MaterialIcon name="keyboard" size={20} className="text-emerald-600" />
+            <MaterialIcon name="keyboard" size={20} style={{ color: 'var(--md-sys-color-primary)' }} />
             <h3
               className="text-base font-bold"
               style={{ color: 'var(--md-sys-color-on-surface)' }}
@@ -44,7 +44,7 @@ export const ShortcutsModal: React.FC = () => {
 
           <button
             onClick={() => setShowShortcutsModal(false)}
-            className="p-1 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 cursor-pointer"
+            className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
             style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
           >
             <MaterialIcon name="close" size={18} />

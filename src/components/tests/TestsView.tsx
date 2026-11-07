@@ -3,13 +3,13 @@ import { useAppStore } from '../../store/useAppStore';
 import { TRANSLATIONS } from '../../i18n/translations';
 import { TEST_CATALOG, StandardizedTestDefinition, UserTestGoal } from '../../data/tests/catalog';
 import { MaterialIcon } from '../common/MaterialIcon';
+import { ScoreLoopModal } from './ScoreLoopModal';
 
 export const TestsView: React.FC = () => {
   const { locale, testGoals, addTestGoal, updateTestGoal, deleteTestGoal } = useAppStore();
   const t = TRANSLATIONS[locale];
 
-  const [loggingScoreGoalId, setLoggingScoreGoalId] = useState<string | null>(null);
-  const [recordedScore, setRecordedScore] = useState<number>(0);
+  const [activeScoreLoopGoal, setActiveScoreLoopGoal] = useState<UserTestGoal | null>(null);
   const [activeFilter, setActiveFilter] = useState<'all' | 'saudi' | 'international'>('all');
 
   const filteredCatalog = TEST_CATALOG.filter((test) => {
@@ -51,32 +51,6 @@ export const TestsView: React.FC = () => {
     addTestGoal(newGoal);
   };
 
-  const handleSaveScore = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!loggingScoreGoalId) return;
-
-    const goal = testGoals.find((g) => g.id === loggingScoreGoalId);
-    if (!goal) return;
-
-    const todayStr = new Date().toISOString().split('T')[0];
-    const newHistory = [
-      {
-        date: todayStr,
-        score: recordedScore,
-        sectionScores: {},
-        notes: 'Real exam attempt logged',
-      },
-      ...goal.scoresHistory,
-    ];
-
-    updateTestGoal(loggingScoreGoalId, {
-      scoresHistory: newHistory,
-      currentBaselineScore: recordedScore,
-    });
-
-    setLoggingScoreGoalId(null);
-  };
-
   const calculateDaysRemaining = (dateStr: string) => {
     const target = new Date(dateStr).getTime();
     const now = new Date().getTime();
@@ -110,7 +84,7 @@ export const TestsView: React.FC = () => {
             color: 'var(--md-sys-color-on-surface-variant)',
           }}
         >
-          <MaterialIcon name="info" size={18} className="text-amber-600 shrink-0 mt-0.5" />
+          <MaterialIcon name="info" size={18} style={{ color: 'var(--md-sys-color-primary)' }} className="shrink-0 mt-0.5" />
           <span>{t.tests.verifyNotice}</span>
         </div>
       </div>
@@ -188,7 +162,7 @@ export const TestsView: React.FC = () => {
                       </div>
                       <div>
                         <span style={{ color: 'var(--md-sys-color-outline)' }}>{t.tests.targetScore}: </span>
-                        <span className="font-bold text-emerald-600">
+                        <span className="font-bold" style={{ color: 'var(--md-sys-color-primary)' }}>
                           {goal.targetScore}
                         </span>
                       </div>
@@ -225,22 +199,21 @@ export const TestsView: React.FC = () => {
 
                   <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'var(--md-sys-color-outline-variant)' }}>
                     <button
-                      onClick={() => {
-                        setLoggingScoreGoalId(goal.id);
-                        setRecordedScore(goal.currentBaselineScore);
-                      }}
-                      className="text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer"
+                      onClick={() => setActiveScoreLoopGoal(goal)}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer flex items-center gap-1.5 hover:bg-black/5 dark:hover:bg-white/5"
                       style={{
                         borderColor: 'var(--md-sys-color-primary)',
                         color: 'var(--md-sys-color-primary)',
                       }}
                     >
-                      {t.tests.logScore}
+                      <MaterialIcon name="analytics" size={15} />
+                      <span>{t.scoreLoop.title}</span>
                     </button>
 
                     <button
                       onClick={() => deleteTestGoal(goal.id)}
-                      className="text-xs text-red-600 hover:underline cursor-pointer"
+                      className="text-xs hover:underline cursor-pointer"
+                      style={{ color: 'var(--md-sys-color-error)' }}
                     >
                       {t.tasks.delete}
                     </button>
@@ -381,70 +354,11 @@ export const TestsView: React.FC = () => {
         </div>
       </div>
 
-      {loggingScoreGoalId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" role="dialog">
-          <div
-            className="w-full max-w-md rounded-3xl p-6 border shadow-xl animate-in fade-in zoom-in-95"
-            style={{
-              backgroundColor: 'var(--md-sys-color-surface)',
-              borderColor: 'var(--md-sys-color-outline-variant)',
-            }}
-          >
-            <h3
-              className="text-base font-bold mb-2"
-              style={{ color: 'var(--md-sys-color-on-surface)' }}
-            >
-              {t.tests.logScore}
-            </h3>
-            <p
-              className="text-xs mb-4"
-              style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
-            >
-              {t.tests.scoreLoopPrompt}
-            </p>
-
-            <form onSubmit={handleSaveScore} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase mb-1" style={{ color: 'var(--md-sys-color-outline)' }}>
-                  {t.tests.currentScore}
-                </label>
-                <input
-                  type="number"
-                  required
-                  value={recordedScore}
-                  onChange={(e) => setRecordedScore(parseFloat(e.target.value) || 0)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border text-sm text-center tabular-nums outline-none"
-                  style={{
-                    backgroundColor: 'var(--md-sys-color-surface-container-low)',
-                    borderColor: 'var(--md-sys-color-outline-variant)',
-                    color: 'var(--md-sys-color-on-surface)',
-                  }}
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setLoggingScoreGoalId(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-medium border cursor-pointer"
-                  style={{ borderColor: 'var(--md-sys-color-outline-variant)', color: 'var(--md-sys-color-on-surface-variant)' }}
-                >
-                  {t.tasks.cancel}
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-semibold cursor-pointer shadow-sm"
-                  style={{
-                    backgroundColor: 'var(--md-sys-color-primary)',
-                    color: 'var(--md-sys-color-on-primary)',
-                  }}
-                >
-                  {t.tasks.save}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {activeScoreLoopGoal && (
+        <ScoreLoopModal
+          goal={activeScoreLoopGoal}
+          onClose={() => setActiveScoreLoopGoal(null)}
+        />
       )}
     </div>
   );

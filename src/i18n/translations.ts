@@ -207,6 +207,72 @@ export interface Translations {
     lastUpdated: string;
     backToApp: string;
   };
+  analytics: {
+    title: string;
+    subtitle: string;
+    day: string;
+    week: string;
+    month: string;
+    year: string;
+    allTime: string;
+    chartView: string;
+    barChart: string;
+    lineChart: string;
+    categoryBreakdown: string;
+    heatmap: string;
+    tableView: string;
+    totalHours: string;
+    totalSessions: string;
+    dailyAvg: string;
+    peakDay: string;
+    completionRate: string;
+    estimatedVsActual: string;
+    categoryDistribution: string;
+    activityHeatmapTitle: string;
+    less: string;
+    more: string;
+    date: string;
+    minutes: string;
+    sessions: string;
+    topCategory: string;
+    task: string;
+  };
+  reports: {
+    weeklyReport: string;
+    weekSelector: string;
+    currentWeek: string;
+    lastWeek: string;
+    twoWeeksAgo: string;
+    downloadCsv: string;
+    printPdf: string;
+    reportSummary: string;
+    studyEffort: string;
+    testPrepOverview: string;
+    taskCompletionStatus: string;
+    dailyBreakdown: string;
+    streakSummary: string;
+    closeReport: string;
+  };
+  scoreLoop: {
+    title: string;
+    subtitle: string;
+    targetScoreLine: string;
+    actualScoreLine: string;
+    gapAnalysis: string;
+    sectionBreakdown: string;
+    target: string;
+    actual: string;
+    gap: string;
+    gapSurplus: string;
+    gapDeficit: string;
+    adaptiveRecommendations: string;
+    recommendationText: string;
+    applyRecommendation: string;
+    appliedSuccess: string;
+    logNewAttempt: string;
+    historyTitle: string;
+    noHistory: string;
+  };
 }
 
 export const TRANSLATIONS: Record<Locale, Translations> = {
@@ -417,6 +483,72 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       lastUpdated: 'Last Updated: November 2026',
       backToApp: 'Back to Timer',
     },
+    analytics: {
+      title: 'Study Telemetry & Trends',
+      subtitle: 'In-depth focus analytics, category distributions, and daily momentum.',
+      day: 'Day',
+      week: 'Week',
+      month: 'Month',
+      year: 'Year',
+      allTime: 'All Time',
+      chartView: 'Chart View',
+      barChart: 'Bar Chart',
+      lineChart: 'Trend Line',
+      categoryBreakdown: 'Categories',
+      heatmap: 'Activity Grid',
+      tableView: 'Table View',
+      totalHours: 'Total Focus Time',
+      totalSessions: 'Completed Sessions',
+      dailyAvg: 'Daily Average',
+      peakDay: 'Peak Productive Day',
+      completionRate: 'Task Plan Accuracy',
+      estimatedVsActual: 'Estimated vs Actual Sessions',
+      categoryDistribution: 'Category Distribution',
+      activityHeatmapTitle: 'Consistency Heatmap',
+      less: 'Less',
+      more: 'More',
+      date: 'Date',
+      minutes: 'Minutes',
+      sessions: 'Sessions',
+      topCategory: 'Top Category',
+      task: 'Task',
+    },
+    reports: {
+      weeklyReport: 'Weekly Focus Report',
+      weekSelector: 'Select Week',
+      currentWeek: 'Current Week',
+      lastWeek: 'Previous Week',
+      twoWeeksAgo: '2 Weeks Ago',
+      downloadCsv: 'Export CSV Report',
+      printPdf: 'Print / Save PDF',
+      reportSummary: 'Weekly Summary',
+      studyEffort: 'Study Effort by Subject',
+      testPrepOverview: 'Standardized Test Readiness',
+      taskCompletionStatus: 'Planned Tasks Status',
+      dailyBreakdown: 'Daily Session Breakdown',
+      streakSummary: 'Habit Consistency',
+      closeReport: 'Close Report',
+    },
+    scoreLoop: {
+      title: 'Score Loop & Gap Analysis',
+      subtitle: 'Evaluate trial performance against target scores and generate tailored study adjustments.',
+      targetScoreLine: 'Target Benchmark',
+      actualScoreLine: 'Logged Score',
+      gapAnalysis: 'Per-Section Gap Analysis',
+      sectionBreakdown: 'Section Benchmark Breakdown',
+      target: 'Target',
+      actual: 'Actual',
+      gap: 'Gap',
+      gapSurplus: 'Surplus',
+      gapDeficit: 'Deficit',
+      adaptiveRecommendations: 'Adaptive Study Recommendation',
+      recommendationText: 'Based on your recent mock exam, we recommend increasing your weekly prep sessions for the sections with the largest point gap.',
+      applyRecommendation: 'Apply Target Adjustment',
+      appliedSuccess: 'Plan adjusted! Your weekly target pomodoros have been updated.',
+      logNewAttempt: 'Log New Mock Exam Attempt',
+      historyTitle: 'Historical Score Progression',
+      noHistory: 'No prior trial attempts logged yet. Record your first attempt below.',
+    },
   },
   ar: {
     appName: 'فوكس بلان M3E',
@@ -624,6 +756,72 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       privacyTitle: 'سياسة الخصوصية',
       lastUpdated: 'آخر تحديث: نوفمبر 2026',
       backToApp: 'العودة للمؤقت',
+    },
+    analytics: {
+      title: 'إحصائيات التركيز والتحليلات',
+      subtitle: 'تحليلات تفصيلية لساعات التركيز، توزيع الأقسام، ومعدلات الانتظام اليومية.',
+      day: 'يوم',
+      week: 'أسبوع',
+      month: 'شهر',
+      year: 'سنة',
+      allTime: 'كل الفترات',
+      chartView: 'طريقة العرض',
+      barChart: 'أعمدة بيانية',
+      lineChart: 'خط الاتجاه',
+      categoryBreakdown: 'التصنيفات',
+      heatmap: 'مصفوفة النشاط',
+      tableView: 'عرض جدولي',
+      totalHours: 'إجمالي ساعات التركيز',
+      totalSessions: 'الجلسات المكتملة',
+      dailyAvg: 'المعدل اليومي',
+      peakDay: 'اليوم الأكثر إنتاجية',
+      completionRate: 'دقة خطة المهام',
+      estimatedVsActual: 'الجلسات المتوقعة مقابل الفعلية',
+      categoryDistribution: 'توزيع فئات التركيز',
+      activityHeatmapTitle: 'مصفوفة الانتظام اليومي',
+      less: 'أقل',
+      more: 'أكثر',
+      date: 'التاريخ',
+      minutes: 'الدقائق',
+      sessions: 'الجلسات',
+      topCategory: 'المجال الأبرز',
+      task: 'المهمة',
+    },
+    reports: {
+      weeklyReport: 'التقرير الأسبوعي للتركيز',
+      weekSelector: 'اختر الأسبوع',
+      currentWeek: 'الأسبوع الحالي',
+      lastWeek: 'الأسبوع الماضي',
+      twoWeeksAgo: 'قبل أسبوعين',
+      downloadCsv: 'تصدير تقرير CSV',
+      printPdf: 'طباعة / حفظ كملف PDF',
+      reportSummary: 'ملخص الأسبوع',
+      studyEffort: 'المجهود الدراسي حسب المجال',
+      testPrepOverview: 'جاهزية الاختبارات المعيارية',
+      taskCompletionStatus: 'حالة المهام المجدولة',
+      dailyBreakdown: 'تفصيل الجلسات اليومية',
+      streakSummary: 'انتظام العادات',
+      closeReport: 'إغلاق التقرير',
+    },
+    scoreLoop: {
+      title: 'حلقة مراجعة الدرجات وتحليل الفجوات',
+      subtitle: 'قياس درجات الاختبار التجريبي مقارنة بالدرجة المستهدفة واقتراح التعديلات الدراسية.',
+      targetScoreLine: 'الهدف المستهدف',
+      actualScoreLine: 'الدرجة المسجلة',
+      gapAnalysis: 'تحليل الفجوة لكل قسم',
+      sectionBreakdown: 'تفصيل معايير الأقسام',
+      target: 'المستهدف',
+      actual: 'الفعلي',
+      gap: 'الفارق',
+      gapSurplus: 'فائض',
+      gapDeficit: 'عجز',
+      adaptiveRecommendations: 'التوصيات الدراسية التكيفية',
+      recommendationText: 'بناءً على نتائج اختبارك التجريبي الأخير، نوصي بزيادة جلسات التحضير الأسبوعية للأقسام ذات الفجوة الأكبر.',
+      applyRecommendation: 'اعتماد تعديل الخطة',
+      appliedSuccess: 'تم تعديل الخطة! جرى تحديث عدد جلسات البومودورو الأسبوعية المستهدفة.',
+      logNewAttempt: 'تسجيل اختبار تجريبي جديد',
+      historyTitle: 'سجل تتبع الدرجات السابقة',
+      noHistory: 'لا توجد محاولات تجريبية مسجلة حتى الآن. سجّل نتيجتك الأولى أدناه.',
     },
   },
 };

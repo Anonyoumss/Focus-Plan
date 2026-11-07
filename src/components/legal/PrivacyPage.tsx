@@ -17,7 +17,7 @@ export const PrivacyPage: React.FC = () => {
           color: 'var(--md-sys-color-primary)',
         }}
       >
-        <MaterialIcon name="arrow_back" size={16} />
+        <MaterialIcon name="arrow_back" size={16} className="rtl:rotate-180" />
         <span>{t.legal.backToApp}</span>
       </button>
 
@@ -45,19 +45,19 @@ export const PrivacyPage: React.FC = () => {
 
         <section className="space-y-2 text-sm leading-relaxed" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
           <h2 className="text-base font-bold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-            1. Local Storage First (Guest Mode)
+            1. 100% Local Device Storage (Current Release)
           </h2>
           <p>
-            By default, all your tasks, focus logs, streak progress, and test goals are saved directly to your browser's local storage. No tracking cookies or remote analytics scripts are embedded.
+            Currently, Focus Plan M3E saves all your tasks, countdown sessions, streaks, badges, and test goals exclusively within your browser's localStorage. No data is transmitted to Firebase, Google, or any remote server.
           </p>
         </section>
 
         <section className="space-y-2 text-sm leading-relaxed" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
           <h2 className="text-base font-bold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-            2. Google Account Sign-In & Synchronization
+            2. Future Cloud Sync Architecture
           </h2>
           <p>
-            When you sign in with Google via Firebase Authentication, your guest records are transferred to your private Firestore user profile. Access to Google Tasks and Google Calendar is completely optional and strictly user-initiated.
+            When Firebase Authentication and Cloud Firestore are introduced in Phase 3, you will have the choice to synchronize your local records to a secure private profile. Until you authenticate, no personal data leaves your machine.
           </p>
         </section>
 

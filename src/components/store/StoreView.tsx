@@ -56,7 +56,7 @@ export const StoreView: React.FC = () => {
               color: 'var(--md-sys-color-on-primary-container)',
             }}
           >
-            <MaterialIcon name="monetization_on" size={20} className="text-amber-500" />
+            <MaterialIcon name="monetization_on" size={20} style={{ color: 'var(--md-sys-color-primary)' }} />
           </div>
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--md-sys-color-outline)' }}>
@@ -213,9 +213,10 @@ export const StoreView: React.FC = () => {
                 </div>
 
                 <div
-                  className={`font-timer font-bold tabular-nums text-sm ${
-                    tx.type === 'earn' ? 'text-emerald-600' : 'text-red-500'
-                  }`}
+                  className="font-timer font-bold tabular-nums text-sm"
+                  style={{
+                    color: tx.type === 'earn' ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-error)',
+                  }}
                 >
                   {tx.amount > 0 ? `+${tx.amount}` : tx.amount}
                 </div>

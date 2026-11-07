@@ -15,6 +15,7 @@ export const SettingsView: React.FC = () => {
     timerConfig,
     updateTimerConfig,
     exportDataJson,
+    exportDataCsv,
     resetAllData,
   } = useAppStore();
 
@@ -43,16 +44,12 @@ export const SettingsView: React.FC = () => {
   };
 
   const handleDownloadCsv = () => {
-    const state = useAppStore.getState();
-    let csv = 'Task Title,Category,Completed Pomodoros,Estimated Pomodoros,Cadence\n';
-    state.tasks.forEach((task) => {
-      csv += `"${task.title}","${task.category}",${task.completedSessions},${task.estimatedSessions},"${task.cadence}"\n`;
-    });
+    const csv = exportDataCsv();
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `focus_plan_m3e_tasks_${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `focus_plan_m3e_sessions_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -87,7 +84,7 @@ export const SettingsView: React.FC = () => {
           }}
         >
           <div className="flex items-center gap-2 mb-4">
-            <MaterialIcon name="palette" size={20} className="text-emerald-600" />
+            <MaterialIcon name="palette" size={20} style={{ color: 'var(--md-sys-color-primary)' }} />
             <h2
               className="text-base font-bold"
               style={{ color: 'var(--md-sys-color-on-surface)' }}
@@ -179,7 +176,7 @@ export const SettingsView: React.FC = () => {
           }}
         >
           <div className="flex items-center gap-3">
-            <MaterialIcon name="language" size={22} className="text-emerald-600" />
+            <MaterialIcon name="language" size={22} style={{ color: 'var(--md-sys-color-primary)' }} />
             <div>
               <h2
                 className="text-base font-bold"
@@ -239,7 +236,7 @@ export const SettingsView: React.FC = () => {
           }}
         >
           <div className="flex items-center gap-2 mb-4">
-            <MaterialIcon name="schedule" size={20} className="text-emerald-600" />
+            <MaterialIcon name="schedule" size={20} style={{ color: 'var(--md-sys-color-primary)' }} />
             <h2
               className="text-base font-bold"
               style={{ color: 'var(--md-sys-color-on-surface)' }}
@@ -319,7 +316,8 @@ export const SettingsView: React.FC = () => {
                 type="checkbox"
                 checked={timerConfig.autoStartBreaks}
                 onChange={(e) => updateTimerConfig({ autoStartBreaks: e.target.checked })}
-                className="w-4 h-4 accent-emerald-600 rounded"
+                className="w-4 h-4 rounded cursor-pointer"
+                style={{ accentColor: 'var(--md-sys-color-primary)' }}
               />
               <span style={{ color: 'var(--md-sys-color-on-surface)' }}>{t.settings.autoStartBreaks}</span>
             </label>
@@ -329,7 +327,8 @@ export const SettingsView: React.FC = () => {
                 type="checkbox"
                 checked={timerConfig.autoStartPomodoros}
                 onChange={(e) => updateTimerConfig({ autoStartPomodoros: e.target.checked })}
-                className="w-4 h-4 accent-emerald-600 rounded"
+                className="w-4 h-4 rounded cursor-pointer"
+                style={{ accentColor: 'var(--md-sys-color-primary)' }}
               />
               <span style={{ color: 'var(--md-sys-color-on-surface)' }}>{t.settings.autoStartPomodoros}</span>
             </label>
@@ -345,7 +344,7 @@ export const SettingsView: React.FC = () => {
           }}
         >
           <div className="flex items-center gap-3">
-            <MaterialIcon name="notifications" size={22} className="text-emerald-600" />
+            <MaterialIcon name="notifications" size={22} style={{ color: 'var(--md-sys-color-primary)' }} />
             <div>
               <h2
                 className="text-base font-bold"
@@ -456,7 +455,12 @@ export const SettingsView: React.FC = () => {
                   resetAllData();
                 }
               }}
-              className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-red-600 border border-red-300 dark:border-red-900 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+              className="px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer"
+              style={{
+                borderColor: 'var(--md-sys-color-error)',
+                color: 'var(--md-sys-color-error)',
+                backgroundColor: 'transparent',
+              }}
             >
               {locale === 'ar' ? 'إعادة ضبط البيانات' : 'Reset Local Data'}
             </button>

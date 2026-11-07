@@ -4,6 +4,8 @@ import { TRANSLATIONS } from '../../i18n/translations';
 import { MaterialIcon } from '../common/MaterialIcon';
 import { calculateGoalPercent, evaluateBadges } from '../../lib/streakCalculator';
 import { SkeletonLoader } from '../common/SkeletonLoader';
+import { TelemetryCharts } from './TelemetryCharts';
+import { WeeklyReportModal } from './WeeklyReportModal';
 
 export const ProgressView: React.FC = () => {
   const {
@@ -17,6 +19,7 @@ export const ProgressView: React.FC = () => {
 
   const t = TRANSLATIONS[locale];
   const [isLoading, setIsLoading] = useState(false);
+  const [showWeeklyReportModal, setShowWeeklyReportModal] = useState(false);
 
   const goalPercent = calculateGoalPercent(todaySessionsCount, dailyGoalSessions);
   const totalFocusMinutes = completedFocusSessions * 25;
@@ -65,20 +68,34 @@ export const ProgressView: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            setIsLoading(true);
-            setTimeout(() => setIsLoading(false), 400);
-          }}
-          className="p-2 rounded-xl border hover:opacity-80 transition-opacity cursor-pointer"
-          style={{
-            borderColor: 'var(--md-sys-color-outline-variant)',
-            color: 'var(--md-sys-color-on-surface-variant)',
-          }}
-          title="Refresh stats"
-        >
-          <MaterialIcon name="refresh" size={20} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowWeeklyReportModal(true)}
+            className="px-3.5 py-2 rounded-xl text-xs font-semibold border flex items-center gap-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            style={{
+              borderColor: 'var(--md-sys-color-primary)',
+              color: 'var(--md-sys-color-primary)',
+            }}
+          >
+            <MaterialIcon name="summarize" size={18} />
+            <span>{t.reports.weeklyReport}</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setIsLoading(true);
+              setTimeout(() => setIsLoading(false), 400);
+            }}
+            className="p-2 rounded-xl border hover:opacity-80 transition-opacity cursor-pointer"
+            style={{
+              borderColor: 'var(--md-sys-color-outline-variant)',
+              color: 'var(--md-sys-color-on-surface-variant)',
+            }}
+            title="Refresh stats"
+          >
+            <MaterialIcon name="refresh" size={20} />
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -99,7 +116,7 @@ export const ProgressView: React.FC = () => {
               }}
             >
               <div className="flex items-center gap-2 mb-2">
-                <MaterialIcon name="timer" size={20} className="text-emerald-600" />
+                <MaterialIcon name="timer" size={20} style={{ color: 'var(--md-sys-color-primary)' }} />
                 <span
                   className="text-xs font-semibold uppercase tracking-wider"
                   style={{ color: 'var(--md-sys-color-outline)' }}
@@ -130,7 +147,7 @@ export const ProgressView: React.FC = () => {
               }}
             >
               <div className="flex items-center gap-2 mb-2">
-                <MaterialIcon name="local_fire_department" size={20} className="text-orange-500" filled />
+                <MaterialIcon name="local_fire_department" size={20} style={{ color: 'var(--md-sys-color-tertiary)' }} filled />
                 <span
                   className="text-xs font-semibold uppercase tracking-wider"
                   style={{ color: 'var(--md-sys-color-outline)' }}
@@ -150,7 +167,7 @@ export const ProgressView: React.FC = () => {
               >
                 <span>{t.streaks.bestStreak}: {streak.bestStreak}</span>
                 <span className="flex items-center gap-1 font-medium">
-                  <MaterialIcon name="ac_unit" size={14} className="text-cyan-600" />
+                  <MaterialIcon name="ac_unit" size={14} style={{ color: 'var(--md-sys-color-primary)' }} />
                   {streak.streakFreezes} {t.streaks.streakFreezes}
                 </span>
               </div>
@@ -165,7 +182,7 @@ export const ProgressView: React.FC = () => {
               }}
             >
               <div className="flex items-center gap-2 mb-2">
-                <MaterialIcon name="flag" size={20} className="text-indigo-600" />
+                <MaterialIcon name="flag" size={20} style={{ color: 'var(--md-sys-color-secondary)' }} />
                 <span
                   className="text-xs font-semibold uppercase tracking-wider"
                   style={{ color: 'var(--md-sys-color-outline)' }}
@@ -235,7 +252,7 @@ export const ProgressView: React.FC = () => {
                     name={day.active ? 'check_circle' : 'circle'}
                     size={20}
                     filled={day.active}
-                    className={day.active ? 'text-emerald-700' : 'opacity-30'}
+                    style={{ color: day.active ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-outline)' }}
                   />
                   <span className="text-xs font-timer font-bold tabular-nums">
                     {day.count} {locale === 'ar' ? 'جلسة' : 'p'}
@@ -244,6 +261,9 @@ export const ProgressView: React.FC = () => {
               ))}
             </div>
           </div>
+
+          {/* Telemetry Charts & Trendlines */}
+          <TelemetryCharts />
 
           {/* Badges and Milestones Shelf */}
           <div>
@@ -324,6 +344,10 @@ export const ProgressView: React.FC = () => {
             </div>
           </div>
         </>
+      )}
+
+      {showWeeklyReportModal && (
+        <WeeklyReportModal onClose={() => setShowWeeklyReportModal(false)} />
       )}
     </div>
   );

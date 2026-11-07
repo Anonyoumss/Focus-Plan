@@ -29,13 +29,14 @@ Because the timer calculations, streak validations, score scaling formulas, and 
 | `/src/lib/soundEngine.ts` | Browser Web Audio API synthesizer for harmonic completion chimes and ambient noise filters. |
 | `/src/lib/streakCalculator.ts` | 3+ daily sessions streak validation, timezone date conversion, and streak freeze deductions. |
 | `/src/lib/coinsEngine.ts` | Coins economy, transaction auditing, and store inventory ledger. |
-| `/src/lib/__tests__/` | Automated Vitest test suites verifying logic correctness across edge cases. |
+| `/src/lib/analyticsEngine.ts` | Telemetry aggregation, SVG bezier line pathing, activity heatmap generation, score gap analysis, and CSV formatting. |
+| `/src/lib/__tests__/` | Automated Vitest test suites verifying logic correctness across edge cases (18 tests passing). |
 | `/src/data/tests/catalog.ts` | Structured schemas for Saudi and International standardized tests with sections, score ranges, and target defaults. |
 | `/src/components/common/` | Reusable primitives: `MaterialIcon.tsx` (Google Material Symbols), `SkeletonLoader.tsx`, `ShortcutsModal.tsx`. |
 | `/src/components/focus/` | Timer display with SVG wavy progress ring and connected mode buttons, plus the task list manager. |
 | `/src/components/plan/` | Category grid, session thresholds, and repeat cadence matrix. |
-| `/src/components/tests/` | Standardized test catalog browser, active goals, countdowns, and score logging modal. |
-| `/src/components/progress/` | Telemetry cards, 7-day consistency visualization, and achievement badges shelf. |
+| `/src/components/tests/` | Test catalog browser, active goals, countdowns, and `ScoreLoopModal.tsx` for per-section gap analysis. |
+| `/src/components/progress/` | Telemetry cards, `TelemetryCharts.tsx` (Bar/Line/Category/Heatmap/Table), and `WeeklyReportModal.tsx` printable dossiers. |
 | `/src/components/friends/` | Study circles, 6-character code sharing, and weekly standings. |
 | `/src/components/store/` | Rewards store for redeeming streak freezes, break multipliers, and palette tokens. |
 | `/src/components/settings/` | Theme customizer, language toggle, durations config, and JSON/CSV export. |

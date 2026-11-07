@@ -280,7 +280,8 @@ export const TimerDisplay: React.FC = () => {
             step="0.05"
             value={alarmVolume}
             onChange={(e) => setAlarmVolume(parseFloat(e.target.value))}
-            className="w-16 accent-emerald-600 cursor-pointer"
+            className="w-16 cursor-pointer"
+            style={{ accentColor: 'var(--md-sys-color-primary)' }}
             aria-label={t.timer.volume}
           />
         </div>
