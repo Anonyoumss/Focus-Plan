@@ -11,12 +11,8 @@ import {
  * signed-in user has not completed (or declined) the migration prompt.
  */
 
-interface SyncContext {
-  uid: string | null;
-  enabled: boolean;
-}
+import { getCloudSyncContext, setCloudSyncContext as setCloudSyncContextShared } from './syncContext';
 
-let context: SyncContext = { uid: null, enabled: false };
 let pending: CloudStateSlice | null = null;
 let timer: ReturnType<typeof setTimeout> | null = null;
 const lastPushedSignatures = new Map<string, string>();
@@ -33,18 +29,15 @@ const SETTINGS_KEYS = [
 ] as const;
 
 export function setCloudSyncContext(uid: string | null, enabled: boolean): void {
-  context = { uid, enabled };
+  setCloudSyncContextShared(uid, enabled);
   if (!enabled) {
     pending = null;
     lastPushedSignatures.clear();
   }
 }
 
-export function isCloudSyncEnabled(): boolean {
-  return context.uid !== null && context.enabled;
-}
-
 export function enqueueCloudSync(slice: CloudStateSlice): void {
+  const context = getCloudSyncContext();
   if (!context.uid || !context.enabled) return;
   pending = { ...(pending ?? {}), ...slice };
   if (timer) clearTimeout(timer);
@@ -70,6 +63,7 @@ function signatureOf(slice: CloudStateSlice): Map<string, string> {
 /** Flushes pending changes now. Resolves when the write attempt finishes. */
 export async function flushCloudSync(): Promise<void> {
   if (inFlight) return inFlight;
+  const context = getCloudSyncContext();
   const uid = context.uid;
   const slice = pending;
   pending = null;

@@ -32,6 +32,7 @@ import {
   exportSessionsToCsv,
 } from '../lib/analyticsEngine';
 import { isFirebaseConfigured } from '../lib/firebase/config';
+import { setCloudSyncContext } from '../lib/firebase/syncContext';
 import type { CloudStateSlice, SyncedState } from '../lib/firebase/sync';
 import {
   mergeSyncedState,
@@ -1067,6 +1068,7 @@ function applyCloudState(remote: SyncedState) {
 
 function wipeUserData() {
   localStorage.removeItem(STORAGE_KEY);
+  syncMeta = {};
   useAppStore.setState({
     tasks: [],
     testGoals: [],
@@ -1157,7 +1159,9 @@ async function handleAuthUser(user: { uid: string; email: string | null; display
   if (!user) {
     const wasSignedIn = previousUid !== null;
     previousUid = null;
-    void import('../lib/firebase/cloudSync').then((m) => m.setCloudSyncContext(null, false)).catch(() => {});
+    // Disable sync synchronously: a debounced push firing after this point
+    // must not tombstone the signed-out user's cloud data.
+    setCloudSyncContext(null, false);
     useAppStore.setState({
       user: null,
       authStatus: 'ready',
@@ -1165,9 +1169,6 @@ async function handleAuthUser(user: { uid: string; email: string | null; display
       migrationChoice: null,
     });
     // Sign-out must not leave the previous user's data on screen.
-    if (wasSignedIn) wipeUserData();
-    // A cloud pull that was in flight when sign-out happened must not
-    // re-apply the previous user's records afterwards.
     if (wasSignedIn) wipeUserData();
     return;
   }

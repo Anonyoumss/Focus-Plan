@@ -98,3 +98,26 @@
   are correctly cleared; no snapshot listeners exist). Uid guards were
   added so in-flight cloud pulls cannot re-apply after sign-out, but the
   residual reappearance is NOT fully root-caused. Needs a follow-up.
+
+
+## Sign-out phantom-task bug — diagnosis log (UNRESOLVED)
+- Bisect: first bad = 53be64d, but its diff (vite base, manifest path,
+  one label) cannot plausibly cause this — likely a flaky-race artifact.
+- Verified facts: after sign-out, localStorage is clean, uid=null, and
+  the store holds exactly [guest_task_1] (the pre-cloud local task)
+  stably for 12s+. No setState touches tasks post-wipe (subscribe
+  watched), no snapshot listeners exist, single store instance confirmed
+  via dynamic import identity check.
+- Real races FIXED this session: uid guards on all post-await
+  applyCloudState paths; sync context moved to firebase-free
+  syncContext.ts so sign-out disables pushes synchronously (previously
+  a debounced push could fire post-wipe and tombstone cloud data);
+  syncMeta reset on wipe.
+- Remaining suspect: a stale pending/enqueued cloud slice flushing
+  after sign-out, or an in-place mutation path not yet found. The
+  phantom equals a merge of local[guest] vs remote[guest+cloud
+  tombstoned] — consistent with a post-wipe push tombstoning only the
+  newer task, then a late pull re-applying guest_task_1.
+- Next step: instrument pushCloudState to log slice contents + uid at
+  flush time during the sign-out spec; check whether a flush fires
+  between wipe and auth-null.
