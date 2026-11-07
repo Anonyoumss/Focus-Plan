@@ -62,6 +62,79 @@ test('timer starts, pauses, and survives reload', async ({ page }) => {
   expect(persisted.hasEnd).toBe(true);
 });
 
+test('expired timer completes exactly once across reloads', async ({ page }) => {
+  // Simulate a focus timer whose targetEndTime passed while the tab was closed
+  await page.addInitScript(
+    ({ key }) => {
+      if (localStorage.getItem(key)) return;
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          locale: 'en',
+          themeMode: 'light',
+          onboardingCompleted: true,
+          seedHex: '#2e6b52',
+          isRunning: true,
+          targetEndTime: Date.now() - 10_000,
+          timerMode: 'focus',
+          remainingSeconds: 0,
+          completedFocusSessions: 0,
+          todaySessionsCount: 0,
+          dailyGoalSessions: 4,
+          coins: 10,
+          focusPoints: 0,
+          tasks: [],
+          testGoals: [],
+          sessionLogs: [],
+          transactions: [],
+          inventory: {},
+          streak: { currentStreak: 0, bestStreak: 0, lastActiveDate: null, streakFreezes: 0, freezeUsedDates: [] },
+        }),
+      );
+    },
+    { key: STORAGE_KEY },
+  );
+
+  await page.goto('/#/app/focus');
+  await page.waitForTimeout(1500);
+
+  const afterFirst = await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('focus_plan_m3e_v1')!);
+    return { logs: s.sessionLogs.length, coins: s.coins, running: s.isRunning };
+  });
+  expect(afterFirst.logs).toBe(1);
+  expect(afterFirst.coins).toBe(11); // +1 focus coin, no streak bonus at 1 session
+  expect(afterFirst.running).toBe(false);
+
+  // Reload again: the persisted state is no longer running, so nothing may re-award
+  await page.reload();
+  await page.waitForTimeout(1200);
+  const afterSecond = await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('focus_plan_m3e_v1')!);
+    return { logs: s.sessionLogs.length, coins: s.coins, tx: s.transactions.length };
+  });
+  expect(afterSecond.logs).toBe(1);
+  expect(afterSecond.coins).toBe(11);
+  expect(afterSecond.tx).toBe(1);
+});
+
+test('N shortcut opens the task dialog only inside /app routes', async ({ page }) => {
+  await seed(page);
+
+  // Landing page: TaskList is mounted but Shell is not, so N must do nothing
+  await page.goto('/#/');
+  await page.waitForTimeout(500);
+  await page.keyboard.press('n');
+  await page.waitForTimeout(400);
+  await expect(page.locator('md-dialog')).toHaveCount(0);
+
+  // App route: N opens the new-task dialog
+  await page.goto('/#/app/focus');
+  await page.waitForTimeout(500);
+  await page.keyboard.press('n');
+  await expect(page.locator('md-dialog input[type="text"]').first()).toBeVisible();
+});
+
 test('store purchase deducts coins and marks item owned', async ({ page }) => {
   await seed(page, { coins: 50, focusPoints: 0 });
   await page.goto('/#/app/store');

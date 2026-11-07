@@ -11,7 +11,7 @@
 - `npm run lint` (`tsc --noEmit`): pass. `npx eslint .`: 0 errors, 0 warnings.
 - `npm test`: 5 files, 22 tests pass. `vitest.config.ts` excludes `e2e/`.
 - `npm run build`: pass (~750 kB JS, ~36 kB CSS; chunk-size warning only).
-- `npx playwright test`: 13/13 pass — 8 screenshot/overflow combos + 5 functional flows (`e2e/app-flows.spec.ts`: onboarding, timer start/pause/reload, store purchase, score entry, task create/edit/reorder).
+- `npx playwright test`: 15/15 pass — 8 screenshot/overflow combos + 7 functional flows (`e2e/app-flows.spec.ts`: onboarding, timer start/pause/reload, expired-timer exactly-once across reloads, `N` shortcut `/app`-only scope, store purchase, score entry, task create/edit/reorder).
 - Reduced-motion: probed via Playwright `reducedMotion: 'reduce'` context — paused WavyRing path is static; without it the path animates. Not a committed spec.
 - `npm audit`: 13 paths / 3 advisories, all dev-only. Accepted per owner; DECISIONS.md Decision 8. Do NOT run `npm audit fix --force`.
 
@@ -21,7 +21,8 @@
 - `LandingPage` reuses real `TimerDisplay`, `TaskList`, `ProgressStatCards`, catalog list, footer Terms/Privacy, single primary CTA "Start focusing" → `#/app`.
 - `WavyRing.tsx`: anime.js-driven SVG wave; reduced-motion freezes phase. `TimerDisplay` Start/Pause uses `motion.button` borderRadius spring + `AnimatePresence`, disabled under `useReducedMotion`.
 - `@material/web` selective: `MdSwitch`, `MdSlider`, `MdSelect`-style select, `MdDialog`, `MdFilledButton` wrappers in `MdControls.tsx`; registered in `material-web.ts`, typed in `types/material-web.d.ts`. Gotcha: md-dialog children MUST be wrapped in `slot="content"` (Decision 15).
-- Task reorder: HTML5 drag + up/down buttons (`moveTask` in store, `moveUp`/`moveDown` i18n keys). `N` shortcut dispatches `focus-plan:new-task`; TaskList opens the dialog and focuses the title input.
+- Task reorder: HTML5 drag + up/down buttons (`moveTask` in store, `moveUp`/`moveDown` i18n keys). `N` shortcut lives in `Shell.tsx` (app routes only) and dispatches `focus-plan:new-task`; TaskList opens the dialog and focuses the title input. Scope verified by Playwright.
+- `manifest.json` `start_url` is `/#/app` so installed PWAs skip the landing page.
 - Timer persistence: `isRunning` + `targetEndTime` persisted; reload recovery verified by Playwright.
 - New i18n keys: `landing.*`, `invite.*`, `tasks.moveUp/moveDown`.
 - Screenshots refreshed incl. `landing.png` and `invite.png` per combo.

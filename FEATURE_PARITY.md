@@ -8,7 +8,7 @@ Commands that ran:
 - `npm run lint` (`tsc --noEmit`) exited 0. `npx eslint .` exited 0 with 0 errors, 0 warnings.
 - `npm test` (Vitest 3.2.7, config `vitest.config.ts` excludes `e2e/`): 5 files, 22 tests, all passed.
 - `npm run build` (Vite 8.3.6) exited 0.
-- `npx playwright test` (`@playwright/test` 1.65.0, Chromium): 13 passed, 0 failed. `e2e/audit-screenshots.spec.ts` asserts `document.documentElement.scrollWidth <= viewport width + 1` at 360px and 1280px in all 8 locale/theme/viewport combinations and captures landing and invite screenshots. `e2e/app-flows.spec.ts` drives real interactions.
+- `npx playwright test` (`@playwright/test` 1.65.0, Chromium): 15 passed, 0 failed. `e2e/audit-screenshots.spec.ts` asserts `document.documentElement.scrollWidth <= viewport width + 1` at 360px and 1280px in all 8 locale/theme/viewport combinations and captures landing and invite screenshots. `e2e/app-flows.spec.ts` drives real interactions.
 
 Labels mean only what was run. A screen that rendered is not proof that its buttons do the real job.
 
@@ -25,6 +25,8 @@ Playwright opened the app in all 8 combinations (en/ar × light/dark × 360px/12
 | Invite route | `#/invite/DEMO-GROUP-7` renders "Group invites are not open yet" placeholder; screenshot captured in all 8 combinations. |
 | Onboarding | New users see the modal; "Skip Setup" dismisses it (Playwright). |
 | Timer start / pause / reload | Start Focus becomes Pause Timer; pausing restores Start. After restart + `page.reload()`, the Pause button returns and persisted state shows `isRunning: true` with `targetEndTime` set. Recovery is driven by the persisted `targetEndTime`, not a fresh duration. |
+| Expired timer exactly-once | Seeded `isRunning: true` with a `targetEndTime` 10s in the past (simulating expiry while the tab was closed). On load the session completed once: 1 session log, coins 10→11, 1 transaction, `isRunning` false. After a second reload the counts were unchanged — no double award. |
+| `N` shortcut scope | On `#/` (landing, TaskList mounted but Shell absent) pressing `n` opened no dialog. On `#/app/focus` it opened the new-task dialog. |
 | Wavy ring | While running, the SVG path `d` attribute is populated (325 chars) and animates. With `page.emulateMedia({ reducedMotion: 'reduce' })` (Chromium `reducedMotion: 'reduce'` context), the paused ring path is byte-identical across 1.6s samples; without it the path keeps changing. Tested via a Playwright probe, not a committed spec. |
 | Start/Pause morph | `motion.button` animates `borderRadius` 999 to 20 with a spring (`stiffness 420, damping 32`); icon crossfades via `AnimatePresence`. `useReducedMotion()` switches the spring to `duration: 0` and disables icon transitions. Computed radius while running: 20px. |
 | Store purchase | Seeded 50 coins, bought the 10-coin streak freeze via the Material Web filled button: coins became 40 and `inventory.streak_freeze` became 1 in persisted state. |
@@ -56,13 +58,13 @@ Present in source and included in the production build. Not verified by the chec
 
 - Timer mode buttons beyond focus, duration settings, auto-start flags, task delete/clear, estimated versus completed counts.
 - Web Audio synth, document title updates, Notification API call, Wake Lock call.
-- Keyboard listeners for Space, R, S, 1, 2, 3, `?`, and `N`. The `N` handler dispatches `focus-plan:new-task`, verified end-to-end in the browser; the other shortcuts remain untested in the browser.
+- Keyboard listeners for Space, R, S, 1, 2, 3, `?`, and `N`. `N` is verified end-to-end including its `/app`-only scope; the other shortcuts remain untested in the browser.
 - Pointer-based drag reorder (`draggable` + drag events in `TaskList`). The up/down buttons cover the same `moveTask` store action.
 - JSON and CSV task export from Settings. No import.
 - Seed colors through `@material/material-color-utilities`.
 - Print stylesheet in `WeeklyReportModal.tsx`. No PDF file writer.
 - Skeleton component. The Progress refresh button shows it for 400ms. Charts do not use it for their first paint.
-- PWA `manifest.json`. No service worker file.
+- PWA `manifest.json` with `start_url: "/#/app"` so installed PWAs open the app, not the landing page. No service worker file.
 - ESLint flat config (`eslint.config.js`, `npm run lint:eslint`).
 - `MdSlider` (timer duration sliders) and `MdSelect` (ambient sound) wrappers exist; the slider was not driven in the browser, the select renders in screenshots.
 - `anime.js` drives the WavyRing phase loop; `motion` drives the button morph. Both verified visually/via DOM probes above.
@@ -85,7 +87,7 @@ Present in source and included in the production build. Not verified by the chec
 - Selective `@material/web` integration: switches, sliders, selects, dialogs, buttons in settings/store/timer/task dialog. Custom components kept where Material Web has no equivalent or where RTL was unverified.
 - Task reorder (drag + up/down buttons) and the `N` new-task shortcut.
 - `md-dialog` content-slot fix: children must be wrapped in `slot="content"` or the dialog renders empty.
-- Playwright functional suite (`e2e/app-flows.spec.ts`) covering onboarding, timer lifecycle incl. reload recovery, store purchase, score entry, and task create/edit/reorder.
+- Playwright functional suite (`e2e/app-flows.spec.ts`) covering onboarding, timer lifecycle incl. reload recovery and expired-timer exactly-once, `N` route scoping, store purchase, score entry, and task create/edit/reorder.
 
 ## Fixed in milestone 2a (was broken in the Step 0 audit)
 
