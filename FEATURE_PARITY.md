@@ -117,13 +117,22 @@ Present in source and included in the production build. Not verified by the chec
 
 ## Added in milestone 5
 
-- Task templates: save one task or the whole open-task list as a named template, apply (materializes fresh tasks), rename, delete; synced via `users/{uid}/templates` with tombstones (`src/lib/templates.ts`, Settings templates card). Playwright: `e2e/m5-features.spec.ts` (Verified in browser).
+- Task templates: save one task or the whole open-task list as a named template, apply (materializes fresh tasks), rename, delete; synced via `users/{uid}/templates` with tombstones (`src/lib/templates.ts`, Settings templates card). Playwright: `e2e/m5-features.spec.ts` + emulator round-trip `e2e/templates-emulator.spec.ts` (Verified in browser).
 - JSON and CSV task import with strict validation — malformed files rejected without crashing; CSV export of the task list (`src/lib/dataPort.ts`, Settings import card). Verified in browser (import spec).
-- Tick sound toggle + volume in Settings, played from `tickTimer` only while the timer runs; ambient audio stops on route change out of `/app` (`soundEngine`, `App.tsx`). Unit-tested logic paths; audio itself not asserted in browser.
-- In-app reminders (Decision 23): enable toggle, quiet hours, notification permission flow; unit tested (`reminders.test.ts`), UI compiled only — Notification API not driven in Playwright.
-- Reports: weekly report modal generalized to week OR month periods with older/newer navigation (8 weeks / 12 months back), daily breakdown across the period, CSV export and print-to-PDF. Unit-verified range math indirectly; browser check pending.
+- Tick sound toggle + volume in Settings, played from `tickTimer` only while the timer runs; ambient audio stops on route change out of `/app` (`soundEngine`, `App.tsx`). Unit-tested logic paths; Verified in browser via AudioContext spy (tick on run only, ambient stops on route change).
+- In-app reminders (Decision 23): enable toggle, quiet hours, notification permission flow; unit tested (`reminders.test.ts`), Verified in browser via injected-clock spec (fires once, quiet hours, cooldown, hidden tab, denied path).
+- Reports: weekly report modal generalized to week OR month periods with older/newer navigation (8 weeks / 12 months back), daily breakdown across the period, CSV export and print-to-PDF. Verified in browser: month mode, older periods, CSV BOM+Arabic, PDF content checked via pdftotext.
 - Editable test sections: add/rename/remove sections, min/max ranges, per-section targets, validation (min < max, target within range), custom badge, "restore catalog"; works for catalog and custom tests (`src/lib/testSections.ts`, `EditSectionsModal.tsx`, custom-test goal button). Verified in browser (sections spec).
-- Score loop uses resolved (custom-aware) sections; score attempt logging and adjusted-plan suggestion already existed and now respect custom sections. Compiled + partially covered by sections spec.
+- Score loop uses resolved (custom-aware) sections; score attempt logging and adjusted-plan suggestion already existed and now respect custom sections. Verified in browser end-to-end incl. custom sections and recommendation apply.
+
+## Hardened in post-M5 pass
+
+- Score loop end-to-end (Verified in browser, `e2e/m6-hardening.spec.ts`): post-test-date "Log your score" prompt opens the entry form; per-section scores persist; percent-of-goal per section; SVG history chart against the goal line; apply-recommendation updates weekly pomodoros; custom-sections goal covered.
+- Reports (Verified in browser): month mode + older/newer navigation driven; CSV export asserted UTF-8 BOM + Arabic content; real PDFs generated via page.pdf and content-checked with pdftotext (EN totals/daily table, AR RTL content); print-emulation screenshots saved.
+- Reminders (Verified in browser): reminder loop driven via injected clock — fires once per cooldown window, suppressed by quiet hours and hidden tab, blocked when permission denied; Settings shows a clear denied message.
+- Arabic functional flows (Verified in browser): templates save/apply, CSV import, reminders + tick switches, sections modal — all driven in `locale=ar` RTL.
+- Template cloud sync (Verified in browser on emulators, `e2e/templates-emulator.spec.ts`): save on device A appears on device B (same account), rename propagates, delete propagates as tombstone. Found and fixed a real bug: `persistState` sent `taskTemplates` where the sync layer expected `templates`, so cloud template writes were always empty.
+- Sounds (Verified in browser, `e2e/m6-sounds.spec.ts`): AudioContext spied — tick oscillators created only while timer runs, none after pause; ambient buffer source stopped on route change. Found and fixed: tick settings were not restored from persisted state.
 
 ## Fixed in milestone 2b (was missing in the 2a audit)
 

@@ -14,9 +14,11 @@ import { resolveGoalSections } from '../../lib/testSections';
 interface ScoreLoopModalProps {
   goal: UserTestGoal;
   onClose: () => void;
+  /** Open the score-entry form immediately (used by the post-test prompt). */
+  autoLog?: boolean;
 }
 
-export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose }) => {
+export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose, autoLog = false }) => {
   const { locale, updateTestGoal } = useAppStore();
   const t = TRANSLATIONS[locale];
 
@@ -32,7 +34,7 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose })
   }, [goal, sections]);
 
   // Form State for logging new attempt
-  const [isLoggingAttempt, setIsLoggingAttempt] = useState(false);
+  const [isLoggingAttempt, setIsLoggingAttempt] = useState(autoLog);
   const [overallScore, setOverallScore] = useState<number>(goal.currentBaselineScore);
   const [sectionScores, setSectionScores] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {};
@@ -120,6 +122,7 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose })
 
           <button
             onClick={onClose}
+            aria-label={locale === 'ar' ? 'إغلاق' : 'Close'}
             className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
             style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
           >
@@ -311,7 +314,9 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose })
                       {sec.sectionName}
                     </span>
                     <span className="text-xs" style={{ color: 'var(--md-sys-color-outline)' }}>
-                      {t.scoreLoop.target}: {sec.targetScore} · {t.scoreLoop.actual}: {sec.actualScore}
+                      {t.scoreLoop.target}: {sec.targetScore} · {t.scoreLoop.actual}: {sec.actualScore} ·{' '}
+                      {sec.targetScore > 0 ? `${Math.round((sec.actualScore / sec.targetScore) * 100)}%` : '—'}{' '}
+                      {locale === 'ar' ? 'من الهدف' : 'of goal'}
                     </span>
                   </div>
 
@@ -394,7 +399,30 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose })
               {t.scoreLoop.noHistory}
             </div>
           ) : (
-            <div className="space-y-2">
+            <>
+              {/* History vs goal line chart */}
+              {(() => {
+                const pts = [...goal.scoresHistory].reverse(); // oldest -> newest
+                const W = 560, H = 120, PAD = 8;
+                const all = pts.map((p) => p.score).concat([goal.targetScore, goal.currentBaselineScore]);
+                const min = Math.min(...all, 0);
+                const max = Math.max(...all, 1);
+                const x = (i: number) => PAD + (i / Math.max(pts.length - 1, 1)) * (W - PAD * 2);
+                const y = (v: number) => H - PAD - ((v - min) / (max - min || 1)) * (H - PAD * 2);
+                const goalY = y(goal.targetScore);
+                const path = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(p.score).toFixed(1)}`).join(' ');
+                return (
+                  <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-28 mb-2" role="img" aria-label={locale === 'ar' ? 'مخطط الدرجات' : 'Score history chart'}>
+                    <line x1={PAD} x2={W - PAD} y1={goalY} y2={goalY} stroke="var(--md-sys-color-primary)" strokeWidth="1.5" strokeDasharray="5 4" />
+                    <path d={path} fill="none" stroke="var(--md-sys-color-secondary)" strokeWidth="2" />
+                    {pts.map((p, i) => (
+                      <circle key={i} cx={x(i)} cy={y(p.score)} r="3.5" fill="var(--md-sys-color-secondary)" />
+                    ))}
+                    <text x={PAD} y={goalY - 4} fontSize="10" fill="var(--md-sys-color-primary)">{goal.targetScore}</text>
+                  </svg>
+                );
+              })()}
+              <div className="space-y-2">
               {goal.scoresHistory.map((item, idx) => (
                 <div
                   key={idx}
@@ -418,7 +446,8 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose })
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+            </>
           )}
         </div>
       </div>

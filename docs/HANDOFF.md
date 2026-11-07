@@ -67,3 +67,9 @@
 - Rules tests: `JAVA_HOME=~/tools/jdk-21.0.13+9-jre PATH=~/tools/jdk-21.0.13+9-jre/bin:$PATH npm run test:rules`.
 - Emulator app e2e: same env prefix + `npm run test:e2e:firebase` (runs both emulator specs).
 - Emulators manually: `npm run firebase:emulators` (auth 9099, firestore 8080, UI http://127.0.0.1:4000).
+## Post-M5 hardening pass
+
+- New specs: `e2e/m6-hardening.spec.ts` (score loop e2e incl. custom sections, month/older report periods, CSV BOM+Arabic, PDF via page.pdf + pdftotext, reminders via injected clock, Arabic functional settings/sections), `e2e/m6-sounds.spec.ts` (AudioContext spy), `e2e/templates-emulator.spec.ts` (cloud template round-trip; added to `npm run test:e2e:firebase`).
+- Bugs found and fixed: templates were never pushed to Firestore (`taskTemplates` vs `templates` key mismatch in the persist slice); tick sound settings ignored persisted values; `isQuietHour` test expectations corrected; score-loop modal gained aria-label and post-test-date prompt.
+- Reports now export CSV with UTF-8 BOM for Excel/Arabic; PDF verified by content extraction, not just screenshots.
+- Still untested: real Notification permission prompt UX in a headed browser, audible output (spied engine calls instead), PDF visual RTL inspection by eye (content verified via pdftotext; screenshots saved under docs/screenshots/report-print-*.png).

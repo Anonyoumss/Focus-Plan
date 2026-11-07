@@ -2,10 +2,13 @@ import { expect, test, type Browser, type Page } from '@playwright/test';
 
 export const STORAGE_KEY = 'focus_plan_m3e_v1';
 
-export async function seedGuest(page: Page, opts: { coins?: number; locale?: string } = {}) {
-  const { coins = 0, locale = 'en' } = opts;
+export async function seedGuest(
+  page: Page,
+  opts: { coins?: number; locale?: string; state?: Record<string, unknown> } = {},
+) {
+  const { coins = 0, locale = 'en', state = {} } = opts;
   await page.addInitScript(
-    ({ key, coins, locale }) => {
+    ({ key, coins, locale, state }) => {
       if (!localStorage.getItem(key)) {
         localStorage.setItem(
           key,
@@ -19,11 +22,12 @@ export async function seedGuest(page: Page, opts: { coins?: number; locale?: str
             tasks: [],
             testGoals: [],
             sessionLogs: [],
+            ...state,
           }),
         );
       }
     },
-    { key: STORAGE_KEY, coins, locale },
+    { key: STORAGE_KEY, coins, locale, state },
   );
 }
 
@@ -98,7 +102,7 @@ export async function handleMigration(page: Page) {
 export async function newUserPage(
   browser: Browser,
   email: string,
-  opts: { coins?: number; locale?: string } = {},
+  opts: { coins?: number; locale?: string; state?: Record<string, unknown> } = {},
 ) {
   const context = await browser.newContext();
   const page = await context.newPage();

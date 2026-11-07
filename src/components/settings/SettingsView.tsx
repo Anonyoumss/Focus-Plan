@@ -537,7 +537,14 @@ export const SettingsView: React.FC = () => {
                   style={{ backgroundColor: 'var(--md-sys-color-surface-container)', borderColor: 'var(--md-sys-color-outline-variant)', color: 'var(--md-sys-color-on-surface)' }}
                 />
               </div>
-              {notificationStatus !== 'granted' && (
+              {notificationStatus === 'denied' && (
+                <p className="text-[11px] font-semibold" style={{ color: 'var(--md-sys-color-error)' }} role="alert">
+                  {locale === 'ar'
+                    ? 'الإشعارات محظورة. فعّلها من إعدادات المتصفح لعمل التذكيرات.'
+                    : 'Notifications are blocked. Enable them in your browser settings for reminders to work.'}
+                </p>
+              )}
+              {notificationStatus !== 'granted' && notificationStatus !== 'denied' && (
                 <button
                   onClick={handleRequestNotification}
                   className="px-4 py-2 rounded-xl text-xs font-semibold border cursor-pointer"

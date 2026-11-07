@@ -444,7 +444,8 @@ export function exportSessionsToCsv(sessions: FocusSessionRecord[]): string {
     `"${s.taskTitle.replace(/"/g, '""')}"`,
   ]);
 
-  return [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
+  // BOM so Excel opens UTF-8 Arabic correctly.
+  return '﻿' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
 }
 
 /**

@@ -281,9 +281,10 @@ function persistState(state: AppState) {
   };
   // Stamp updatedAt for the cloud push and advance the sync meta map.
   // localStorage keeps the clean records; only the enqueued slice carries
-  // updatedAt so Firestore docs get per-record timestamps.
+  // updatedAt so Firestore docs get per-record timestamps. The cloud slice
+  // key is `templates` while local state/persistence uses `taskTemplates`.
   const { slice, meta } = stampSyncedCollections(
-    toSave as unknown as Record<string, unknown>,
+    { ...toSave, templates: state.taskTemplates } as unknown as Record<string, unknown>,
     syncMeta,
     Date.now(),
   );
@@ -393,8 +394,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   ambientSound: 'none',
   alarmVolume: 0.7,
   ambientVolume: 0.5,
-  tickSoundEnabled: false,
-  tickVolume: 0.3,
+  tickSoundEnabled: initialPersisted.tickSoundEnabled ?? false,
+  tickVolume: initialPersisted.tickVolume ?? 0.3,
   reminderSettings: initialPersisted.reminderSettings || DEFAULT_REMINDER_SETTINGS,
   timerConfig: initialPersisted.timerConfig || DEFAULT_TIMER_CONFIG,
 
@@ -1222,29 +1223,34 @@ async function handleAuthUser(user: { uid: string; email: string | null; display
   }
 }
 
+/** Single reminder pass; exported for tests via the DEV debug hook. */
+export function runReminderCheck(now: Date = new Date()): void {
+  const s = useAppStore.getState();
+  const settings = s.reminderSettings;
+  if (!settings.enabled || typeof Notification === 'undefined') return;
+  if (Notification.permission !== 'granted') return;
+  if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+  const candidates = buildReminderCandidates(s.tasks, s.testGoals, now);
+  const due = dueReminders(candidates, settings, now);
+  if (due.length === 0) return;
+  for (const r of due) {
+    try {
+      new Notification(r.title, { body: r.body, tag: r.id });
+    } catch {
+      /* notification construction can throw on some platforms */
+    }
+  }
+  s.setReminderSettings(markFired(settings, due.map((d) => d.id), now));
+}
+
 // In-app reminder loop: checks every minute while the app is open and
 // fires a browser Notification for due goal/test reminders. No push —
 // scheduled delivery is not shipped (see DECISIONS.md).
 if (typeof window !== 'undefined') {
-  setInterval(() => {
-    const s = useAppStore.getState();
-    const settings = s.reminderSettings;
-    if (!settings.enabled || typeof Notification === 'undefined') return;
-    if (Notification.permission !== 'granted') return;
-    if (document.visibilityState !== 'visible') return;
-    const now = new Date();
-    const candidates = buildReminderCandidates(s.tasks, s.testGoals, now);
-    const due = dueReminders(candidates, settings, now);
-    if (due.length === 0) return;
-    for (const r of due) {
-      try {
-        new Notification(r.title, { body: r.body, tag: r.id });
-      } catch {
-        /* notification construction can throw on some platforms */
-      }
-    }
-    s.setReminderSettings(markFired(settings, due.map((d) => d.id), now));
-  }, 60_000);
+  setInterval(() => runReminderCheck(), 60_000);
+  if (import.meta.env.DEV) {
+    (window as unknown as Record<string, unknown>).__fpDebug = { runReminderCheck };
+  }
 }
 
 if (isFirebaseConfigured()) {

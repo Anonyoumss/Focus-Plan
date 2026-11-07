@@ -76,7 +76,8 @@ export function exportTasksCsv(tasks: TaskItem[]): string {
       .map(esc)
       .join(','),
   );
-  return [CSV_HEADER, ...rows].join('\n');
+  // BOM so Excel opens UTF-8 Arabic correctly.
+  return '﻿' + [CSV_HEADER, ...rows].join('\n');
 }
 
 /** Parse a tasks CSV. Requires the exact header row. */

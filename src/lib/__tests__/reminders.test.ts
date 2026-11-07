@@ -14,8 +14,8 @@ describe('isQuietHour', () => {
     expect(isQuietHour(at(23), '22:00', '07:00')).toBe(true);
     expect(isQuietHour(at(3), '22:00', '07:00')).toBe(true);
     expect(isQuietHour(at(12), '22:00', '07:00')).toBe(false);
-    expect(isQuietHour(at(8), '07:00', '22:00')).toBe(false);
-    expect(isQuietHour(at(23), '07:00', '22:00')).toBe(true);
+    expect(isQuietHour(at(8), '07:00', '22:00')).toBe(true);
+    expect(isQuietHour(at(23), '07:00', '22:00')).toBe(false);
     expect(isQuietHour(at(12), 'bad', '22:00')).toBe(false);
   });
 });

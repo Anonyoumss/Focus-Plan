@@ -134,3 +134,8 @@ This log documents all technical, structural, and design decisions made during t
 - **Decision**: Milestone 5 reminders fire browser Notifications from a 60s interval while the app tab is visible, gated by user opt-in, quiet hours (wrap-midnight aware), and a 1-hour per-reminder cooldown. Candidates come from daily-goal tasks below goal and test dates within 3 days (`src/lib/reminders.ts`, pure + unit tested). No service worker or FCM — Terms continue to state scheduled push is not shipped.
 - **Rationale**: Spark plan and no Cloud Functions; in-app reminders are the honest free-tier implementation.
 - **Source**: `src/lib/reminders.ts`, `useAppStore.ts` reminder loop, Settings reminders card.
+
+## Decision 24: Persisted tick-sound settings and the templates slice key
+- **Decision**: `tickSoundEnabled`/`tickVolume` are restored from persisted state (they were hardcoded defaults, silently ignoring user settings across reloads). The cloud push slice maps local `taskTemplates` to the synced `templates` collection inside `persistState`; previously the mismatch meant template writes were always empty and remote templates could be tombstoned by unrelated pushes.
+- **Rationale**: Found by the template emulator round-trip and the sounds spec; both are covered by regression tests now.
+- **Source**: `useAppStore.ts` persistState/syncedSliceOf, `e2e/templates-emulator.spec.ts`, `e2e/m6-sounds.spec.ts`.

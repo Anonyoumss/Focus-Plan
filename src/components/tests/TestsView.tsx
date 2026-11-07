@@ -11,7 +11,7 @@ export const TestsView: React.FC = () => {
   const { locale, testGoals, addTestGoal, deleteTestGoal, updateTestGoal } = useAppStore();
   const t = TRANSLATIONS[locale];
 
-  const [activeScoreLoopGoal, setActiveScoreLoopGoal] = useState<UserTestGoal | null>(null);
+  const [activeScoreLoopGoal, setActiveScoreLoopGoal] = useState<{ goal: UserTestGoal; autoLog: boolean } | null>(null);
   const [editingSectionsGoal, setEditingSectionsGoal] = useState<UserTestGoal | null>(null);
   const [activeFilter, setActiveFilter] = useState<'all' | 'saudi' | 'international'>('all');
 
@@ -75,6 +75,10 @@ export const TestsView: React.FC = () => {
       scoresHistory: [],
     });
   };
+
+  const isTestDatePassed = (g: UserTestGoal) =>
+    new Date(g.testDate).getTime() < new Date().getTime() &&
+    !g.scoresHistory.some((s) => s.date >= g.testDate);
 
   const calculateDaysRemaining = (dateStr: string) => {
     const target = new Date(dateStr).getTime();
@@ -255,9 +259,24 @@ export const TestsView: React.FC = () => {
                     )}
                   </div>
 
+                  {isTestDatePassed(goal) &&
+                    !goal.scoresHistory.some((s) => s.date >= goal.testDate) && (
+                      <button
+                        onClick={() => setActiveScoreLoopGoal({ goal, autoLog: true })}
+                        className="w-full mb-3 px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5"
+                        style={{
+                          backgroundColor: 'var(--md-sys-color-tertiary-container)',
+                          color: 'var(--md-sys-color-on-tertiary-container)',
+                        }}
+                      >
+                        <MaterialIcon name="assignment_turned_in" size={15} />
+                        <span>{locale === 'ar' ? 'سجّل درجتك بعد الاختبار' : 'Log your score — test date passed'}</span>
+                      </button>
+                    )}
+
                   <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'var(--md-sys-color-outline-variant)' }}>
                     <button
-                      onClick={() => setActiveScoreLoopGoal(goal)}
+                      onClick={() => setActiveScoreLoopGoal({ goal, autoLog: false })}
                       className="text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer flex items-center gap-1.5 hover:bg-black/5 dark:hover:bg-white/5"
                       style={{
                         borderColor: 'var(--md-sys-color-primary)',
@@ -473,7 +492,8 @@ export const TestsView: React.FC = () => {
 
       {activeScoreLoopGoal && (
         <ScoreLoopModal
-          goal={activeScoreLoopGoal}
+          goal={activeScoreLoopGoal.goal}
+          autoLog={activeScoreLoopGoal.autoLog}
           onClose={() => setActiveScoreLoopGoal(null)}
         />
       )}
