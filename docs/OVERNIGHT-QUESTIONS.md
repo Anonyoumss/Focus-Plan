@@ -34,3 +34,21 @@ Format: question | choice made | why
    CHOICE: added the new AI sections in English now; full AR translation
    happens in stage B.
    WHY: avoids duplicating work; stage B explicitly owns this.
+
+5. Spotlight mode default?
+   CHOICE: OFF (opt-in via Settings > Focus & Motion).
+   WHY: the scrim blocks pointer events on dimmed content; defaulting on
+   would surprise users and could break flows that click while a timer
+   runs. Easy to flip later.
+
+6. Default app language source?
+   CHOICE: navigator.languages, not IP geolocation.
+   WHY: IP geo is unreliable (VPNs, shared networks, privacy cost) and
+   first-run onboarding now asks explicitly anyway. Landing keeps a
+   manual switch.
+
+7. Perf "5-10s tabs" — could not reproduce as data-dependent.
+   CHOICE: documented profiling result (warm Progress render ~19ms with
+   2000 logs; the delay is first-load chunk+font latency) + skeleton-
+   first reveal on Progress. No speculative rewrite.
+   WHY: no-guessing rule; the e2e perf smoke guards regressions.

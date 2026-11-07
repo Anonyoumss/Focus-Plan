@@ -5,9 +5,26 @@
 | A: secure Gemini changes | Done | auth+ratelimit+CORS+validation; dev script split; offline estimate labeled; legal updated; e2e mocked |
 | B: reviewer findings | Done | 9 items verified; 3 real bugs fixed; see detail |
 | C: layout/perf/focus/lang/footer | Done | see detail |
-| D: tests intake + Plan page | Pending | |
-| E: audio + referrals | Pending | |
-| F: logo + PWA | Pending | |
+| D: tests intake + Plan page | Skipped | out of budget — not started |
+| E: audio + referrals | Skipped | conditional on remaining budget |
+| F: logo + PWA | Skipped | conditional on remaining budget |
+
+## Morning click-through (priority order)
+1. Settings > Focus & Motion: enable Spotlight, start a focus timer,
+   confirm only nav/clock/pause-skip stay bright; press Esc.
+2. Timer mode buttons (Focus/Short/Long): watch the page tint change.
+3. Settings > seed palette: pick custom hex, watch live preview.
+4. Onboarding (fresh profile): language picker EN/AR, then RTL check.
+5. Tests tab: GAT card shows "GAT — Qudurat" subtitle.
+6. Friends tab signed out: skeleton leaderboard + sign-in button.
+7. Progress: skeleton ~250ms then content; scroll stays inside content
+   on a phone (nav never scrolls away).
+
+## Stage D/E/F
+Not started — context budget reached after stage C. Stage D is the
+largest remaining chunk (picker refactor + intake flow + deadlines +
+Plan page + EN/AR e2e). Nothing was half-implemented; tree is clean at
+the stage C commit.
 
 ## Stage C detail
 - LAYOUT: app shell is now h-[100dvh] overflow-hidden; content column and

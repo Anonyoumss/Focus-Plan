@@ -142,3 +142,22 @@
   caveat (verified against Google docs).
 - Guests get the offline estimate (no ID token). e2e: `ai-features.spec.ts`
   mocks `/api/gemini/status`; unit tests cover request/response validation.
+
+## Overnight run state (stages A–C done, D–F not started)
+
+- Stage A (Gemini proxy security), B (reviewer findings), C (layout,
+  perf, spotlight, language, footer, GAT rename) are committed and
+  green: tsc/eslint clean, 80/80 unit, 33/33 rules, Playwright 42 pass /
+  6 emulator-skips, emulator suite 6/6, build pass.
+- NOT STARTED: Stage D (test picker flat search, intake flow, task
+  deadlines, real Plan page, EN/AR e2e), Stage E (custom audio,
+  referrals), Stage F (logo, service worker/PWA offline). These are the
+  next work items; see docs/OVERNIGHT-REPORT.md for the click-through
+  list and docs/OVERNIGHT-QUESTIONS.md for autonomous decisions.
+- Stage C caveats: spotlight visuals verified by DOM/z-order only;
+  perf "slowness" was first-load latency, not data volume — Progress
+  skeleton-first reveal added; count-up animations not implemented.
+- Test-env gotcha: a stale `vite` dev server on :3000 makes the
+  emulator suite self-skip (it reuses the server without emulator env
+  vars). Kill any `vite --port=3000` process before
+  `npm run test:e2e:firebase`.
