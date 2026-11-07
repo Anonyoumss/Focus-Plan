@@ -9,6 +9,7 @@ import { TRANSLATIONS } from '../../i18n/translations';
 import { TEST_CATALOG, UserTestGoal } from '../../data/tests/catalog';
 import { MaterialIcon } from '../common/MaterialIcon';
 import { analyzeScoreLoop } from '../../lib/analyticsEngine';
+import { resolveGoalSections } from '../../lib/testSections';
 
 interface ScoreLoopModalProps {
   goal: UserTestGoal;
@@ -23,7 +24,7 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose })
     return TEST_CATALOG.find((x) => x.id === goal.testId);
   }, [goal.testId]);
 
-  const sections = useMemo(() => definition?.sections || [], [definition]);
+  const sections = useMemo(() => resolveGoalSections(goal, definition), [goal, definition]);
 
   // Analysis
   const analysis = useMemo(() => {

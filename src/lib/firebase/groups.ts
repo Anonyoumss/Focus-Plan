@@ -459,10 +459,14 @@ const WEEK_FP_AWARD = 7;
  * doc exists, and skips. Walk-back window is limited (7 days / 4 weeks,
  * see awardPeriodsToClaim) — older unclaimed periods are forfeited.
  */
-export async function claimGroupAwards(uid: string, gid: string): Promise<number> {
+export async function claimGroupAwards(
+  uid: string,
+  gid: string,
+  now: Date = new Date(),
+): Promise<number> {
   const firestore = db();
   await ensureWallet(uid);
-  const { dayKeys, weekKeys } = awardPeriodsToClaim(new Date());
+  const { dayKeys, weekKeys } = awardPeriodsToClaim(now);
   const periods: { id: string; fp: number; reason: string }[] = [
     ...dayKeys.map((k) => ({
       id: groupAwardDayId(gid, new Date(`${k}T12:00:00`)),

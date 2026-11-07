@@ -115,6 +115,16 @@ Present in source and included in the production build. Not verified by the chec
 - Terms/Privacy updated to describe only what exists: Google sign-in and Firestore sync. No friends/leaderboard claims.
 - Playwright emulator spec `e2e/firebase-emulators.spec.ts` (sign-in, migrate, sync, reload, sign-out) run via `npm run test:e2e:firebase`.
 
+## Added in milestone 5
+
+- Task templates: save one task or the whole open-task list as a named template, apply (materializes fresh tasks), rename, delete; synced via `users/{uid}/templates` with tombstones (`src/lib/templates.ts`, Settings templates card). Playwright: `e2e/m5-features.spec.ts` (Verified in browser).
+- JSON and CSV task import with strict validation — malformed files rejected without crashing; CSV export of the task list (`src/lib/dataPort.ts`, Settings import card). Verified in browser (import spec).
+- Tick sound toggle + volume in Settings, played from `tickTimer` only while the timer runs; ambient audio stops on route change out of `/app` (`soundEngine`, `App.tsx`). Unit-tested logic paths; audio itself not asserted in browser.
+- In-app reminders (Decision 23): enable toggle, quiet hours, notification permission flow; unit tested (`reminders.test.ts`), UI compiled only — Notification API not driven in Playwright.
+- Reports: weekly report modal generalized to week OR month periods with older/newer navigation (8 weeks / 12 months back), daily breakdown across the period, CSV export and print-to-PDF. Unit-verified range math indirectly; browser check pending.
+- Editable test sections: add/rename/remove sections, min/max ranges, per-section targets, validation (min < max, target within range), custom badge, "restore catalog"; works for catalog and custom tests (`src/lib/testSections.ts`, `EditSectionsModal.tsx`, custom-test goal button). Verified in browser (sections spec).
+- Score loop uses resolved (custom-aware) sections; score attempt logging and adjusted-plan suggestion already existed and now respect custom sections. Compiled + partially covered by sections spec.
+
 ## Fixed in milestone 2b (was missing in the 2a audit)
 
 - Hash router with landing, app tabs, terms, privacy, and invite placeholder (`src/lib/router.ts`, `src/App.tsx`).

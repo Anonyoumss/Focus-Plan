@@ -21,22 +21,42 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
   const { locale, streak, tasks, testGoals, sessionLogs } = useAppStore();
   const t = TRANSLATIONS[locale];
 
-  const [selectedWeekOffset, setSelectedWeekOffset] = useState<0 | 1 | 2>(0);
+  const [periodUnit, setPeriodUnit] = useState<'week' | 'month'>('week');
+  const [periodOffset, setPeriodOffset] = useState(0);
 
-  // Compute start and end date for the selected week
-  const weekRange = useMemo(() => {
-    const end = new Date();
-    end.setDate(end.getDate() - selectedWeekOffset * 7);
-    const start = new Date(end);
-    start.setDate(start.getDate() - 6);
-
+  // Compute start/end for the selected week or month. Offset 0 = current
+  // period; older offsets reach back (week: up to 8 back, month: up to 12).
+  const periodRange = useMemo(() => {
+    const now = new Date();
+    let start: Date;
+    let end: Date;
+    if (periodUnit === 'week') {
+      end = new Date(now);
+      end.setDate(end.getDate() - periodOffset * 7);
+      start = new Date(end);
+      start.setDate(start.getDate() - 6);
+    } else {
+      // Month: offset 0 = current month-to-date is confusing for reports;
+      // use the last complete month for offset 0? No — use calendar month
+      // containing today minus offset, full month bounds.
+      const firstOfThis = new Date(now.getFullYear(), now.getMonth(), 1);
+      const target = new Date(firstOfThis.getFullYear(), firstOfThis.getMonth() - periodOffset, 1);
+      start = new Date(target.getFullYear(), target.getMonth(), 1);
+      end = new Date(target.getFullYear(), target.getMonth() + 1, 0);
+      end.setHours(23, 59, 59, 999);
+    }
+    start.setHours(0, 0, 0, 0);
+    const dayCount = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
     return {
       startStr: start.toISOString().split('T')[0],
       endStr: end.toISOString().split('T')[0],
-      startTime: new Date(start.setHours(0, 0, 0, 0)).getTime(),
-      endTime: new Date(end.setHours(23, 59, 59, 999)).getTime(),
+      startTime: start.getTime(),
+      endTime: end.getTime(),
+      dayCount,
+      label: start.toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', { month: 'long', year: 'numeric' }),
     };
-  }, [selectedWeekOffset]);
+  }, [periodUnit, periodOffset, locale]);
+  const weekRange = periodRange;
 
   // Filter sessions for this week
   const weeklySessions = useMemo(() => {
@@ -45,11 +65,11 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
     );
   }, [sessionLogs, weekRange]);
 
-  // Daily breakdown
+  // Daily breakdown across the whole selected period
   const dailyData = useMemo(() => {
     const map: Record<string, { minutes: number; sessions: number; categories: Record<string, number> }> = {};
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(weekRange.endTime);
+    for (let i = periodRange.dayCount - 1; i >= 0; i--) {
+      const d = new Date(periodRange.endTime);
       d.setDate(d.getDate() - i);
       const str = d.toISOString().split('T')[0];
       map[str] = { minutes: 0, sessions: 0, categories: {} };
@@ -76,7 +96,7 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
         topCategory: topCat,
       };
     });
-  }, [weeklySessions, weekRange, locale]);
+  }, [weeklySessions, periodRange, locale]);
 
   const totalMinutes = useMemo(() => {
     return weeklySessions.reduce((acc, s) => acc + s.durationMinutes, 0);
@@ -84,7 +104,7 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
 
   const totalHours = (totalMinutes / 60).toFixed(1);
   const totalSessionsCount = weeklySessions.length;
-  const avgDailyHours = (totalMinutes / (7 * 60)).toFixed(1);
+  const avgDailyHours = (totalMinutes / (periodRange.dayCount * 60)).toFixed(1);
 
   const categoryBreakdown = useMemo(() => {
     return calculateCategoryBreakdown(weeklySessions);
@@ -183,8 +203,8 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
           </div>
         </div>
 
-        {/* Week Selector Tabs (Hidden in Print) */}
-        <div className="flex items-center gap-2 mb-6 print:hidden">
+        {/* Period Selector (Hidden in Print) */}
+        <div className="flex flex-wrap items-center gap-2 mb-6 print:hidden">
           <span className="text-xs font-semibold" style={{ color: 'var(--md-sys-color-outline)' }}>
             {t.reports.weekSelector}:
           </span>
@@ -195,23 +215,45 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
               borderColor: 'var(--md-sys-color-outline-variant)',
             }}
           >
-            {[
-              { offset: 0 as const, label: t.reports.currentWeek },
-              { offset: 1 as const, label: t.reports.lastWeek },
-              { offset: 2 as const, label: t.reports.twoWeeksAgo },
-            ].map((w) => (
+            {(['week', 'month'] as const).map((u) => (
               <button
-                key={w.offset}
-                onClick={() => setSelectedWeekOffset(w.offset)}
+                key={u}
+                onClick={() => {
+                  setPeriodUnit(u);
+                  setPeriodOffset(0);
+                }}
                 className="px-3 py-1.5 rounded-xl font-medium cursor-pointer transition-colors"
                 style={{
-                  backgroundColor: selectedWeekOffset === w.offset ? 'var(--md-sys-color-primary)' : 'transparent',
-                  color: selectedWeekOffset === w.offset ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface-variant)',
+                  backgroundColor: periodUnit === u ? 'var(--md-sys-color-primary)' : 'transparent',
+                  color: periodUnit === u ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface-variant)',
                 }}
               >
-                {w.label}
+                {u === 'week' ? (locale === 'ar' ? 'أسبوع' : 'Week') : (locale === 'ar' ? 'شهر' : 'Month')}
               </button>
             ))}
+          </div>
+          <div className="inline-flex items-center gap-1">
+            <button
+              onClick={() => setPeriodOffset((o) => Math.min(o + 1, periodUnit === 'week' ? 8 : 12))}
+              disabled={periodOffset >= (periodUnit === 'week' ? 8 : 12)}
+              aria-label={locale === 'ar' ? 'فترة أقدم' : 'Older period'}
+              className="p-1.5 rounded-lg border cursor-pointer disabled:opacity-40"
+              style={{ borderColor: 'var(--md-sys-color-outline-variant)', color: 'var(--md-sys-color-on-surface)' }}
+            >
+              <MaterialIcon name={locale === 'ar' ? 'chevron_left' : 'chevron_left'} size={16} />
+            </button>
+            <span className="text-xs font-semibold px-1 tabular-nums" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+              {periodUnit === 'month' ? periodRange.label : `${weekRange.startStr} → ${weekRange.endStr}`}
+            </span>
+            <button
+              onClick={() => setPeriodOffset((o) => Math.max(o - 1, 0))}
+              disabled={periodOffset <= 0}
+              aria-label={locale === 'ar' ? 'فترة أحدث' : 'Newer period'}
+              className="p-1.5 rounded-lg border cursor-pointer disabled:opacity-40"
+              style={{ borderColor: 'var(--md-sys-color-outline-variant)', color: 'var(--md-sys-color-on-surface)' }}
+            >
+              <MaterialIcon name="chevron_right" size={16} />
+            </button>
           </div>
         </div>
 

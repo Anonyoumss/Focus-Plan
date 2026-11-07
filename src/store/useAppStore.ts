@@ -55,11 +55,33 @@ import {
 import {
   claimGroupAwards,
   creditWallet,
+  getPublicProfile,
   listMyGroups,
+  listPublicBoard,
   logGroupSession,
   reconcileWallet,
+  setPublicBoardEntry,
   spendCoins,
 } from '../lib/firebase/groups';
+import { dayKey, recentDayKeys } from '../lib/groupStats';
+import {
+  applyTemplate,
+  toBlueprint,
+  validateTemplate,
+  type TaskTemplate,
+} from '../lib/templates';
+import {
+  importTasksCsv,
+  importTasksJson,
+  type PortResult,
+} from '../lib/dataPort';
+import {
+  DEFAULT_REMINDER_SETTINGS,
+  buildReminderCandidates,
+  dueReminders,
+  markFired,
+  type ReminderSettings,
+} from '../lib/reminders';
 
 export interface TaskItem {
   id: string;
@@ -106,10 +128,15 @@ export interface AppState {
   ambientSound: 'none' | 'whitenoise' | 'binaural' | 'rain';
   alarmVolume: number;
   ambientVolume: number;
+  tickSoundEnabled: boolean;
+  tickVolume: number;
+  reminderSettings: ReminderSettings;
+  setReminderSettings: (settings: ReminderSettings) => void;
   timerConfig: TimerConfig;
 
   // Tasks & Goals
   tasks: TaskItem[];
+  taskTemplates: TaskTemplate[];
   testGoals: UserTestGoal[];
 
   // Streaks, Coins & Gamification
@@ -157,6 +184,8 @@ export interface AppState {
   setAmbientSound: (type: 'none' | 'whitenoise' | 'binaural' | 'rain') => void;
   setAlarmVolume: (vol: number) => void;
   setAmbientVolume: (vol: number) => void;
+  setTickSoundEnabled: (enabled: boolean) => void;
+  setTickVolume: (vol: number) => void;
   updateTimerConfig: (config: Partial<TimerConfig>) => void;
   setDailyGoalSessions: (goal: number) => void;
   addSessionLog: (record: FocusSessionRecord) => void;
@@ -168,6 +197,16 @@ export interface AppState {
   toggleTaskDone: (id: string) => void;
   clearDoneTasks: () => void;
   moveTask: (id: string, targetIndex: number) => void;
+
+  // Template & import actions
+  saveTaskAsTemplate: (taskId: string, name: string) => void;
+  saveTaskListAsTemplate: (name: string) => void;
+  applyTaskTemplate: (templateId: string) => void;
+  renameTaskTemplate: (id: string, name: string) => void;
+  deleteTaskTemplate: (id: string) => void;
+  importTasks: (blueprints: PortResult['tasks']) => number;
+  importTasksFromJson: (text: string) => PortResult;
+  importTasksFromCsv: (text: string) => PortResult;
 
   // Test Goal actions
   addTestGoal: (goal: UserTestGoal) => void;
@@ -221,6 +260,7 @@ function persistState(state: AppState) {
     completedFocusSessions: state.completedFocusSessions,
     timerConfig: state.timerConfig,
     tasks: state.tasks,
+    taskTemplates: state.taskTemplates,
     testGoals: state.testGoals,
     streak: state.streak,
     coins: state.coins,
@@ -235,6 +275,9 @@ function persistState(state: AppState) {
     targetEndTime: state.targetEndTime,
     activeGroupId: state.activeGroupId,
     groupFocusTaskId: state.groupFocusTaskId,
+    reminderSettings: state.reminderSettings,
+    tickSoundEnabled: state.tickSoundEnabled,
+    tickVolume: state.tickVolume,
   };
   // Stamp updatedAt for the cloud push and advance the sync meta map.
   // localStorage keeps the clean records; only the enqueued slice carries
@@ -350,9 +393,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   ambientSound: 'none',
   alarmVolume: 0.7,
   ambientVolume: 0.5,
+  tickSoundEnabled: false,
+  tickVolume: 0.3,
+  reminderSettings: initialPersisted.reminderSettings || DEFAULT_REMINDER_SETTINGS,
   timerConfig: initialPersisted.timerConfig || DEFAULT_TIMER_CONFIG,
 
   tasks: initialPersisted.tasks || [],
+  taskTemplates: (initialPersisted.taskTemplates || []).filter(validateTemplate),
   testGoals: initialPersisted.testGoals || [],
 
   streak: initialPersisted.streak || {
@@ -473,7 +520,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   tickTimer: () => {
-    const { isRunning, targetEndTime, timerMode, completedFocusSessions, timerConfig, activeTaskId, tasks, streak, todaySessionsCount, coins, focusPoints, alarmVolume } = get();
+    const { isRunning, targetEndTime, timerMode, completedFocusSessions, timerConfig, activeTaskId, tasks, streak, todaySessionsCount, coins, focusPoints, alarmVolume, tickSoundEnabled, tickVolume } = get();
+    if (isRunning && tickSoundEnabled) {
+      soundEngine.playTick(tickVolume);
+    }
     if (!isRunning || !targetEndTime) return;
 
     const now = Date.now();
@@ -621,6 +671,21 @@ export const useAppStore = create<AppState>((set, get) => ({
     soundEngine.setAmbientVolume(ambientVolume);
   },
 
+  setTickSoundEnabled: (tickSoundEnabled) => {
+    set({ tickSoundEnabled });
+    persistState(get());
+  },
+
+  setTickVolume: (tickVolume) => {
+    set({ tickVolume });
+    persistState(get());
+  },
+
+  setReminderSettings: (reminderSettings) => {
+    set({ reminderSettings });
+    persistState(get());
+  },
+
   updateTimerConfig: (config) => {
     const timerConfig = { ...get().timerConfig, ...config };
     set({ timerConfig });
@@ -685,6 +750,86 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ tasks });
     persistState(get());
   },
+
+  saveTaskAsTemplate: (taskId, name) => {
+    const task = get().tasks.find((t) => t.id === taskId);
+    if (!task) return;
+    const tpl: TaskTemplate = {
+      id: `tpl_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`,
+      title: name.slice(0, 120) || task.title,
+      kind: 'task',
+      items: [toBlueprint(task)],
+      createdAt: Date.now(),
+      category: 'Templates',
+      cadence: 'daily',
+      minGoal: 0,
+      maxGoal: 0,
+    };
+    set({ taskTemplates: [tpl, ...get().taskTemplates] });
+    persistState(get());
+  },
+
+  saveTaskListAsTemplate: (name) => {
+    const tasks = get().tasks.filter((t) => !t.isCompleted);
+    if (tasks.length === 0) return;
+    const tpl: TaskTemplate = {
+      id: `tpl_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`,
+      title: name.slice(0, 120) || 'Task list',
+      kind: 'list',
+      items: tasks.map(toBlueprint),
+      createdAt: Date.now(),
+      category: 'Templates',
+      cadence: 'daily',
+      minGoal: 0,
+      maxGoal: 0,
+    };
+    set({ taskTemplates: [tpl, ...get().taskTemplates] });
+    persistState(get());
+  },
+
+  applyTaskTemplate: (templateId) => {
+    const tpl = get().taskTemplates.find((t) => t.id === templateId);
+    if (!tpl) return;
+    const genId = () =>
+      `task_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+    const created = applyTemplate(tpl, genId) as TaskItem[];
+    set({ tasks: [...get().tasks, ...created] });
+    persistState(get());
+  },
+
+  renameTaskTemplate: (id, name) => {
+    set({
+      taskTemplates: get().taskTemplates.map((t) =>
+        t.id === id ? { ...t, title: name.slice(0, 120) } : t,
+      ),
+    });
+    persistState(get());
+  },
+
+  deleteTaskTemplate: (id) => {
+    // Sync layer writes the tombstone for the removed slice doc.
+    set({ taskTemplates: get().taskTemplates.filter((t) => t.id !== id) });
+    persistState(get());
+  },
+
+  importTasks: (blueprints) => {
+    const genId = () =>
+      `task_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+    const now = Date.now();
+    const created: TaskItem[] = blueprints.map((b) => ({
+      ...b,
+      id: genId(),
+      completedSessions: 0,
+      isCompleted: false,
+      createdAt: now,
+    }));
+    set({ tasks: [...get().tasks, ...created] });
+    persistState(get());
+    return created.length;
+  },
+
+  importTasksFromJson: (text) => importTasksJson(text),
+  importTasksFromCsv: (text) => importTasksCsv(text),
 
   addTestGoal: (goal) => {
     const testGoals = [goal, ...get().testGoals];
@@ -876,6 +1021,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 function syncedSliceOf(s: AppState): CloudStateSlice {
   return {
     tasks: s.tasks,
+    templates: s.taskTemplates as never,
     sessionLogs: s.sessionLogs,
     testGoals: s.testGoals,
     locale: s.locale,
@@ -897,6 +1043,7 @@ function applyCloudState(remote: SyncedState) {
       tasks: localSlice.tasks,
       sessionLogs: localSlice.sessionLogs,
       testGoals: localSlice.testGoals,
+      templates: localSlice.templates as { id?: string }[] | undefined,
     },
     remote,
     syncMeta,
@@ -907,6 +1054,7 @@ function applyCloudState(remote: SyncedState) {
     tasks: merged.tasks as TaskItem[],
     sessionLogs: merged.sessionLogs as FocusSessionRecord[],
     testGoals: merged.testGoals as UserTestGoal[],
+    taskTemplates: (merged.templates as TaskTemplate[]).filter(validateTemplate),
   };
   const st = merged.settings;
   if (st) {
@@ -987,6 +1135,26 @@ async function adoptWalletAndClaimAwards(uid: string) {
       useAppStore.setState({ focusPoints: after.focusPoints });
       persistState(useAppStore.getState());
     }
+
+    // Public board stats refresh each time the member opens the app
+    // (this runs on every auth-ready event for signed-in users).
+    const pub = await getPublicProfile(uid).catch(() => null);
+    const board = await listPublicBoard().catch(() => []);
+    const onBoard = board.some((e) => e.uid === uid);
+    if (pub && onBoard && (pub.shareMinutes || pub.shareStreak)) {
+      const s = useAppStore.getState();
+      const week = recentDayKeys(new Date(), 7);
+      const weeklyMinutes = s.sessionLogs
+        .filter((l) => week.has(dayKey(new Date(l.dateStr + 'T12:00:00'))))
+        .reduce((sum, l) => sum + l.durationMinutes, 0);
+      await setPublicBoardEntry(uid, {
+        uid,
+        alias: pub.alias,
+        weeklyMinutes: pub.shareMinutes ? weeklyMinutes : 0,
+        streak: pub.shareStreak ? s.streak.currentStreak : 0,
+        updatedAt: Date.now(),
+      }).catch((e) => console.warn('Public board refresh failed:', e));
+    }
   } catch (e) {
     console.warn('Wallet/award adoption failed:', e);
   }
@@ -1052,6 +1220,31 @@ async function handleAuthUser(user: { uid: string; email: string | null; display
     setCloudSyncContext(user.uid, false);
     useAppStore.setState({ syncError: 'cloud-sync-failed', cloudSyncEnabled: false });
   }
+}
+
+// In-app reminder loop: checks every minute while the app is open and
+// fires a browser Notification for due goal/test reminders. No push —
+// scheduled delivery is not shipped (see DECISIONS.md).
+if (typeof window !== 'undefined') {
+  setInterval(() => {
+    const s = useAppStore.getState();
+    const settings = s.reminderSettings;
+    if (!settings.enabled || typeof Notification === 'undefined') return;
+    if (Notification.permission !== 'granted') return;
+    if (document.visibilityState !== 'visible') return;
+    const now = new Date();
+    const candidates = buildReminderCandidates(s.tasks, s.testGoals, now);
+    const due = dueReminders(candidates, settings, now);
+    if (due.length === 0) return;
+    for (const r of due) {
+      try {
+        new Notification(r.title, { body: r.body, tag: r.id });
+      } catch {
+        /* notification construction can throw on some platforms */
+      }
+    }
+    s.setReminderSettings(markFired(settings, due.map((d) => d.id), now));
+  }, 60_000);
 }
 
 if (isFirebaseConfigured()) {

@@ -633,9 +633,12 @@ export const FriendsView: React.FC = () => {
               borderColor: 'var(--md-sys-color-outline-variant)',
             }}
           >
-            <h2 className="text-base font-bold mb-4" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+            <h2 className="text-base font-bold mb-1" style={{ color: 'var(--md-sys-color-on-surface)' }}>
               {t.friends.publicBoard}
             </h2>
+            <p className="text-xs mb-4" style={{ color: 'var(--md-sys-color-outline)' }}>
+              {t.friends.publicBoardNote}
+            </p>
             {board.length === 0 ? (
               <p className="text-sm" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 {t.friends.publicBoardEmpty}

@@ -4,12 +4,15 @@ import { TRANSLATIONS } from '../../i18n/translations';
 import { TEST_CATALOG, StandardizedTestDefinition, UserTestGoal } from '../../data/tests/catalog';
 import { MaterialIcon } from '../common/MaterialIcon';
 import { ScoreLoopModal } from './ScoreLoopModal';
+import { EditSectionsModal } from './EditSectionsModal';
+import { resolveGoalSections } from '../../lib/testSections';
 
 export const TestsView: React.FC = () => {
-  const { locale, testGoals, addTestGoal, deleteTestGoal } = useAppStore();
+  const { locale, testGoals, addTestGoal, deleteTestGoal, updateTestGoal } = useAppStore();
   const t = TRANSLATIONS[locale];
 
   const [activeScoreLoopGoal, setActiveScoreLoopGoal] = useState<UserTestGoal | null>(null);
+  const [editingSectionsGoal, setEditingSectionsGoal] = useState<UserTestGoal | null>(null);
   const [activeFilter, setActiveFilter] = useState<'all' | 'saudi' | 'international'>('all');
 
   const filteredCatalog = TEST_CATALOG.filter((test) => {
@@ -49,6 +52,28 @@ export const TestsView: React.FC = () => {
     };
 
     addTestGoal(newGoal);
+  };
+
+  const adoptCustomGoal = () => {
+    const id = `goal_custom_${Date.now().toString(36)}`;
+    const defaultDate = new Date();
+    defaultDate.setDate(defaultDate.getDate() + 84);
+    addTestGoal({
+      id,
+      testId: 'custom',
+      testName: locale === 'ar' ? 'اختبار مخصص' : 'Custom test',
+      testDate: defaultDate.toISOString().split('T')[0],
+      targetScore: 0,
+      currentBaselineScore: 0,
+      sectionTargets: {},
+      customSections: [
+        { id: 'section_1', nameEn: 'Section 1', nameAr: 'القسم 1', minScore: 0, maxScore: 100, defaultTargetScore: 50 },
+      ],
+      weeklyHours: 10,
+      weeklyPomodoros: 20,
+      completedPomodoros: 0,
+      scoresHistory: [],
+    });
   };
 
   const calculateDaysRemaining = (dateStr: string) => {
@@ -115,6 +140,7 @@ export const TestsView: React.FC = () => {
             {testGoals.map((goal) => {
               const daysLeft = calculateDaysRemaining(goal.testDate);
               const definition = TEST_CATALOG.find((x) => x.id === goal.testId);
+              const goalSections = resolveGoalSections(goal, definition);
 
               return (
                 <div
@@ -142,14 +168,28 @@ export const TestsView: React.FC = () => {
                         </h3>
                       </div>
 
-                      <div
-                        className="px-2.5 py-1 rounded-full text-xs font-semibold shrink-0"
-                        style={{
-                          backgroundColor: 'var(--md-sys-color-primary-container)',
-                          color: 'var(--md-sys-color-on-primary-container)',
-                        }}
-                      >
-                        {daysLeft} {t.tests.daysRemaining}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <input
+                          type="date"
+                          value={goal.testDate}
+                          onChange={(e) => e.target.value && updateTestGoal(goal.id, { testDate: e.target.value })}
+                          aria-label={t.tests.testDate}
+                          className="text-[11px] px-1.5 py-0.5 rounded border outline-none"
+                          style={{
+                            backgroundColor: 'var(--md-sys-color-surface-container)',
+                            borderColor: 'var(--md-sys-color-outline-variant)',
+                            color: 'var(--md-sys-color-on-surface)',
+                          }}
+                        />
+                        <div
+                          className="px-2.5 py-1 rounded-full text-xs font-semibold"
+                          style={{
+                            backgroundColor: 'var(--md-sys-color-primary-container)',
+                            color: 'var(--md-sys-color-on-primary-container)',
+                          }}
+                        >
+                          {daysLeft} {t.tests.daysRemaining}
+                        </div>
                       </div>
                     </div>
 
@@ -181,18 +221,36 @@ export const TestsView: React.FC = () => {
                       />
                     </div>
 
-                    {definition && (
+                    {goalSections.length > 0 && (
                       <div className="space-y-1.5 mb-4">
-                        {definition.sections.map((sec) => (
+                        {goalSections.map((sec) => (
                           <div key={sec.id} className="flex items-center justify-between text-xs">
                             <span style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                               {locale === 'ar' ? sec.nameAr : sec.nameEn}
+                              {sec.minScore !== undefined && (
+                                <span className="ms-1 text-[10px]" style={{ color: 'var(--md-sys-color-outline)' }}>
+                                  ({sec.minScore}-{sec.maxScore})
+                                </span>
+                              )}
                             </span>
                             <span className="font-semibold tabular-nums" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-                              {sec.defaultTargetScore}
+                              {goal.sectionTargets[sec.id] ?? sec.defaultTargetScore}
                             </span>
                           </div>
                         ))}
+                        <button
+                          onClick={() => setEditingSectionsGoal(goal)}
+                          className="text-[11px] font-semibold flex items-center gap-1 cursor-pointer mt-1"
+                          style={{ color: 'var(--md-sys-color-primary)' }}
+                        >
+                          <MaterialIcon name="edit" size={13} />
+                          <span>{locale === 'ar' ? 'تحرير الأقسام' : 'Edit sections'}</span>
+                          {goal.customSections && goal.customSections.length > 0 && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'var(--md-sys-color-secondary-container)', color: 'var(--md-sys-color-on-secondary-container)' }}>
+                              {locale === 'ar' ? 'مخصص' : 'custom'}
+                            </span>
+                          )}
+                        </button>
                       </div>
                     )}
                   </div>
@@ -398,6 +456,18 @@ export const TestsView: React.FC = () => {
                 </div>
             );
           })}
+
+          <button
+            onClick={adoptCustomGoal}
+            className="p-4 rounded-2xl border border-dashed text-xs font-semibold cursor-pointer flex items-center justify-center gap-2 min-h-[120px]"
+            style={{
+              borderColor: 'var(--md-sys-color-outline-variant)',
+              color: 'var(--md-sys-color-on-surface-variant)',
+            }}
+          >
+            <MaterialIcon name="add" size={16} />
+            <span>{locale === 'ar' ? '+ اختبار مخصص' : '+ Custom test'}</span>
+          </button>
         </div>
       </div>
 
@@ -405,6 +475,14 @@ export const TestsView: React.FC = () => {
         <ScoreLoopModal
           goal={activeScoreLoopGoal}
           onClose={() => setActiveScoreLoopGoal(null)}
+        />
+      )}
+
+      {editingSectionsGoal && (
+        <EditSectionsModal
+          goal={editingSectionsGoal}
+          definition={TEST_CATALOG.find((x) => x.id === editingSectionsGoal.testId)}
+          onClose={() => setEditingSectionsGoal(null)}
         />
       )}
     </div>

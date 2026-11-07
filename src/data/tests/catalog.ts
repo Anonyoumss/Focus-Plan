@@ -281,6 +281,12 @@ export interface UserTestGoal {
   targetScore: number;
   currentBaselineScore: number;
   sectionTargets: Record<string, number>;
+  /**
+   * User-edited section list for this goal. When present it replaces the
+   * catalog definition's sections for display, score entry and analysis.
+   * Set to undefined to restore catalog defaults.
+   */
+  customSections?: TestSection[];
   weeklyHours: number;
   weeklyPomodoros: number;
   completedPomodoros: number;

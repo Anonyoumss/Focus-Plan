@@ -30,7 +30,7 @@ export interface RecordMeta {
 /** collection -> recordId -> meta. 'settings' uses doc key 'main'. */
 export type SyncMeta = Record<string, Record<string, RecordMeta>>;
 
-export const SYNCED_COLLECTIONS = ['tasks', 'sessionLogs', 'testGoals'] as const;
+export const SYNCED_COLLECTIONS = ['tasks', 'sessionLogs', 'testGoals', 'templates'] as const;
 export type SyncedCollectionName = (typeof SYNCED_COLLECTIONS)[number];
 
 export const SETTINGS_COLLECTION = 'settings';
@@ -196,6 +196,7 @@ export interface SyncedCollectionsInput {
   tasks?: { id?: string }[];
   sessionLogs?: { id?: string }[];
   testGoals?: { id?: string }[];
+  templates?: { id?: string }[];
 }
 
 export interface RemoteSyncedState extends SyncedCollectionsInput {
@@ -206,6 +207,7 @@ export interface MergeStateResult {
   tasks: unknown[];
   sessionLogs: unknown[];
   testGoals: unknown[];
+  templates: unknown[];
   /** Remote settings doc when it wins the merge, else null (keep local). */
   settings: Record<string, unknown> | null;
   settingsUpdatedAt?: number;
@@ -240,6 +242,12 @@ export function mergeSyncedState(
     next.testGoals ?? {},
   );
   next.testGoals = testGoals.meta;
+  const templates = mergeCollection(
+    local.templates ?? [],
+    remote.templates ?? [],
+    next.templates ?? {},
+  );
+  next.templates = templates.meta;
 
   let settings: Record<string, unknown> | null = null;
   let settingsUpdatedAt: number | undefined;
@@ -263,6 +271,7 @@ export function mergeSyncedState(
     tasks: tasks.items,
     sessionLogs: sessionLogs.items,
     testGoals: testGoals.items,
+    templates: templates.items,
     settings,
     settingsUpdatedAt,
     meta: next,

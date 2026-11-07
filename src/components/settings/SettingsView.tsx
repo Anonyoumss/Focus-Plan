@@ -27,6 +27,21 @@ export const SettingsView: React.FC = () => {
     syncError,
     signIn,
     signOutAccount,
+    tickSoundEnabled,
+    tickVolume,
+    setTickSoundEnabled,
+    setTickVolume,
+    tasks,
+    taskTemplates,
+    saveTaskListAsTemplate,
+    applyTaskTemplate,
+    renameTaskTemplate,
+    deleteTaskTemplate,
+    importTasks,
+    importTasksFromJson,
+    importTasksFromCsv,
+    reminderSettings,
+    setReminderSettings,
   } = useAppStore();
 
   const t = TRANSLATIONS[locale];
@@ -34,6 +49,30 @@ export const SettingsView: React.FC = () => {
   const [notificationStatus, setNotificationStatus] = useState<string>(
     typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'
   );
+  const [importFeedback, setImportFeedback] = useState<string | null>(null);
+  const [templateName, setTemplateName] = useState('');
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+
+  const flashImport = (msg: string) => {
+    setImportFeedback(msg);
+    setTimeout(() => setImportFeedback(null), 3000);
+  };
+
+  const handleImportFile = (file: File, kind: 'json' | 'csv') => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = String(reader.result ?? '');
+      const result = kind === 'json' ? importTasksFromJson(text) : importTasksFromCsv(text);
+      if (result.ok) {
+        const n = importTasks(result.tasks);
+        flashImport(`${t.settings.importSuccess} (${n})`);
+      } else {
+        flashImport(t.settings.importFailed);
+      }
+    };
+    reader.readAsText(file);
+  };
 
   const handleRequestNotification = async () => {
     if ('Notification' in window) {
@@ -423,6 +462,264 @@ export const SettingsView: React.FC = () => {
               <span>{t.settings.downloadJson}</span>
             </button>
           </div>
+        </div>
+
+        {/* Sounds */}
+        <div
+          className="p-6 rounded-3xl border"
+          style={{
+            backgroundColor: 'var(--md-sys-color-surface-container-low)',
+            borderColor: 'var(--md-sys-color-outline-variant)',
+          }}
+        >
+          <h2 className="text-base font-bold mb-3" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+            {locale === 'ar' ? 'الأصوات' : 'Sounds'}
+          </h2>
+          <label className="flex items-center gap-3 text-sm mb-3 cursor-pointer" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+            <MdSwitch selected={tickSoundEnabled} onSelectedChange={setTickSoundEnabled} label={t.settings.tickSound} />
+          </label>
+          {tickSoundEnabled && (
+            <label className="flex items-center gap-3 text-xs" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+              <span className="w-28">{t.settings.tickVolume}</span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={tickVolume}
+                onChange={(e) => setTickVolume(Number(e.target.value))}
+                className="flex-1 accent-[var(--md-sys-color-primary)]"
+              />
+            </label>
+          )}
+        </div>
+
+        {/* Reminders (in-app only, no push) */}
+        <div
+          className="p-6 rounded-3xl border"
+          style={{
+            backgroundColor: 'var(--md-sys-color-surface-container-low)',
+            borderColor: 'var(--md-sys-color-outline-variant)',
+          }}
+        >
+          <h2 className="text-base font-bold mb-1" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+            {locale === 'ar' ? 'التذكيرات' : 'Reminders'}
+          </h2>
+          <p className="text-xs mb-4" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+            {locale === 'ar'
+              ? 'تعمل التذكيرات داخل التطبيق فقط عند فتحه. لا يوجد إرسال في الخلفية بعد.'
+              : 'Reminders work inside the app while it is open. Background push is not shipped yet.'}
+          </p>
+          <label className="flex items-center gap-3 text-sm mb-3 cursor-pointer" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+            <MdSwitch
+              selected={reminderSettings.enabled}
+              onSelectedChange={(v) => setReminderSettings({ ...reminderSettings, enabled: v })}
+              label={locale === 'ar' ? 'تفعيل التذكيرات' : 'Enable reminders'}
+            />
+          </label>
+          {reminderSettings.enabled && (
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-3 text-xs" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                <span>{locale === 'ar' ? 'ساعات الهدوء' : 'Quiet hours'}</span>
+                <input
+                  type="time"
+                  value={reminderSettings.quietStart}
+                  onChange={(e) => setReminderSettings({ ...reminderSettings, quietStart: e.target.value })}
+                  className="px-2 py-1 rounded-lg border text-xs"
+                  style={{ backgroundColor: 'var(--md-sys-color-surface-container)', borderColor: 'var(--md-sys-color-outline-variant)', color: 'var(--md-sys-color-on-surface)' }}
+                />
+                <span aria-hidden>–</span>
+                <input
+                  type="time"
+                  value={reminderSettings.quietEnd}
+                  onChange={(e) => setReminderSettings({ ...reminderSettings, quietEnd: e.target.value })}
+                  className="px-2 py-1 rounded-lg border text-xs"
+                  style={{ backgroundColor: 'var(--md-sys-color-surface-container)', borderColor: 'var(--md-sys-color-outline-variant)', color: 'var(--md-sys-color-on-surface)' }}
+                />
+              </div>
+              {notificationStatus !== 'granted' && (
+                <button
+                  onClick={handleRequestNotification}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold border cursor-pointer"
+                  style={{ borderColor: 'var(--md-sys-color-primary)', color: 'var(--md-sys-color-primary)' }}
+                >
+                  {locale === 'ar' ? 'السماح بالإشعارات' : 'Allow notifications'}
+                </button>
+              )}
+              {notificationStatus === 'granted' && (
+                <p className="text-[11px]" style={{ color: 'var(--md-sys-color-outline)' }}>
+                  {locale === 'ar' ? 'الإشعارات مسموحة' : 'Notifications allowed'}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Import Data */}
+        <div
+          className="p-6 rounded-3xl border"
+          style={{
+            backgroundColor: 'var(--md-sys-color-surface-container-low)',
+            borderColor: 'var(--md-sys-color-outline-variant)',
+          }}
+        >
+          <h2 className="text-base font-bold mb-1" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+            {t.settings.importData}
+          </h2>
+          <p className="text-xs mb-4" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+            {locale === 'ar'
+              ? 'استورد مهامًا من ملف JSON أو CSV. الملفات التالفة تُرفض دون تعطل التطبيق.'
+              : 'Import tasks from a JSON or CSV file. Malformed files are rejected safely.'}
+          </p>
+          {importFeedback && (
+            <p className="text-xs mb-3 font-semibold" style={{ color: 'var(--md-sys-color-primary)' }} role="status">
+              {importFeedback}
+            </p>
+          )}
+          <div className="flex flex-wrap items-center gap-3">
+            <label
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border cursor-pointer"
+              style={{ borderColor: 'var(--md-sys-color-outline-variant)', color: 'var(--md-sys-color-on-surface)' }}
+            >
+              <MaterialIcon name="upload" size={16} />
+              <span>{t.settings.importJson}</span>
+              <input
+                type="file"
+                accept=".json,application/json"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleImportFile(f, 'json');
+                  e.target.value = '';
+                }}
+              />
+            </label>
+            <label
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border cursor-pointer"
+              style={{ borderColor: 'var(--md-sys-color-outline-variant)', color: 'var(--md-sys-color-on-surface)' }}
+            >
+              <MaterialIcon name="upload" size={16} />
+              <span>{t.settings.importCsv}</span>
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleImportFile(f, 'csv');
+                  e.target.value = '';
+                }}
+              />
+            </label>
+          </div>
+        </div>
+
+        {/* Task Templates */}
+        <div
+          className="p-6 rounded-3xl border"
+          style={{
+            backgroundColor: 'var(--md-sys-color-surface-container-low)',
+            borderColor: 'var(--md-sys-color-outline-variant)',
+          }}
+        >
+          <h2 className="text-base font-bold mb-1" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+            {t.settings.templatesTitle}
+          </h2>
+          <p className="text-xs mb-4" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+            {t.settings.templatesDesc}
+          </p>
+          <div className="flex items-center gap-2 mb-4">
+            <input
+              type="text"
+              value={templateName}
+              onChange={(e) => setTemplateName(e.target.value)}
+              placeholder={t.settings.templateNamePlaceholder}
+              maxLength={120}
+              className="flex-1 px-3.5 py-2.5 rounded-xl border text-sm outline-none"
+              style={{
+                backgroundColor: 'var(--md-sys-color-surface-container)',
+                borderColor: 'var(--md-sys-color-outline-variant)',
+                color: 'var(--md-sys-color-on-surface)',
+              }}
+            />
+            <button
+              onClick={() => {
+                saveTaskListAsTemplate(templateName.trim() || 'Task list');
+                setTemplateName('');
+              }}
+              disabled={tasks.filter((t) => !t.isCompleted).length === 0}
+              className="px-4 py-2.5 rounded-xl text-xs font-semibold cursor-pointer disabled:opacity-50"
+              style={{ backgroundColor: 'var(--md-sys-color-primary)', color: 'var(--md-sys-color-on-primary)' }}
+            >
+              {t.settings.saveListAsTemplate}
+            </button>
+          </div>
+          {taskTemplates.length > 0 && (
+            <ul className="space-y-2">
+              {taskTemplates.map((tpl) => (
+                <li
+                  key={tpl.id}
+                  className="flex items-center justify-between gap-2 p-3 rounded-xl border"
+                  style={{ borderColor: 'var(--md-sys-color-outline-variant)' }}
+                >
+                  {renamingId === tpl.id ? (
+                    <input
+                      type="text"
+                      value={renameValue}
+                      onChange={(e) => setRenameValue(e.target.value)}
+                      placeholder={tpl.title}
+                      className="flex-1 px-2 py-1 rounded border text-sm"
+                      style={{ borderColor: 'var(--md-sys-color-outline-variant)' }}
+                      autoFocus
+                    />
+                  ) : (
+                    <span className="text-sm font-semibold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                      {tpl.title} · {tpl.items.length} {locale === 'ar' ? 'عنصر' : 'items'}
+                    </span>
+                  )}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {renamingId === tpl.id ? (
+                      <button
+                        onClick={() => {
+                          renameTaskTemplate(tpl.id, renameValue);
+                          setRenamingId(null);
+                        }}
+                        className="text-xs font-semibold cursor-pointer"
+                        style={{ color: 'var(--md-sys-color-primary)' }}
+                      >
+                        {t.settings.renameTemplate}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setRenamingId(tpl.id);
+                          setRenameValue(tpl.title);
+                        }}
+                        className="text-xs cursor-pointer"
+                        style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+                      >
+                        {t.settings.renameTemplate}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => applyTaskTemplate(tpl.id)}
+                      className="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer"
+                      style={{ backgroundColor: 'var(--md-sys-color-secondary-container)', color: 'var(--md-sys-color-on-secondary-container)' }}
+                    >
+                      {t.settings.applyTemplate}
+                    </button>
+                    <button
+                      onClick={() => deleteTaskTemplate(tpl.id)}
+                      className="text-xs cursor-pointer"
+                      style={{ color: 'var(--md-sys-color-error)' }}
+                    >
+                      {t.settings.deleteTemplate}
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         {/* Demo Data */}

@@ -1,8 +1,11 @@
 import { getFirebaseAuth } from './client';
 import {
+  claimGroupAwards,
+  createGroup,
   creditWallet,
   getPublicProfile,
   getWallet,
+  joinGroupByCode,
   listGroupSessions,
   listGroupTasks,
   listMembers,
@@ -11,6 +14,7 @@ import {
   logGroupSession,
   savePublicProfile,
 } from './groups';
+import { awardPeriodsToClaim } from '../groupStats';
 
 /**
  * Emulator/dev-only hook for Playwright specs: exposes the same groups.ts
@@ -33,5 +37,9 @@ export function installEmulatorHook(): void {
     listPublicBoard,
     getWallet,
     creditWallet,
+    claimGroupAwards,
+    createGroup,
+    joinGroupByCode,
+    awardPeriodsToClaim,
   };
 }

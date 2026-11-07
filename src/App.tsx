@@ -6,6 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppStore } from './store/useAppStore';
 import { syncDocumentTheme } from './design/theme';
+import { soundEngine } from './lib/soundEngine';
 import { Shell } from './components/layout/Shell';
 import { TimerDisplay } from './components/focus/TimerDisplay';
 import { TaskList } from './components/focus/TaskList';
@@ -45,6 +46,14 @@ export default function App() {
     document.documentElement.setAttribute('lang', locale);
     document.documentElement.setAttribute('dir', locale === 'ar' ? 'rtl' : 'ltr');
   }, [locale]);
+
+  // Ambient/tick audio belongs to the app shell; stop it when the user
+  // leaves app routes (landing, legal, invite).
+  useEffect(() => {
+    if (route.name !== 'app') {
+      soundEngine.stopAmbient();
+    }
+  }, [route.name]);
 
   if (route.name === 'landing') {
     return <LandingPage />;

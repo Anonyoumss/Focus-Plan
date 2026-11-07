@@ -167,6 +167,7 @@ export interface Translations {
     weekFilter: string;
     publicBoard: string;
     publicBoardEmpty: string;
+    publicBoardNote: string;
     taskTitlePlaceholder: string;
     addTask: string;
     errorGeneric: string;
@@ -201,6 +202,22 @@ export interface Translations {
     exportData: string;
     downloadCsv: string;
     downloadJson: string;
+    importData: string;
+    importJson: string;
+    importCsv: string;
+    importTasks: string;
+    importSuccess: string;
+    importFailed: string;
+    templatesTitle: string;
+    templatesDesc: string;
+    templateNamePlaceholder: string;
+    saveAsTemplate: string;
+    saveListAsTemplate: string;
+    applyTemplate: string;
+    renameTemplate: string;
+    deleteTemplate: string;
+    tickSound: string;
+    tickVolume: string;
     account: string;
     guestMode: string;
     signInGoogle: string;
@@ -512,6 +529,7 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       weekFilter: 'This week',
       publicBoard: 'Public leaderboard',
       publicBoardEmpty: 'No public entries yet.',
+      publicBoardNote: 'Stats update when you open the app.',
       taskTitlePlaceholder: 'Shared task title',
       addTask: 'Add task',
       errorGeneric: 'Something went wrong. Try again.',
@@ -546,6 +564,22 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       exportData: 'Export Study Data',
       downloadCsv: 'Download CSV Summary',
       downloadJson: 'Download JSON Backup',
+      importData: 'Import Data',
+      importJson: 'Import JSON',
+      importCsv: 'Import Tasks CSV',
+      importTasks: 'Import tasks',
+      importSuccess: 'Imported tasks successfully',
+      importFailed: 'Import failed: file is malformed or contains invalid tasks',
+      templatesTitle: 'Task Templates',
+      templatesDesc: 'Save a task or your whole task list as a reusable template.',
+      templateNamePlaceholder: 'Template name',
+      saveAsTemplate: 'Save as template',
+      saveListAsTemplate: 'Save task list as template',
+      applyTemplate: 'Load template',
+      renameTemplate: 'Rename',
+      deleteTemplate: 'Delete',
+      tickSound: 'Tick sound while timer runs',
+      tickVolume: 'Tick volume',
       account: 'Account & Synchronization',
       guestMode: 'Guest Mode (Local Storage Only)',
       signInGoogle: 'Sign In with Google',
@@ -855,6 +889,7 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       weekFilter: 'هذا الأسبوع',
       publicBoard: 'لوحة الصدارة العامة',
       publicBoardEmpty: 'لا توجد إدخالات عامة بعد.',
+      publicBoardNote: 'تُحدَّث الإحصائيات عند فتح التطبيق.',
       taskTitlePlaceholder: 'عنوان المهمة المشتركة',
       addTask: 'إضافة مهمة',
       errorGeneric: 'حدث خطأ ما. حاول مرة أخرى.',
@@ -889,6 +924,22 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       exportData: 'تصدير البيانات الدراسية',
       downloadCsv: 'تنزيل ملخص CSV',
       downloadJson: 'تنزيل نسخة احتياطية JSON',
+      importData: 'استيراد البيانات',
+      importJson: 'استيراد JSON',
+      importCsv: 'استيراد مهام CSV',
+      importTasks: 'استيراد المهام',
+      importSuccess: 'تم استيراد المهام بنجاح',
+      importFailed: 'فشل الاستيراد: الملف تالف أو يحتوي مهامًا غير صالحة',
+      templatesTitle: 'قوالب المهام',
+      templatesDesc: 'احفظ مهمة أو قائمة مهامك كاملة كقالب قابل لإعادة الاستخدام.',
+      templateNamePlaceholder: 'اسم القالب',
+      saveAsTemplate: 'حفظ كقالب',
+      saveListAsTemplate: 'حفظ قائمة المهام كقالب',
+      applyTemplate: 'تحميل القالب',
+      renameTemplate: 'إعادة تسمية',
+      deleteTemplate: 'حذف',
+      tickSound: 'صوت التكتكة أثناء عمل المؤقت',
+      tickVolume: 'مستوى صوت التكتكة',
       account: 'الحساب والمزامنة',
       guestMode: 'وضع الضيف (حفظ محلي فقط)',
       signInGoogle: 'تسجيل الدخول عبر Google',

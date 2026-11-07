@@ -129,3 +129,8 @@ This log documents all technical, structural, and design decisions made during t
 ## Decision 22: Leaderboards and awards are an honor system without Cloud Functions
 - **Decision**: Group sessions, wallet deltas, and award claims are written by the client within rule bounds (own uid only, append-only sessions, ledger-matched wallet changes, capped deltas). Rules cannot prove a pomodoro happened, cannot verify award eligibility historically, and cannot stop a modified client from inflating minutes within caps. Terms and Privacy state this plainly; the public board is opt-in for this reason.
 - **Rationale**: Extends Decision 17 to the social surface; real enforcement needs Blaze/Cloud Functions.
+
+## Decision 23: Reminders are in-app only; scheduled push is not shipped
+- **Decision**: Milestone 5 reminders fire browser Notifications from a 60s interval while the app tab is visible, gated by user opt-in, quiet hours (wrap-midnight aware), and a 1-hour per-reminder cooldown. Candidates come from daily-goal tasks below goal and test dates within 3 days (`src/lib/reminders.ts`, pure + unit tested). No service worker or FCM — Terms continue to state scheduled push is not shipped.
+- **Rationale**: Spark plan and no Cloud Functions; in-app reminders are the honest free-tier implementation.
+- **Source**: `src/lib/reminders.ts`, `useAppStore.ts` reminder loop, Settings reminders card.
