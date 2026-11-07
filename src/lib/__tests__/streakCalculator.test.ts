@@ -69,3 +69,49 @@ describe('streakCalculator unit tests', () => {
     expect(updated.lastActiveDate).toBe('2026-11-05');
   });
 });
+
+describe('streak gap and freeze boundaries', () => {
+  const base = (over: Partial<StreakState>): StreakState => ({
+    currentStreak: 5,
+    bestStreak: 5,
+    lastActiveDate: '2026-11-01',
+    streakFreezes: 0,
+    freezeUsedDates: [],
+    ...over,
+  });
+
+  it('gap of exactly 1 missed day consumes one freeze', () => {
+    const s = updateStreakOnSessionComplete(
+      base({ lastActiveDate: '2026-11-04', streakFreezes: 1 }), 3, '2026-11-06');
+    expect(s.currentStreak).toBe(6);
+    expect(s.streakFreezes).toBe(0);
+  });
+
+  it('gap larger than the freezes resets the streak', () => {
+    // 3 missed days, only 1 freeze -> cannot cover the gap
+    const s = updateStreakOnSessionComplete(
+      base({ lastActiveDate: '2026-11-01', streakFreezes: 1 }), 3, '2026-11-05');
+    expect(s.currentStreak).toBe(1);
+    expect(s.streakFreezes).toBe(1);
+  });
+
+  it('gap of 2 missed days needs 2 freezes; with 1 it resets', () => {
+    const s = updateStreakOnSessionComplete(
+      base({ lastActiveDate: '2026-11-01', streakFreezes: 1 }), 3, '2026-11-04');
+    expect(s.currentStreak).toBe(1);
+  });
+
+  it('consecutive-day gap still extends without consuming a freeze', () => {
+    const s = updateStreakOnSessionComplete(
+      base({ lastActiveDate: '2026-11-04', streakFreezes: 2 }), 3, '2026-11-05');
+    expect(s.currentStreak).toBe(6);
+    expect(s.streakFreezes).toBe(2);
+  });
+
+  it('month boundary rollover counts correctly', () => {
+    const s = updateStreakOnSessionComplete(
+      base({ lastActiveDate: '2026-10-31', streakFreezes: 1 }), 3, '2026-11-02');
+    expect(s.currentStreak).toBe(6);
+    expect(s.streakFreezes).toBe(0);
+  });
+});

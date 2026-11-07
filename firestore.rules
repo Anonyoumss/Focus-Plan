@@ -165,6 +165,10 @@ service cloud.firestore {
       let fpDelta = wallet.focusPoints - old.focusPoints;
       let ledgerId = wallet.ledgerId;
       return ledgerId is string
+        // The ledger row must be created by THIS write: exists() sees the
+        // pre-transaction state, so an already-existing ledger id cannot
+        // justify a second balance change.
+        && !exists(ledgerPath(uid, ledgerId))
         && existsAfter(ledgerPath(uid, ledgerId))
         && getAfter(ledgerPath(uid, ledgerId)).data.userId == uid
         && (
@@ -184,7 +188,9 @@ service cloud.firestore {
         && wallet.focusPoints <= 1000000;
     }
 
-    match /users/{uid}/wallet/{walletId} {
+    // Canonical wallet doc only: arbitrary wallet ids could each justify
+    // their own ledger-backed deltas.
+    match /users/{uid}/wallet/main {
       allow read: if isOwner(uid);
       allow create: if isOwner(uid)
         && request.resource.data.coins == 0

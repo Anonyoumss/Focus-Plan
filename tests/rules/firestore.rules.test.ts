@@ -240,6 +240,45 @@ describe('wallet and ledger enforcement', () => {
     await assertFails(batch.commit());
   });
 
+  it('reusing an existing ledger id for a second wallet change is denied', async () => {
+    const db = testEnv.authenticatedContext('user_replay').firestore();
+    await assertSucceeds(
+      db.doc('users/user_replay/wallet/main').set({ coins: 0, focusPoints: 0 }),
+    );
+    const batch1 = db.batch();
+    batch1.update(db.doc('users/user_replay/wallet/main'), {
+      coins: 20,
+      ledgerId: 'tx_once',
+    });
+    batch1.set(db.doc('users/user_replay/ledger/tx_once'), {
+      userId: 'user_replay',
+      amount: 20,
+      reason: 'First award',
+      itemId: 'focus_session',
+      createdAt: 1700000000000,
+    });
+    await assertSucceeds(batch1.commit());
+
+    // Second change citing the SAME ledger row must be rejected: the
+    // ledger doc already exists, so it cannot justify another delta.
+    const batch2 = db.batch();
+    batch2.update(db.doc('users/user_replay/wallet/main'), {
+      coins: 40,
+      ledgerId: 'tx_once',
+    });
+    await assertFails(batch2.commit());
+  });
+
+  it('wallet docs other than the canonical main doc are denied', async () => {
+    const db = testEnv.authenticatedContext('user_walletid').firestore();
+    await assertFails(
+      db.doc('users/user_walletid/wallet/evil').set({ coins: 0, focusPoints: 0 }),
+    );
+    await assertFails(
+      db.doc('users/user_walletid/wallet/evil').set({ coins: 999, focusPoints: 0 }),
+    );
+  });
+
   it('ledger rows cannot be updated or deleted', async () => {
     const db = testEnv.authenticatedContext('user_a').firestore();
     const ref = db.doc('users/user_a/ledger/tx_freeze_1');

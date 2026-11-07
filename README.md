@@ -48,7 +48,8 @@ Live demo: _placeholder — GitHub Pages URL after first deploy_
   delivery is not shipped.
 - **Bilingual**: English and Arabic, full RTL, logical CSS properties.
 - **PWA**: installable manifest, hash routing (`#/`, `#/app/*`,
-  `#/terms`, `#/privacy`, `#/invite/<code>`), works offline as guest.
+  `#/terms`, `#/privacy`, `#/invite/<code>`). Offline support (service
+  worker) is planned but not shipped yet.
 
 ## Tech stack
 

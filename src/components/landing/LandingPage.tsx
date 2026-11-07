@@ -62,7 +62,7 @@ export const LandingPage: React.FC = () => {
             </button>
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
+              className="w-12 h-12 flex items-center justify-center rounded-lg hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
               style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
               aria-label={t.settings.themeMode}
             >

@@ -351,7 +351,7 @@ export const TelemetryCharts: React.FC = () => {
               }}
             >
               <div>
-                <span className="font-bold mr-1" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                <span className="font-bold me-1" style={{ color: 'var(--md-sys-color-on-surface)' }}>
                   {hoveredPoint.label} {hoveredPoint.sublabel ? `(${hoveredPoint.sublabel})` : ''}
                 </span>
                 {hoveredPoint.topCategory && (
@@ -361,7 +361,7 @@ export const TelemetryCharts: React.FC = () => {
                 )}
               </div>
               <div className="font-timer font-bold tabular-nums" style={{ color: 'var(--md-sys-color-primary)' }}>
-                {hoveredPoint.minutes} min ({hoveredPoint.sessions} {t.analytics.sessions.toLowerCase()})
+                {hoveredPoint.minutes} {t.analytics.minutes.toLowerCase()} ({hoveredPoint.sessions} {t.analytics.sessions.toLowerCase()})
               </div>
             </div>
           )}
@@ -440,6 +440,8 @@ export const TelemetryCharts: React.FC = () => {
         <div className="space-y-4">
           {/* Stacked Percentage Bar */}
           <div
+            role="img"
+            aria-label={categoriesData.map((cat) => `${getCategoryLabel(t, cat.category)} ${cat.percentage}%`).join(', ')}
             className="w-full h-4 rounded-xl overflow-hidden flex border"
             style={{
               backgroundColor: 'var(--md-sys-color-surface-container-highest)',
@@ -453,7 +455,7 @@ export const TelemetryCharts: React.FC = () => {
                   width: `${cat.percentage}%`,
                   backgroundColor: cat.colorVar,
                 }}
-                title={`${cat.category}: ${cat.percentage}%`}
+                title={`${getCategoryLabel(t, cat.category)}: ${cat.percentage}%`}
               />
             ))}
           </div>
@@ -484,7 +486,7 @@ export const TelemetryCharts: React.FC = () => {
 
                 <div className="text-end font-timer tabular-nums text-xs">
                   <span className="font-bold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-                    {cat.minutes} min
+                    {cat.minutes} {t.analytics.minutes.toLowerCase()}
                   </span>
                   <span
                     className="block text-[11px]"

@@ -234,3 +234,48 @@ test('task create, edit, and keyboard reorder work', async ({ page }) => {
   });
   expect(order[0]).toBe('Alpha task edited');
 });
+
+test('stale yesterday session count cannot satisfy today streak rule', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      'focus_plan_m3e_v1',
+      JSON.stringify({
+        locale: 'en',
+        themeMode: 'light',
+        onboardingCompleted: true,
+        todaySessionsCount: 3,
+        todayCountDate: '2000-01-01', // stale: belongs to a previous day
+        streak: (() => {
+          const d = new Date(); d.setDate(d.getDate() - 1);
+          const p = (n: number) => String(n).padStart(2, '0');
+          return { currentStreak: 4, bestStreak: 4,
+            lastActiveDate: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`,
+            streakFreezes: 0, freezeUsedDates: [] };
+        })(),
+      }),
+    );
+  });
+  await page.goto('/#/app/focus');
+  await page.waitForTimeout(800);
+
+  const result = await page.evaluate(() => {
+    const dbg: any = (window as any).__fpDebug;
+    const store = dbg?.store;
+    if (!store) return null;
+    store.setState({
+      isRunning: true,
+      targetEndTime: Date.now() - 1000,
+      timerMode: 'focus',
+      remainingSeconds: 0,
+    });
+    store.getState().tickTimer();
+    const s = store.getState();
+    return { count: s.todaySessionsCount, streak: s.streak.currentStreak };
+  });
+  expect(result).not.toBeNull();
+  // Stale count of 3 must be discarded: this session is today's first.
+  expect(result!.count).toBe(1);
+  // Without the date check the stale 3 + this session = 4 >= 3 would have
+  // advanced the streak to 5. It must stay at 4 (count < 3 today).
+  expect(result!.streak).toBe(4);
+});

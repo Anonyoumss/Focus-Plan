@@ -30,6 +30,12 @@ export function getTodayDateString(date: Date = new Date()): string {
   return `${year}-${month}-${day}`;
 }
 
+function dayDiff(fromStr: string, toStr: string): number {
+  const [fy, fm, fd] = fromStr.split('-').map(Number);
+  const [ty, tm, td] = toStr.split('-').map(Number);
+  return Math.round((Date.UTC(ty, tm - 1, td) - Date.UTC(fy, fm - 1, fd)) / 86400000);
+}
+
 export function getPreviousDateString(dateStr: string): string {
   const [y, m, d] = dateStr.split('-').map(Number);
   const date = new Date(y, m - 1, d);
@@ -58,22 +64,25 @@ export function updateStreakOnSessionComplete(
     return updated;
   }
 
+  const gapDays = updated.lastActiveDate ? dayDiff(updated.lastActiveDate, todayStr) : 0;
+  const missedDays = gapDays - 1;
+
   if (updated.lastActiveDate === yesterdayStr) {
     updated.currentStreak += 1;
     updated.lastActiveDate = todayStr;
   } else if (!updated.lastActiveDate) {
     updated.currentStreak = 1;
     updated.lastActiveDate = todayStr;
+  } else if (missedDays === 1 && updated.streakFreezes > 0 && !updated.freezeUsedDates.includes(yesterdayStr)) {
+    // A freeze covers exactly one missed day (yesterday). Larger gaps
+    // cannot be bridged by freezes.
+    updated.streakFreezes -= 1;
+    updated.freezeUsedDates = [...updated.freezeUsedDates, yesterdayStr];
+    updated.currentStreak += 1;
+    updated.lastActiveDate = todayStr;
   } else {
-    if (updated.streakFreezes > 0 && !updated.freezeUsedDates.includes(yesterdayStr)) {
-      updated.streakFreezes -= 1;
-      updated.freezeUsedDates = [...updated.freezeUsedDates, yesterdayStr];
-      updated.currentStreak += 1;
-      updated.lastActiveDate = todayStr;
-    } else {
-      updated.currentStreak = 1;
-      updated.lastActiveDate = todayStr;
-    }
+    updated.currentStreak = 1;
+    updated.lastActiveDate = todayStr;
   }
 
   if (updated.currentStreak > updated.bestStreak) {

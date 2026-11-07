@@ -70,6 +70,7 @@ export const TimerDisplay: React.FC = () => {
         aria-label="Timer Mode Selector"
       >
         <button
+          aria-pressed={timerMode === 'focus'}
           onClick={() => setTimerMode('focus')}
           className={`px-5 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer rounded-s-full rounded-e-none ${
             timerMode === 'focus' ? 'shadow-sm' : 'hover:opacity-85'
@@ -89,6 +90,7 @@ export const TimerDisplay: React.FC = () => {
         </button>
 
         <button
+          aria-pressed={timerMode === 'shortBreak'}
           onClick={() => setTimerMode('shortBreak')}
           className={`px-5 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer rounded-none border-x border-transparent ${
             timerMode === 'shortBreak' ? 'shadow-sm' : 'hover:opacity-85'
@@ -108,6 +110,7 @@ export const TimerDisplay: React.FC = () => {
         </button>
 
         <button
+          aria-pressed={timerMode === 'longBreak'}
           onClick={() => setTimerMode('longBreak')}
           className={`px-5 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer rounded-e-full rounded-s-none ${
             timerMode === 'longBreak' ? 'shadow-sm' : 'hover:opacity-85'
@@ -197,7 +200,7 @@ export const TimerDisplay: React.FC = () => {
           title={t.timer.skip}
           aria-label={t.timer.skip}
         >
-          <MaterialIcon name="skip_next" size={24} />
+          <MaterialIcon name="skip_next" size={24} className="rtl:-scale-x-100" />
         </button>
       </div>
 

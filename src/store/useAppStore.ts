@@ -100,6 +100,8 @@ export interface AppState {
   completedFocusSessions: number;
   dailyGoalSessions: number;
   todaySessionsCount: number;
+  /** Local date (YYYY-MM-DD) the count belongs to; stale counts reset. */
+  todayCountDate: string;
   activeTaskId: string | null;
   ambientSound: 'none' | 'whitenoise' | 'binaural' | 'rain';
   alarmVolume: number;
@@ -233,6 +235,7 @@ function persistState(state: AppState) {
     onboardingCompleted: state.onboardingCompleted,
     dailyGoalSessions: state.dailyGoalSessions,
     todaySessionsCount: state.todaySessionsCount,
+    todayCountDate: state.todayCountDate,
     completedFocusSessions: state.completedFocusSessions,
     timerConfig: state.timerConfig,
     tasks: state.tasks,
@@ -368,6 +371,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   completedFocusSessions: initialPersisted.completedFocusSessions || 0,
   dailyGoalSessions: initialPersisted.dailyGoalSessions || 4,
   todaySessionsCount: initialPersisted.todaySessionsCount || 0,
+  // Empty string forces a mismatch -> yesterday's count cannot leak into
+  // today's streak math for installs upgrading from before this field.
+  todayCountDate: initialPersisted.todayCountDate || '',
   activeTaskId: initialPersisted.activeTaskId || null,
   ambientSound: 'none',
   alarmVolume: 0.7,
@@ -523,7 +529,11 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     const isFocus = timerMode === 'focus';
     const newCompletedSessions = isFocus ? completedFocusSessions + 1 : completedFocusSessions;
-    const newTodaySessions = isFocus ? todaySessionsCount + 1 : todaySessionsCount;
+    // Counts are per local day: a persisted count from a previous date must
+    // not satisfy today's 3-session streak rule.
+    const todayStr = getTodayDateString();
+    const countBase = get().todayCountDate === todayStr ? todaySessionsCount : 0;
+    const newTodaySessions = isFocus ? countBase + 1 : countBase;
 
     let updatedTasks = tasks;
     if (isFocus && activeTaskId) {
@@ -586,6 +596,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       remainingSeconds: nextDuration,
       completedFocusSessions: newCompletedSessions,
       todaySessionsCount: newTodaySessions,
+      todayCountDate: todayStr,
       tasks: updatedTasks,
       streak: newStreak,
       coins: newCoins,
@@ -913,6 +924,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       inventory: {},
       transactions: [],
       todaySessionsCount: 0,
+      todayCountDate: '',
       completedFocusSessions: 0,
       sessionLogs: [],
       demoDataLoaded: false,
@@ -938,6 +950,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         { id: 'tx_demo_init', timestamp: Date.now() - 86400000, amount: 15, type: 'earn', reason: 'Demo welcome bonus' },
       ],
       todaySessionsCount: 4,
+      todayCountDate: getTodayDateString(),
       completedFocusSessions: 26,
       sessionLogs: generateDefaultSessionLogs(),
       demoDataLoaded: true,
@@ -1086,6 +1099,7 @@ function wipeUserData() {
     inventory: {},
     transactions: [],
     todaySessionsCount: 0,
+    todayCountDate: '',
     completedFocusSessions: 0,
     demoDataLoaded: false,
     timerMode: 'focus',

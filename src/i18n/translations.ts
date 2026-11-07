@@ -269,6 +269,8 @@ export interface Translations {
     privacyTitle: string;
     lastUpdated: string;
     backToApp: string;
+    termsSections: { heading: string; paragraphs: string[] }[];
+    privacySections: { heading: string; paragraphs: string[] }[];
   };
   analytics: {
     title: string;
@@ -631,6 +633,43 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       privacyTitle: 'Privacy Policy',
       lastUpdated: 'Last Updated: November 2026',
       backToApp: 'Back to Timer',
+      termsSections: [
+        { heading: '1. Purpose and Current Local State', paragraphs: [
+          "Focus Plan M3E works fully as a guest: timers, task goals, streaks, coins, and test records are stored in your browser's local storage. If cloud sync is configured for this build, you may optionally sign in with Google. Signing in syncs your tasks, session logs, test goals, templates, settings, wallet, and ledger to Google Cloud Firestore under a private per-user path, and enables optional study groups. No data leaves your device unless you choose to sign in.",
+        ]},
+        { heading: '2. Google Sign-In & Future Integrations', paragraphs: [
+          'Google sign-in uses Firebase Authentication and requests only basic profile scopes. On first sign-in you choose whether to import existing local data or keep the cloud copy; nothing is merged silently. Future releases may add Google Tasks and Google Calendar integrations, which will strictly require explicit user authorization.',
+          'Scheduled push notifications and calendar reminders are not part of this release. The only alerts today are in-app notification permission requests for session completion while the app is open.',
+        ]},
+        { heading: '3. Standardized Test Information Disclaimer', paragraphs: [
+          'Standardized test dates, syllabus structures, and scoring scales provided in the catalog (including Saudi GAT, SAAT, STEP, KFUPM and International SAT, ACT, IELTS, TOEFL, Duolingo) are reference benchmarks. You are solely responsible for verifying registration deadlines and test dates directly on official test authority portals.',
+        ]},
+        { heading: '4. Optional AI Features', paragraphs: [
+          'When the optional AI assistant is available, requests are sent through our server to Google Gemini. Only what the feature needs is transmitted: test names, section names, target and current scores, section score ranges, and study-planning numbers. Your name, email, tasks, notes, and session history are never sent. AI output is always a suggestion you review and confirm; nothing is saved until you accept it.',
+          "The AI service currently runs on Google's unpaid (free) tier, under which Google may use submitted content to improve its products and human reviewers may process it. Do not enter sensitive personal information into AI prompts. If the service is unavailable, the app falls back to clearly labeled local estimates.",
+        ]},
+        { heading: '5. User Accountability & Fair Play', paragraphs: [
+          'Study groups are optional and available only when you sign in. Anyone holding a group\'s invite code or link can join; treat invite codes like passwords and share them only with people you want in the group. Group leaderboards and the opt-in public leaderboard rank members by self-reported focus minutes. Because award and ranking calculations run on your device, they are an honor system and are not verified or cheat-proof. You are responsible for the alias you publish and for leaving groups you no longer wish to participate in. Study data you create yourself is yours to export or delete at any time in Settings.',
+        ]},
+      ],
+      privacySections: [
+        { heading: '1. 100% Local Device Storage (Current Release)', paragraphs: [
+          "By default, Focus Plan M3E saves all your tasks, countdown sessions, streaks, badges, coins, and test goals exclusively within your browser's localStorage. If you choose to sign in with Google (when cloud sync is configured), your tasks, session logs, test goals, templates, settings, wallet balance, and ledger entries are stored in Google Cloud Firestore under a private per-user path readable only by your account. Signing out clears the synced data from this device.",
+        ]},
+        { heading: '2. What the Cloud Stores', paragraphs: [
+          'Cloud Firestore holds only the study records listed above, scoped to your account by security rules. Firebase Authentication handles sign-in; the app does not collect analytics, advertising identifiers, or contacts. Until you authenticate, no personal data leaves your machine.',
+          'Study groups are optional and require sign-in. When you join a group, the group\'s other members can see your chosen alias, your join date, the group tasks you can see, and the focus minutes you log against shared group tasks. Your private profile (email, tasks, session history, wallet) is never visible to other users.',
+        ]},
+        { heading: '3. Leaderboards & Public Visibility', paragraphs: [
+          'Each group shows an internal leaderboard of weekly or daily focus minutes to its members only. Separately, the public leaderboard is off by default: if you opt in, other signed-in users can see only the alias you choose plus the statistics you explicitly enable (weekly minutes and/or streak). Focus points and your private profile are never published. Turning the opt-in off removes your public leaderboard entry and stops sharing your statistics. You can leave a group at any time, which removes your membership and the minutes you contributed stay attributed to the group record.',
+        ]},
+        { heading: '4. Optional AI Features', paragraphs: [
+          'If you use the optional AI assistant, the app sends a minimal payload to our server, which forwards it to Google Gemini: test and section names, scores, targets, and planning numbers. It never includes your name, email, tasks, notes, or session history. Requests require you to be signed in and are rate-limited per account per day. Google processes this data under the Gemini API terms; on the current free tier Google may use submitted content to improve its products. When the AI service is off or unreachable, nothing is sent and a local estimate is shown instead.',
+        ]},
+        { heading: '5. Right to Deletion & Data Export', paragraphs: [
+          'You have full ownership of your data. You can download a complete JSON backup or CSV summary of your tasks at any moment, and purge all stored data with a single click in Settings. For cloud data, leaving a group removes your membership immediately, disabling the public leaderboard opt-in deletes your public entry, and signing out wipes synced data from the device. Deleting your Firebase account data entirely is not self-serve in this release.',
+        ]},
+      ],
     },
     analytics: {
       title: 'Study Telemetry & Trends',
@@ -991,6 +1030,43 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       privacyTitle: 'سياسة الخصوصية',
       lastUpdated: 'آخر تحديث: نوفمبر 2026',
       backToApp: 'العودة للمؤقت',
+      termsSections: [
+        { heading: '1. الغرض والحالة المحلية الحالية', paragraphs: [
+          'يعمل Focus Plan M3E كاملاً كضيف: تُحفظ المؤقتات وأهداف المهام والسلاسل والعملات وسجلات الاختبارات في التخزين المحلي للمتصفح. إذا كان المزامنة السحابية مفعّلة في هذا الإصدار، يمكنك اختيار تسجيل الدخول عبر Google. عند تسجيل الدخول تتم مزامنة مهامك وسجلات جلساتك وأهداف الاختبارات والقوالب والإعدادات والمحفظة ودفتر الأستاذ إلى Google Cloud Firestore ضمن مسار خاص بكل مستخدم، كما تتيح مجموعات الدراسة الاختيارية. لا تغادر أي بيانات جهازك ما لم تختر تسجيل الدخول.',
+        ]},
+        { heading: '2. تسجيل الدخول عبر Google والتكاملات المستقبلية', paragraphs: [
+          'يستخدم تسجيل الدخول عبر Google خدمة Firebase Authentication ولا يطلب سوى صلاحيات الملف الشخصي الأساسية. عند أول تسجيل دخول تختار استيراد البيانات المحلية الحالية أو الاحتفاظ بالنسخة السحابية؛ لا يتم دمج أي بيانات بصمت. قد تضيف الإصدارات المستقبلية تكامل Google Tasks وGoogle Calendar، وسيشترطان موافقة صريحة من المستخدم.',
+          'الإشعارات المجدولة وتذكيرات التقويم ليست جزءاً من هذا الإصدار. التنبيهات الوحيدة الحالية هي طلبات إذن الإشعارات داخل التطبيق عند اكتمال الجلسة أثناء فتح التطبيق.',
+        ]},
+        { heading: '3. إخلاء مسؤولية معلومات الاختبارات المعيارية', paragraphs: [
+          'تواريخ الاختبارات المعيارية وهياكل المناهج ومقاييس الدرجات الموجودة في الكتالوج (بما فيها GAT وSAAT وSTEP وKFUPM Early SAAT وSAT وACT وIELTS وTOEFL وDuolingo) هي مراجع استرشادية فقط. أنت المسؤول الوحيد عن التحقق من مواعيد التسجيل والاختبارات مباشرة من البوابات الرسمية للجهات الاختبارية.',
+        ]},
+        { heading: '4. ميزات الذكاء الاصطناعي الاختيارية', paragraphs: [
+          'عند توفر المساعد الذكي الاختياري، تُرسل الطلبات عبر خادمنا إلى Google Gemini. لا يُرسَل سوى ما تحتاجه الميزة: أسماء الاختبارات وأسماء الأقسام والدرجات المستهدفة والحالية ونطاقات درجات الأقسام وأرقام التخطيط الدراسي. لا يُرسَل اسمك أو بريدك أو مهامك أو ملاحظاتك أو سجل جلساتك أبداً. مخرجات الذكاء الاصطناعي هي اقتراحات تراجعها وتؤكدها دائماً؛ لا يُحفظ شيء قبل موافقتك.',
+          'تعمل خدمة الذكاء الاصطناعي حالياً على الخطة المجانية من Google، والتي قد تستخدم بموجبها Google المحتوى المُرسَل لتحسين منتجاتها وقد يطّلع عليها مراجعون بشريون. لا تُدخل معلومات شخصية حساسة في طلبات الذكاء الاصطناعي. إذا تعذّر الوصول للخدمة، يعرض التطبيق تقديرات محلية موسومة بوضوح.',
+        ]},
+        { heading: '5. مساءلة المستخدم واللعب النظيف', paragraphs: [
+          'مجموعات الدراسة اختيارية ومتاحة فقط عند تسجيل الدخول. يمكن لأي شخص يملك رمز دعوة المجموعة أو رابطها الانضمام؛ تعامل مع رموز الدعوة ككلمات مرور وشاركها فقط مع من تريدهم في المجموعة. لوحات الصدارة داخل المجموعات واللوحة العامة الاختيارية ترتب الأعضاء حسب دقائق التركيز المُبلّغ عنها ذاتياً. ولأن حساب الجوائز والترتيب يتم على جهازك، فهو نظام شرفي غير موثّق وغير محصّن ضد الغش. أنت مسؤول عن الاسم المستعار الذي تنشره وعن مغادرة المجموعات التي لم تعد ترغب فيها. بيانات الدراسة التي تنشئها بنفسك ملك لك ويمكنك تصديرها أو حذفها في أي وقت من الإعدادات.',
+        ]},
+      ],
+      privacySections: [
+        { heading: '1. تخزين محلي 100% على الجهاز (الإصدار الحالي)', paragraphs: [
+          'افتراضياً، يحفظ Focus Plan M3E جميع مهامك وجلسات العد التنازلي والسلاسل والشارات والعملات وأهداف الاختبارات حصرياً داخل التخزين المحلي للمتصفح (localStorage). إذا اخترت تسجيل الدخول عبر Google (عند تفعيل المزامنة السحابية)، تُخزَّن مهامك وسجلات جلساتك وأهداف الاختبارات والقوالب والإعدادات ورصيد المحفظة وقيود دفتر الأستاذ في Google Cloud Firestore ضمن مسار خاص بكل مستخدم لا يقرأه سوى حسابك. تسجيل الخروج يمحو البيانات المتزامنة من هذا الجهاز.',
+        ]},
+        { heading: '2. ما الذي تخزّنه السحابة', paragraphs: [
+          'يحتوي Google Cloud Firestore فقط على سجلات الدراسة المذكورة أعلاه، ومحددة بحسابك عبر قواعد الأمان. تتولى Firebase Authentication تسجيل الدخول؛ ولا يجمع التطبيق تحليلات أو معرّفات إعلانية أو جهات اتصال. قبل مصادقتك، لا تغادر أي بيانات شخصية من جهازك.',
+          'مجموعات الدراسة اختيارية وتتطلب تسجيل الدخول. عند انضمامك إلى مجموعة، يمكن لأعضائها الآخرين رؤية الاسم المستعار الذي اخترته وتاريخ انضمامك ومهام المجموعة التي يمكنك رؤيتها ودقائق التركيز التي تسجلها مقابل مهام المجموعة المشتركة. ملفك الشخصي الخاص (البريد والمهام وسجل الجلسات والمحفظة) لا يظهر لأي مستخدم آخر أبداً.',
+        ]},
+        { heading: '3. لوحات الصدارة والظهور العام', paragraphs: [
+          'تعرض كل مجموعة لوحة صدارة داخلية لدقائق التركيز الأسبوعية أو اليومية لأعضائها فقط. وبشكل منفصل، لوحة الصدارة العامة معطلة افتراضياً: إذا فعّلتها، يمكن للمستخدمين المسجلين الآخرين رؤية الاسم المستعار الذي تختاره فقط بالإضافة إلى الإحصائيات التي تتيحها صراحة (دقائق الأسبوع و/أو السلسلة). لا تُنشر نقاط التركيز أو ملفك الشخصي الخاص أبداً. إيقاف التفعيل يزيل إدخالك من اللوحة العامة ويوقف مشاركة إحصائياتك. يمكنك مغادرة المجموعة في أي وقت مما يزيل عضويتك وتبقى الدقائق التي ساهمت بها منسوبة إلى سجل المجموعة.',
+        ]},
+        { heading: '4. ميزات الذكاء الاصطناعي الاختيارية', paragraphs: [
+          'إذا استخدمت مساعد الذكاء الاصطناعي الاختياري، يرسل التطبيق حمولة دنيا إلى خادمنا الذي يمررها إلى Google Gemini: أسماء الاختبارات والأقسام والدرجات والأهداف وأرقام التخطيط. لا تتضمن أبداً اسمك أو بريدك أو مهامك أو ملاحظاتك أو سجل جلساتك. تتطلب الطلبات تسجيل الدخول وتُحدَّد بعدد طلبات لكل حساب يومياً. تعالج Google هذه البيانات بموجب شروط Gemini API؛ وفي الخطة المجانية الحالية قد تستخدم Google المحتوى المُرسَل لتحسين منتجاتها. عند إيقاف خدمة الذكاء الاصطناعي أو تعذر الوصول إليها، لا يُرسَل شيء ويُعرض تقدير محلي بدلاً من ذلك.',
+        ]},
+        { heading: '5. الحق في الحذف وتصدير البيانات', paragraphs: [
+          'لديك ملكية كاملة لبياناتك. يمكنك تنزيل نسخة احتياطية JSON كاملة أو ملخص CSV لمهامك في أي وقت، ومحو جميع البيانات المخزنة بنقرة واحدة من الإعدادات. بالنسبة للبيانات السحابية، مغادرة المجموعة تزيل عضويتك فوراً، وإيقاف تفعيل لوحة الصدارة العامة يحذف إدخالك العام، وتسجيل الخروج يمحو البيانات المتزامنة من الجهاز. حذف بيانات حساب Firebase بالكامل غير متاح ذاتياً في هذا الإصدار.',
+        ]},
+      ],
     },
     analytics: {
       title: 'إحصائيات التركيز والتحليلات',

@@ -71,7 +71,7 @@ Present in source and included in the production build. Not verified by the chec
 - Web Audio synth, document title updates, Notification API call, Wake Lock call.
 - Keyboard listeners for Space, R, S, 1, 2, 3, `?`, and `N`. `N` is verified end-to-end including its `/app`-only scope; the other shortcuts remain untested in the browser.
 - Pointer-based drag reorder (`draggable` + drag events in `TaskList`). The up/down buttons cover the same `moveTask` store action.
-- JSON and CSV task export from Settings. No import.
+- JSON and CSV task export from Settings. (Import shipped in Milestone 5 — see verified rows below.)
 - Seed colors through `@material/material-color-utilities`.
 - Print stylesheet in `WeeklyReportModal.tsx`. No PDF file writer.
 - Skeleton component. The Progress refresh button shows it for 400ms. Charts do not use it for their first paint.

@@ -121,6 +121,10 @@ export async function cloudHasData(uid: string): Promise<boolean> {
   );
 }
 
+// Collections whose docs are append-only facts: once a doc exists
+// remotely it must never be rewritten (rules deny update/delete).
+const APPEND_ONLY_COLLECTIONS = new Set(['sessionLogs']);
+
 // Collections whose deletes propagate as tombstones. sessionLogs is
 // append-only (rules deny update/delete), so missing remote logs are
 // simply never removed client-side.
@@ -175,6 +179,11 @@ async function syncDocCollection(
   // skipped by content comparison.
   for (const [id, data] of localById) {
     const remote = remoteById.get(id);
+    // Append-only collections: an existing remote doc is final. Re-writing
+    // it would be an update the rules reject (and could fail the batch).
+    if (APPEND_ONLY_COLLECTIONS.has(name) && remote && remote.data()._deleted !== true) {
+      continue;
+    }
     const remoteData = remote?.data();
     if (
       remoteData &&
