@@ -10,6 +10,7 @@ import { TEST_CATALOG, UserTestGoal } from '../../data/tests/catalog';
 import { MaterialIcon } from '../common/MaterialIcon';
 import { analyzeScoreLoop } from '../../lib/analyticsEngine';
 import { resolveGoalSections } from '../../lib/testSections';
+import { AiPostTestAnalysisModal } from './AiPostTestAnalysisModal';
 
 interface ScoreLoopModalProps {
   goal: UserTestGoal;
@@ -35,6 +36,7 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose, a
 
   // Form State for logging new attempt
   const [isLoggingAttempt, setIsLoggingAttempt] = useState(autoLog);
+  const [showAiAnalysis, setShowAiAnalysis] = useState<boolean>(false);
   const [overallScore, setOverallScore] = useState<number>(goal.currentBaselineScore);
   const [sectionScores, setSectionScores] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {};
@@ -366,16 +368,31 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose, a
               </span>
             </span>
 
-            <button
-              onClick={handleApplyRecommendation}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition-colors shadow-sm"
-              style={{
-                backgroundColor: 'var(--md-sys-color-primary)',
-                color: 'var(--md-sys-color-on-primary)',
-              }}
-            >
-              {t.scoreLoop.applyRecommendation}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowAiAnalysis(true)}
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                style={{
+                  borderColor: 'var(--md-sys-color-primary)',
+                  color: 'var(--md-sys-color-primary)',
+                }}
+                title={locale === 'ar' ? 'تشخيص دقيق وتعديل الجلسات بالذكاء الاصطناعي' : 'AI Diagnostic Analysis'}
+              >
+                <MaterialIcon name="troubleshoot" size={14} />
+                <span>{locale === 'ar' ? 'تحليل ذكي' : 'AI Analysis'}</span>
+              </button>
+
+              <button
+                onClick={handleApplyRecommendation}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition-colors shadow-sm"
+                style={{
+                  backgroundColor: 'var(--md-sys-color-primary)',
+                  color: 'var(--md-sys-color-on-primary)',
+                }}
+              >
+                {t.scoreLoop.applyRecommendation}
+              </button>
+            </div>
           </div>
 
           {appliedNotice && (
@@ -451,6 +468,13 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose, a
           )}
         </div>
       </div>
+
+      {showAiAnalysis && (
+        <AiPostTestAnalysisModal
+          goal={goal}
+          onClose={() => setShowAiAnalysis(false)}
+        />
+      )}
     </div>
   );
 };

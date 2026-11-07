@@ -6,6 +6,9 @@ import { MaterialIcon } from '../common/MaterialIcon';
 import { ScoreLoopModal } from './ScoreLoopModal';
 import { EditSectionsModal } from './EditSectionsModal';
 import { resolveGoalSections } from '../../lib/testSections';
+import { AiIntakeConsultModal } from './AiIntakeConsultModal';
+import { AiStudyPlanModal } from './AiStudyPlanModal';
+import { AiPostTestAnalysisModal } from './AiPostTestAnalysisModal';
 
 export const TestsView: React.FC = () => {
   const { locale, testGoals, addTestGoal, deleteTestGoal, updateTestGoal } = useAppStore();
@@ -14,6 +17,9 @@ export const TestsView: React.FC = () => {
   const [activeScoreLoopGoal, setActiveScoreLoopGoal] = useState<{ goal: UserTestGoal; autoLog: boolean } | null>(null);
   const [editingSectionsGoal, setEditingSectionsGoal] = useState<UserTestGoal | null>(null);
   const [activeFilter, setActiveFilter] = useState<'all' | 'saudi' | 'international'>('all');
+  const [aiConsultTest, setAiConsultTest] = useState<{ test: StandardizedTestDefinition; existingGoal?: UserTestGoal } | null>(null);
+  const [aiStudyPlanGoal, setAiStudyPlanGoal] = useState<UserTestGoal | null>(null);
+  const [aiPostTestGoal, setAiPostTestGoal] = useState<UserTestGoal | null>(null);
 
   const filteredCatalog = TEST_CATALOG.filter((test) => {
     if (activeFilter === 'saudi') return test.category === 'saudi';
@@ -274,6 +280,49 @@ export const TestsView: React.FC = () => {
                       </button>
                     )}
 
+                  <div className="flex flex-wrap items-center gap-1.5 my-3 pt-2 border-t" style={{ borderColor: 'var(--md-sys-color-outline-variant)' }}>
+                    <button
+                      onClick={() => setAiStudyPlanGoal(goal)}
+                      className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                      style={{
+                        borderColor: 'var(--md-sys-color-secondary)',
+                        color: 'var(--md-sys-color-secondary)',
+                      }}
+                      title={locale === 'ar' ? 'توليد جدول مهام أسبوعية بالذكاء الاصطناعي' : 'Generate weekly study tasks'}
+                    >
+                      <MaterialIcon name="date_range" size={14} />
+                      <span>{locale === 'ar' ? 'خطة المهام' : 'Study Plan'}</span>
+                    </button>
+
+                    <button
+                      onClick={() => setAiPostTestGoal(goal)}
+                      className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                      style={{
+                        borderColor: 'var(--md-sys-color-tertiary)',
+                        color: 'var(--md-sys-color-tertiary)',
+                      }}
+                      title={locale === 'ar' ? 'تحليل درجات المحاولات وتعديل الخطة' : 'AI post-test score analysis'}
+                    >
+                      <MaterialIcon name="troubleshoot" size={14} />
+                      <span>{locale === 'ar' ? 'تحليل ذكي' : 'AI Analysis'}</span>
+                    </button>
+
+                    {definition && (
+                      <button
+                        onClick={() => setAiConsultTest({ test: definition, existingGoal: goal })}
+                        className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                        style={{
+                          borderColor: 'var(--md-sys-color-primary)',
+                          color: 'var(--md-sys-color-primary)',
+                        }}
+                        title={locale === 'ar' ? 'استشارة الذكاء الاصطناعي لتعديل المستهدفات' : 'AI intake consultation'}
+                      >
+                        <MaterialIcon name="psychology" size={14} />
+                        <span>{locale === 'ar' ? 'استشارة الأهداف' : 'AI Consult'}</span>
+                      </button>
+                    )}
+                  </div>
+
                   <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'var(--md-sys-color-outline-variant)' }}>
                     <button
                       onClick={() => setActiveScoreLoopGoal({ goal, autoLog: false })}
@@ -457,7 +506,20 @@ export const TestsView: React.FC = () => {
                       </div>
                     )}
 
-                    <div className="flex justify-end pt-1">
+                    <div className="flex items-center justify-end gap-2 pt-1">
+                      <button
+                        onClick={() => setAiConsultTest({ test })}
+                        className="text-xs font-semibold px-2.5 py-1.5 rounded-lg border cursor-pointer transition-colors flex items-center gap-1 hover:bg-black/5 dark:hover:bg-white/5"
+                        style={{
+                          borderColor: 'var(--md-sys-color-primary)',
+                          color: 'var(--md-sys-color-primary)',
+                        }}
+                        title={locale === 'ar' ? 'استشارة ذكية لتحديد أهدافك' : 'AI Intake Consult'}
+                      >
+                        <MaterialIcon name="psychology" size={14} />
+                        <span>{locale === 'ar' ? 'استشارة ذكية' : 'AI Consult'}</span>
+                      </button>
+
                       <button
                         disabled={isAlreadyAdded}
                         onClick={() => adoptTestGoal(test)}
@@ -503,6 +565,36 @@ export const TestsView: React.FC = () => {
           goal={editingSectionsGoal}
           definition={TEST_CATALOG.find((x) => x.id === editingSectionsGoal.testId)}
           onClose={() => setEditingSectionsGoal(null)}
+        />
+      )}
+
+      {aiConsultTest && (
+        <AiIntakeConsultModal
+          test={aiConsultTest.test}
+          existingGoal={aiConsultTest.existingGoal}
+          onClose={() => setAiConsultTest(null)}
+          onApply={(savedGoal) => {
+            const exists = testGoals.find((g) => g.id === savedGoal.id);
+            if (exists) {
+              updateTestGoal(savedGoal.id, savedGoal);
+            } else {
+              addTestGoal(savedGoal);
+            }
+          }}
+        />
+      )}
+
+      {aiStudyPlanGoal && (
+        <AiStudyPlanModal
+          goal={aiStudyPlanGoal}
+          onClose={() => setAiStudyPlanGoal(null)}
+        />
+      )}
+
+      {aiPostTestGoal && (
+        <AiPostTestAnalysisModal
+          goal={aiPostTestGoal}
+          onClose={() => setAiPostTestGoal(null)}
         />
       )}
     </div>
