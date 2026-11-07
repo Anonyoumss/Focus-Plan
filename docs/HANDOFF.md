@@ -116,3 +116,29 @@
 - Note for future tests: the Sign In button sits below the fold on
   Settings; Playwright actionability click can stall — dispatch a DOM
   click for post-reload sign-ins.
+
+## Stage A — Gemini AI integration secured (2026-11-08)
+
+- `server.ts` is now a standalone AI proxy: `npm run dev` is plain Vite
+  again; `npm run dev:server` / `npm run start` run `node server.ts`
+  (Node 24 type-strips TS; verified live). Client reads `VITE_AI_API_URL`
+  (empty = same origin); unreachable/404 disables AI buttons via
+  `checkGeminiStatus()` and any modal shows the labeled offline estimate.
+- Security: every `/api/gemini/*` POST requires a Firebase ID token
+  (Google certs, RS256; emulator tokens accepted only when
+  FIREBASE_AUTH_EMULATOR_HOST is set). Per-uid daily cap (default 30,
+  `AI_DAILY_LIMIT`) persisted in `data/ai-usage.json` — survives
+  restarts, single-host only. Strict input validation + output
+  re-validation incl. section score ranges (`src/lib/ai/validation.ts`,
+  shared client/server, unit tested). CORS allowlist
+  (`AI_ALLOWED_ORIGINS`). Logs are method+path+status only; provider
+  error bodies are never forwarded.
+- Added deps: `express` (HTTP), `dotenv` (env), `@google/genai` (Gemini
+  SDK), `@types/express` (types). `tsx` removed — `node server.ts` runs
+  natively on Node 24. `bun.lock` left in place (see OVERNIGHT-QUESTIONS).
+- Offline fallback is labeled "Offline estimate (heuristic, not AI)"
+  EN/AR and `aiSuggested:false`. AI output only writes on explicit user
+  confirm in each modal. Terms/Privacy disclose the free-tier data-use
+  caveat (verified against Google docs).
+- Guests get the offline estimate (no ID token). e2e: `ai-features.spec.ts`
+  mocks `/api/gemini/status`; unit tests cover request/response validation.

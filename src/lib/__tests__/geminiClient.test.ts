@@ -29,9 +29,9 @@ describe('Gemini AI Client & Offline Heuristics', () => {
         locale: 'en',
       });
 
-      expect(result.aiSuggested).toBe(true);
+      expect(result.aiSuggested).toBe(false);
       expect(result.isOfflineFallback).toBe(true);
-      expect(result.disclaimer).toContain('verify');
+      expect(result.disclaimer).toContain('Offline estimate');
       expect(result.totalWeeklyPomodoros).toBeGreaterThanOrEqual(6);
       expect(result.sectionTargets).toHaveLength(2);
       expect(result.sectionTargets[0].sectionId).toBe('math');
@@ -72,7 +72,7 @@ describe('Gemini AI Client & Offline Heuristics', () => {
         locale: 'en',
       });
 
-      expect(result.aiSuggested).toBe(true);
+      expect(result.aiSuggested).toBe(false);
       expect(result.tasks.length).toBeGreaterThanOrEqual(2);
       result.tasks.forEach((task) => {
         expect(task.title).toBeTruthy();
@@ -103,7 +103,7 @@ describe('Gemini AI Client & Offline Heuristics', () => {
         locale: 'en',
       });
 
-      expect(result.aiSuggested).toBe(true);
+      expect(result.aiSuggested).toBe(false);
       expect(result.weakestSection).toBe('writing');
       expect(result.overallGap).toBeGreaterThan(0);
       const writingShift = result.recommendedWeeklyShift.find((s) => s.sectionId === 'writing');
@@ -123,8 +123,9 @@ describe('Gemini AI Client & Offline Heuristics', () => {
         sections: [{ id: 'math', nameEn: 'Math' }],
       });
 
-      expect(result.aiSuggested).toBe(true);
+      expect(result.aiSuggested).toBe(false);
       expect(result.isOfflineFallback).toBe(true);
+      expect(result.disclaimer).toContain('Offline estimate');
     });
 
     it('requestStudyPlan seamlessly falls back to local heuristic on HTTP 503 error', async () => {
@@ -141,7 +142,7 @@ describe('Gemini AI Client & Offline Heuristics', () => {
         sectionPriorities: [{ sectionId: 'quant', sectionName: 'الكمي', gap: 10 }],
       });
 
-      expect(result.aiSuggested).toBe(true);
+      expect(result.aiSuggested).toBe(false);
       expect(result.isOfflineFallback).toBe(true);
       expect(result.tasks.length).toBeGreaterThan(0);
     });
@@ -161,7 +162,7 @@ describe('Gemini AI Client & Offline Heuristics', () => {
         sectionTargets: { math: 700, verbal: 700 },
       });
 
-      expect(result.aiSuggested).toBe(true);
+      expect(result.aiSuggested).toBe(false);
       expect(result.isOfflineFallback).toBe(true);
       expect(result.weakestSection).toBe('math');
     });

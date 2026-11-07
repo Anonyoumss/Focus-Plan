@@ -76,7 +76,16 @@ export const PrivacyPage: React.FC = () => {
 
         <section className="space-y-2 text-sm leading-relaxed" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
           <h2 className="text-base font-bold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-            4. Right to Deletion & Data Export
+            4. Optional AI Features
+          </h2>
+          <p>
+            If you use the optional AI assistant, the app sends a minimal payload to our server, which forwards it to Google Gemini: test and section names, scores, targets, and planning numbers. It never includes your name, email, tasks, notes, or session history. Requests require you to be signed in and are rate-limited per account per day. Google processes this data under the Gemini API terms; on the current free tier Google may use submitted content to improve its products. When the AI service is off or unreachable, nothing is sent and a local estimate is shown instead.
+          </p>
+        </section>
+
+        <section className="space-y-2 text-sm leading-relaxed" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+          <h2 className="text-base font-bold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+            5. Right to Deletion & Data Export
           </h2>
           <p>
             You have full ownership of your data. You can download a complete JSON backup or CSV summary of your tasks at any moment, and purge all stored data with a single click in Settings. For cloud data, leaving a group removes your membership immediately, disabling the public leaderboard opt-in deletes your public entry, and signing out wipes synced data from the device. Deleting your Firebase account data entirely is not self-serve in this release.

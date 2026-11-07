@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { TRANSLATIONS } from '../../i18n/translations';
 import { TEST_CATALOG, UserTestGoal } from '../../data/tests/catalog';
@@ -11,6 +11,7 @@ import { MaterialIcon } from '../common/MaterialIcon';
 import { analyzeScoreLoop } from '../../lib/analyticsEngine';
 import { resolveGoalSections } from '../../lib/testSections';
 import { AiPostTestAnalysisModal } from './AiPostTestAnalysisModal';
+import { checkGeminiStatus } from '../../lib/ai/geminiClient';
 
 interface ScoreLoopModalProps {
   goal: UserTestGoal;
@@ -37,6 +38,12 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose, a
   // Form State for logging new attempt
   const [isLoggingAttempt, setIsLoggingAttempt] = useState(autoLog);
   const [showAiAnalysis, setShowAiAnalysis] = useState<boolean>(false);
+  const [aiAvailable, setAiAvailable] = useState<boolean | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void checkGeminiStatus().then((s) => { if (alive) setAiAvailable(s.available); });
+    return () => { alive = false; };
+  }, []);
   const [overallScore, setOverallScore] = useState<number>(goal.currentBaselineScore);
   const [sectionScores, setSectionScores] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {};
@@ -370,8 +377,9 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose, a
 
             <div className="flex items-center gap-2">
               <button
+                disabled={aiAvailable === false}
                 onClick={() => setShowAiAnalysis(true)}
-                className="px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed"
                 style={{
                   borderColor: 'var(--md-sys-color-primary)',
                   color: 'var(--md-sys-color-primary)',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { TRANSLATIONS } from '../../i18n/translations';
 import { TEST_CATALOG, StandardizedTestDefinition, UserTestGoal } from '../../data/tests/catalog';
@@ -9,6 +9,7 @@ import { resolveGoalSections } from '../../lib/testSections';
 import { AiIntakeConsultModal } from './AiIntakeConsultModal';
 import { AiStudyPlanModal } from './AiStudyPlanModal';
 import { AiPostTestAnalysisModal } from './AiPostTestAnalysisModal';
+import { checkGeminiStatus } from '../../lib/ai/geminiClient';
 
 export const TestsView: React.FC = () => {
   const { locale, testGoals, addTestGoal, deleteTestGoal, updateTestGoal } = useAppStore();
@@ -20,6 +21,14 @@ export const TestsView: React.FC = () => {
   const [aiConsultTest, setAiConsultTest] = useState<{ test: StandardizedTestDefinition; existingGoal?: UserTestGoal } | null>(null);
   const [aiStudyPlanGoal, setAiStudyPlanGoal] = useState<UserTestGoal | null>(null);
   const [aiPostTestGoal, setAiPostTestGoal] = useState<UserTestGoal | null>(null);
+  // AI proxy availability: when the endpoint is unreachable or unconfigured,
+  // AI buttons disable and any opened modal shows the offline estimate.
+  const [aiAvailable, setAiAvailable] = useState<boolean | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void checkGeminiStatus().then((s) => { if (alive) setAiAvailable(s.available); });
+    return () => { alive = false; };
+  }, []);
 
   const filteredCatalog = TEST_CATALOG.filter((test) => {
     if (activeFilter === 'saudi') return test.category === 'saudi';
@@ -282,8 +291,9 @@ export const TestsView: React.FC = () => {
 
                   <div className="flex flex-wrap items-center gap-1.5 my-3 pt-2 border-t" style={{ borderColor: 'var(--md-sys-color-outline-variant)' }}>
                     <button
+                      disabled={aiAvailable === false}
                       onClick={() => setAiStudyPlanGoal(goal)}
-                      className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                      className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed"
                       style={{
                         borderColor: 'var(--md-sys-color-secondary)',
                         color: 'var(--md-sys-color-secondary)',
@@ -295,8 +305,9 @@ export const TestsView: React.FC = () => {
                     </button>
 
                     <button
+                      disabled={aiAvailable === false}
                       onClick={() => setAiPostTestGoal(goal)}
-                      className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                      className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed"
                       style={{
                         borderColor: 'var(--md-sys-color-tertiary)',
                         color: 'var(--md-sys-color-tertiary)',
@@ -309,8 +320,9 @@ export const TestsView: React.FC = () => {
 
                     {definition && (
                       <button
+                        disabled={aiAvailable === false}
                         onClick={() => setAiConsultTest({ test: definition, existingGoal: goal })}
-                        className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                        className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed"
                         style={{
                           borderColor: 'var(--md-sys-color-primary)',
                           color: 'var(--md-sys-color-primary)',
@@ -508,8 +520,9 @@ export const TestsView: React.FC = () => {
 
                     <div className="flex items-center justify-end gap-2 pt-1">
                       <button
+                        disabled={aiAvailable === false}
                         onClick={() => setAiConsultTest({ test })}
-                        className="text-xs font-semibold px-2.5 py-1.5 rounded-lg border cursor-pointer transition-colors flex items-center gap-1 hover:bg-black/5 dark:hover:bg-white/5"
+                        className="text-xs font-semibold px-2.5 py-1.5 rounded-lg border cursor-pointer transition-colors flex items-center gap-1 hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed"
                         style={{
                           borderColor: 'var(--md-sys-color-primary)',
                           color: 'var(--md-sys-color-primary)',

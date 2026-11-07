@@ -1,3 +1,10 @@
+import {
+  validateIntakeOutput,
+  validateStudyPlanOutput,
+  validatePostTestOutput,
+  type IntakeConsultBody,
+} from './validation';
+
 export interface SectionTargetSuggestion {
   sectionId: string;
   targetScore: number;
@@ -80,16 +87,67 @@ export interface PostTestAnalysisInput {
   locale?: 'en' | 'ar';
 }
 
-/** Check if the server-side Gemini key is configured and reachable. */
-export async function checkGeminiStatus(): Promise<{ available: boolean; model: string }> {
+const AI_BASE = ((import.meta.env.VITE_AI_API_URL as string | undefined) || '').replace(/\/+$/, '');
+
+const OFFLINE_DISCLAIMER = {
+  en: 'Offline estimate (heuristic, not AI). Verify with official testing authorities.',
+  ar: 'تقدير محلي (خوارزمية وليس ذكاءً اصطناعياً). يرجى التحقق من الجهة الرسمية.',
+} as const;
+
+function offlineDisclaimer(locale?: 'en' | 'ar'): string {
+  return OFFLINE_DISCLAIMER[locale === 'ar' ? 'ar' : 'en'];
+}
+
+/**
+ * Returns a Firebase ID token for the signed-in user, or null for guests /
+ * when Firebase is not configured. The AI proxy requires auth; guests get
+ * the offline estimate path.
+ */
+async function getIdToken(): Promise<string | null> {
   try {
-    const res = await fetch('/api/gemini/status');
-    if (!res.ok) return { available: false, model: 'offline-fallback' };
-    const data = await res.json();
-    return { available: Boolean(data.available), model: data.model || 'gemini-3.8-flash' };
+    const { getFirebaseAuth, isFirebaseConfigured } = await import('../firebase/client');
+    if (!isFirebaseConfigured()) return null;
+    const user = getFirebaseAuth().currentUser;
+    if (!user) return null;
+    return await user.getIdToken();
   } catch {
-    return { available: false, model: 'offline-fallback' };
+    return null;
   }
+}
+
+async function aiFetch(path: string, body: unknown): Promise<Response | null> {
+  const token = await getIdToken();
+  if (!token) return null;
+  try {
+    return await fetch(`${AI_BASE}${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    return null;
+  }
+}
+
+/** Check if the AI proxy is reachable and configured. Cached per session. */
+let statusPromise: Promise<{ available: boolean; model: string }> | null = null;
+export function checkGeminiStatus(): Promise<{ available: boolean; model: string }> {
+  if (!statusPromise) {
+    statusPromise = (async () => {
+      try {
+        const res = await fetch(`${AI_BASE}/api/gemini/status`);
+        if (!res.ok) return { available: false, model: 'offline-fallback' };
+        const data = await res.json();
+        return { available: Boolean(data.available), model: data.model || 'gemini' };
+      } catch {
+        return { available: false, model: 'offline-fallback' };
+      }
+    })();
+  }
+  return statusPromise;
 }
 
 /** Deterministic client-side heuristic fallback for intake consult */
@@ -129,10 +187,8 @@ export function localFallbackIntakeConsult(input: IntakeConsultInput): IntakeCon
     sectionTargets,
     totalWeeklyPomodoros: estimatedWeeklyPomodoros,
     strategySummary,
-    aiSuggested: true,
-    disclaimer: isAr
-      ? 'مقترح بالمعايير المحلية، يرجى التحقق من الجهة الرسمية للاختبار'
-      : 'AI suggested, verify with official testing authorities',
+    aiSuggested: false,
+    disclaimer: offlineDisclaimer(input.locale),
     isOfflineFallback: true,
   };
 }
@@ -177,10 +233,8 @@ export function localFallbackStudyPlan(input: StudyPlanInput): StudyPlanResult {
 
   return {
     tasks,
-    aiSuggested: true,
-    disclaimer: isAr
-      ? 'مقترح بالمعايير المحلية، يرجى مراجعة الخطة والتحقق'
-      : 'AI suggested, verify with your study plan and official sources',
+    aiSuggested: false,
+    disclaimer: offlineDisclaimer(input.locale),
     isOfflineFallback: true,
   };
 }
@@ -225,36 +279,39 @@ export function localFallbackPostTestAnalysis(input: PostTestAnalysisInput): Pos
     weakestSection,
     recommendedWeeklyShift,
     analysisNarrative,
-    aiSuggested: true,
-    disclaimer: isAr
-      ? 'مقترح بالمعايير المحلية، يرجى التحقق من تقرير الدرجات الرسمي'
-      : 'AI suggested, verify with your official score report',
+    aiSuggested: false,
+    disclaimer: offlineDisclaimer(input.locale),
     isOfflineFallback: true,
   };
 }
 
 /** Request Feature (a): Test Intake Consult */
 export async function requestIntakeConsult(input: IntakeConsultInput): Promise<IntakeConsultResult> {
+  const body: IntakeConsultBody = {
+    testId: input.testId,
+    testName: input.testName,
+    currentScore: input.currentScore,
+    targetScore: input.targetScore,
+    weeksRemaining: input.weeksRemaining,
+    currentDailyHours: input.currentDailyHours,
+    sections: input.sections?.map((s) => ({
+      id: s.id,
+      nameEn: s.nameEn,
+      nameAr: s.nameAr,
+      minScore: s.minScore,
+      maxScore: s.maxScore,
+      defaultTargetScore: s.defaultTargetScore,
+    })),
+    locale: input.locale,
+  };
+  const res = await aiFetch('/api/gemini/intake-consult', body);
+  if (!res || !res.ok) return localFallbackIntakeConsult(input);
   try {
-    const res = await fetch('/api/gemini/intake-consult', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input),
-    });
-
-    if (!res.ok) {
-      return localFallbackIntakeConsult(input);
-    }
-
     const data = await res.json();
-    if (!data.sectionTargets || !Array.isArray(data.sectionTargets)) {
-      return localFallbackIntakeConsult(input);
-    }
-
+    const validated = validateIntakeOutput(data, body);
+    if (!validated) return localFallbackIntakeConsult(input);
     return {
-      sectionTargets: data.sectionTargets,
-      totalWeeklyPomodoros: data.totalWeeklyPomodoros || 20,
-      strategySummary: data.strategySummary || '',
+      ...validated,
       aiSuggested: true,
       disclaimer: data.disclaimer || (input.locale === 'ar' ? 'مقترح بالذكاء الاصطناعي، يرجى التحقق' : 'AI suggested, verify'),
       isOfflineFallback: false,
@@ -266,24 +323,30 @@ export async function requestIntakeConsult(input: IntakeConsultInput): Promise<I
 
 /** Request Feature (b): Study Plan Generator */
 export async function requestStudyPlan(input: StudyPlanInput): Promise<StudyPlanResult> {
+  const res = await aiFetch('/api/gemini/study-plan', {
+    testId: input.testId,
+    testName: input.testName,
+    weeklyPomodoroTarget: input.weeklyPomodoroTarget,
+    sectionPriorities: input.sectionPriorities,
+    locale: input.locale,
+  });
+  if (!res || !res.ok) return localFallbackStudyPlan(input);
   try {
-    const res = await fetch('/api/gemini/study-plan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input),
-    });
-
-    if (!res.ok) {
-      return localFallbackStudyPlan(input);
-    }
-
     const data = await res.json();
-    if (!data.tasks || !Array.isArray(data.tasks)) {
-      return localFallbackStudyPlan(input);
-    }
-
+    const validated = validateStudyPlanOutput(data, {
+      testId: input.testId,
+      testName: input.testName,
+      weeklyPomodoroTarget: input.weeklyPomodoroTarget,
+      sectionPriorities: input.sectionPriorities,
+      locale: input.locale,
+    });
+    if (!validated) return localFallbackStudyPlan(input);
     return {
-      tasks: data.tasks,
+      ...validated,
+      tasks: validated.tasks.map((t) => ({
+        ...t,
+        dayOfWeek: t.dayOfWeek as StudyPlanTaskItem['dayOfWeek'],
+      })),
       aiSuggested: true,
       disclaimer: data.disclaimer || (input.locale === 'ar' ? 'مقترح بالذكاء الاصطناعي، يرجى التحقق' : 'AI suggested, verify'),
       isOfflineFallback: false,
@@ -295,27 +358,30 @@ export async function requestStudyPlan(input: StudyPlanInput): Promise<StudyPlan
 
 /** Request Feature (c): Post-Test Analysis */
 export async function requestPostTestAnalysis(input: PostTestAnalysisInput): Promise<PostTestAnalysisResult> {
+  const res = await aiFetch('/api/gemini/post-test-analysis', {
+    testId: input.testId,
+    testName: input.testName,
+    targetScore: input.targetScore,
+    actualScores: input.actualScores,
+    sectionTargets: input.sectionTargets,
+    sectionNames: input.sectionNames,
+    locale: input.locale,
+  });
+  if (!res || !res.ok) return localFallbackPostTestAnalysis(input);
   try {
-    const res = await fetch('/api/gemini/post-test-analysis', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input),
-    });
-
-    if (!res.ok) {
-      return localFallbackPostTestAnalysis(input);
-    }
-
     const data = await res.json();
-    if (typeof data.overallGap !== 'number' || !data.weakestSection) {
-      return localFallbackPostTestAnalysis(input);
-    }
-
+    const validated = validatePostTestOutput(data, {
+      testId: input.testId,
+      testName: input.testName,
+      targetScore: input.targetScore,
+      actualScores: input.actualScores,
+      sectionTargets: input.sectionTargets,
+      sectionNames: input.sectionNames,
+      locale: input.locale,
+    });
+    if (!validated) return localFallbackPostTestAnalysis(input);
     return {
-      overallGap: data.overallGap,
-      weakestSection: data.weakestSection,
-      recommendedWeeklyShift: Array.isArray(data.recommendedWeeklyShift) ? data.recommendedWeeklyShift : [],
-      analysisNarrative: data.analysisNarrative || '',
+      ...validated,
       aiSuggested: true,
       disclaimer: data.disclaimer || (input.locale === 'ar' ? 'مقترح بالذكاء الاصطناعي، يرجى التحقق' : 'AI suggested, verify'),
       isOfflineFallback: false,
