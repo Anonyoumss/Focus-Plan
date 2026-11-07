@@ -1,7 +1,10 @@
 import React, { useEffect } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { useAppStore } from '../../store/useAppStore';
 import { TRANSLATIONS } from '../../i18n/translations';
 import { MaterialIcon } from '../common/MaterialIcon';
+import { WavyRing } from './WavyRing';
+import { MdSlider } from '../common/MdControls';
 import { formatTime, calculateProgress } from '../../lib/timerEngine';
 
 export const TimerDisplay: React.FC = () => {
@@ -50,13 +53,13 @@ export const TimerDisplay: React.FC = () => {
       : timerConfig.longBreakDuration;
 
   const progress = calculateProgress(remainingSeconds, totalDuration);
+  const reduceMotion = useReducedMotion();
+  const morphTransition = reduceMotion
+    ? { duration: 0 }
+    : { type: 'spring' as const, stiffness: 420, damping: 32 };
 
   const size = 320;
   const strokeWidth = 10;
-  const radius = (size - strokeWidth * 2) / 2;
-  const center = size / 2;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference * (1 - progress);
 
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-xl mx-auto px-4 py-6">
@@ -125,31 +128,7 @@ export const TimerDisplay: React.FC = () => {
       </div>
 
       <div className="relative flex items-center justify-center w-72 h-72 sm:w-80 sm:h-80 mb-8 select-none">
-        <svg className="w-full h-full -rotate-90 transform" viewBox={`0 0 ${size} ${size}`}>
-          <circle
-            cx={center}
-            cy={center}
-            r={radius}
-            strokeWidth={strokeWidth}
-            fill="none"
-            style={{ stroke: 'var(--md-sys-color-surface-container-highest)', opacity: 0.5 }}
-          />
-          <circle
-            cx={center}
-            cy={center}
-            r={radius}
-            strokeWidth={strokeWidth}
-            fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            className="transition-all duration-300 ease-out"
-            style={{
-              stroke: 'var(--md-sys-color-primary)',
-              filter: isRunning ? 'drop-shadow(0 0 4px var(--md-sys-color-primary-container))' : 'none',
-            }}
-          />
-        </svg>
+        <WavyRing progress={progress} size={size} strokeWidth={strokeWidth} />
 
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
           <span
@@ -182,18 +161,31 @@ export const TimerDisplay: React.FC = () => {
           <MaterialIcon name="refresh" size={24} />
         </button>
 
-        <button
+        <motion.button
           onClick={isRunning ? pauseTimer : startTimer}
-          className="min-w-44 max-w-full h-14 px-6 sm:px-8 rounded-2xl flex items-center justify-center gap-3 font-semibold text-base transition-all duration-200 active:scale-98 cursor-pointer shadow-md"
+          animate={{ borderRadius: isRunning ? 20 : 999 }}
+          transition={morphTransition}
+          className="min-w-44 max-w-full h-14 px-6 sm:px-8 flex items-center justify-center gap-3 font-semibold text-base cursor-pointer shadow-md"
           style={{
             backgroundColor: 'var(--md-sys-color-primary)',
             color: 'var(--md-sys-color-on-primary)',
           }}
           aria-label={isRunning ? t.timer.pause : t.timer.start}
         >
-          <MaterialIcon name={isRunning ? 'pause' : 'play_arrow'} size={28} filled />
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={isRunning ? 'pause' : 'play'}
+              initial={reduceMotion ? false : { scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={reduceMotion ? undefined : { scale: 0.6, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="flex items-center"
+            >
+              <MaterialIcon name={isRunning ? 'pause' : 'play_arrow'} size={28} filled />
+            </motion.span>
+          </AnimatePresence>
           <span>{isRunning ? t.timer.pause : t.timer.start}</span>
-        </button>
+        </motion.button>
 
         <button
           onClick={skipTimer}
@@ -273,16 +265,14 @@ export const TimerDisplay: React.FC = () => {
 
         <div className="flex items-center gap-2 shrink-0">
           <MaterialIcon name="volume_up" size={18} />
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.05"
+          <MdSlider
             value={alarmVolume}
-            onChange={(e) => setAlarmVolume(parseFloat(e.target.value))}
-            className="w-16 cursor-pointer"
-            style={{ accentColor: 'var(--md-sys-color-primary)' }}
-            aria-label={t.timer.volume}
+            min={0}
+            max={1}
+            step={0.05}
+            onValueChange={setAlarmVolume}
+            label={t.timer.volume}
+            className="w-24"
           />
         </div>
       </div>

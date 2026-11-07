@@ -1,6 +1,6 @@
 # Feature parity
 
-Checked on milestone 2a (honesty and bugs), 2026-11-07.
+Checked on milestone 2b (build), 2026-11-08. Milestone 2a honesty fixes remain in place.
 
 Commands that ran:
 
@@ -8,7 +8,7 @@ Commands that ran:
 - `npm run lint` (`tsc --noEmit`) exited 0. `npx eslint .` exited 0 with 0 errors, 0 warnings.
 - `npm test` (Vitest 3.2.7, config `vitest.config.ts` excludes `e2e/`): 5 files, 22 tests, all passed.
 - `npm run build` (Vite 8.3.6) exited 0.
-- `npx playwright test` (`@playwright/test` 1.65.0, Chromium): 8 passed, 0 failed. Each run asserts `document.documentElement.scrollWidth <= viewport width + 1` at 360px and 1280px. Screenshots are in `docs/screenshots/`.
+- `npx playwright test` (`@playwright/test` 1.65.0, Chromium): 13 passed, 0 failed. `e2e/audit-screenshots.spec.ts` asserts `document.documentElement.scrollWidth <= viewport width + 1` at 360px and 1280px in all 8 locale/theme/viewport combinations and captures landing and invite screenshots. `e2e/app-flows.spec.ts` drives real interactions.
 
 Labels mean only what was run. A screen that rendered is not proof that its buttons do the real job.
 
@@ -16,22 +16,25 @@ Tomato is GPL-3.0. This repo does not copy that source. Pomofocus behavior below
 
 ## Verified in browser
 
-Playwright opened `/` with stored `locale` and `themeMode`, at 1280x800 and 360x740, English and Arabic, light and dark, including a horizontal-overflow assertion.
+Playwright opened the app in all 8 combinations (en/ar × light/dark × 360px/1280px) with a horizontal-overflow assertion, plus functional flows in `e2e/app-flows.spec.ts` (English, light, desktop viewport).
 
 | What was checked | Result |
 | :--- | :--- |
-| App shell, onboarding, and Skip | Onboarding rendered. Skip removed it. Overlay is a plain `bg-black/60` scrim; `backdrop-blur-xs` removed. |
-| `lang` and `dir` | `en`/`ltr` and `ar`/`rtl` matched the stored locale. |
-| Dark theme class | `html` had class `dark` when `themeMode` was `dark`. |
-| Tabs | Focus, Plan, Tests, Progress, Friends render in every combination. On phone the bottom bar shows Focus, Plan, Tests, Progress, and a More sheet containing Friends, Store, and Settings. Desktop rail shows all destinations. Store is reachable on phone through More. |
-| Horizontal overflow | None at 360px or 1280px in all 8 combinations. Fixed: ambient-sound select, Start button row wrap, Material Symbols ligature fallback text clipped via `overflow: hidden`. |
-| Start control | English, light, desktop only: Start Focus became Pause Timer. The countdown itself was not timed. |
-| Friends screen | Visible copy says the circle and standings are local demo data. |
-| Progress screen | Total focus hours now sums real `sessionLogs` durations. The week row is computed from real session logs (3+ sessions marks a streak day). Badge descriptions resolve through `lookupTranslationString` across namespaces; `streakRuleNotice` no longer renders as a raw key. |
-| Arabic phone Focus | Rendered RTL with no horizontal overflow. Category names in task rows are translated via `getCategoryLabel`. Bottom bar no longer covers content (`pb-20` on the content column). |
-| Empty default state | Fresh profile seeds zero tasks, goals, streak, coins, and session logs. Verified by code inspection (`tasks: []`, `testGoals: []`, `sessionLogs: []`, streak/coins zeroed); the Playwright suite seeds only locale/theme/onboarding keys. |
+| Hash routes | `#/` landing, `#/app` and `#/app/<tab>` app screens, `#/terms`, `#/privacy`, `#/invite/<code>` placeholder. Deep links and reloads resolve via `parseHashRoute` in `src/lib/router.ts`; unknown paths fall back to landing. Verified by direct navigation in probes and the screenshot suite (`/#/app` entry point). |
+| Landing page | Renders the real `TimerDisplay`, `TaskList`, and `ProgressStatCards` components, a tests section listing the real catalog with official-site links, and a footer with Terms/Privacy. One primary CTA "Start focusing" navigates to `#/app` with no login. Header also has a small secondary "Open app" link. No gradients, emojis, card grids, or fake content. |
+| Invite route | `#/invite/DEMO-GROUP-7` renders "Group invites are not open yet" placeholder; screenshot captured in all 8 combinations. |
+| Onboarding | New users see the modal; "Skip Setup" dismisses it (Playwright). |
+| Timer start / pause / reload | Start Focus becomes Pause Timer; pausing restores Start. After restart + `page.reload()`, the Pause button returns and persisted state shows `isRunning: true` with `targetEndTime` set. Recovery is driven by the persisted `targetEndTime`, not a fresh duration. |
+| Wavy ring | While running, the SVG path `d` attribute is populated (325 chars) and animates. With `page.emulateMedia({ reducedMotion: 'reduce' })` (Chromium `reducedMotion: 'reduce'` context), the paused ring path is byte-identical across 1.6s samples; without it the path keeps changing. Tested via a Playwright probe, not a committed spec. |
+| Start/Pause morph | `motion.button` animates `borderRadius` 999 to 20 with a spring (`stiffness 420, damping 32`); icon crossfades via `AnimatePresence`. `useReducedMotion()` switches the spring to `duration: 0` and disables icon transitions. Computed radius while running: 20px. |
+| Store purchase | Seeded 50 coins, bought the 10-coin streak freeze via the Material Web filled button: coins became 40 and `inventory.streak_freeze` became 1 in persisted state. |
+| Score entry | Seeded SAT goal, opened Score Loop, logged a 1400 attempt: `currentBaselineScore` became 1400 and `scoresHistory` gained one entry. |
+| Task create / edit / reorder | `N` key opens the new-task dialog; created two tasks, edited one via its edit button, moved it up with the "Move task up" button; persisted `tasks` order verified. `md-dialog` required `slot="content"` wrapping (fixed in `MdControls`). |
+| Material Web controls | `md-switch` in Settings toggles `selected` on click. `md-dialog` opens on `N`, closes on Escape. `md-filled-button` drives store purchase. Rendered in AR screenshots with no overflow; no RTL-specific defect observed, so no custom fallback was needed. |
+| `lang`/`dir`, theme, overflow | Unchanged from 2a; still asserted in all 8 combinations including the new landing and invite screenshots. |
+| Friends screen, progress real data, Arabic phone, empty default state | Unchanged from 2a, still verified. |
 
-Not exercised in the browser: completing a pomodoro end-to-end, editing a task, sounds, notifications, wake lock, export downloads, store purchase, score entry, print, keyboard shortcuts, or Join. The "Load demo data" button was not clicked in the browser; it is covered by code inspection only.
+Not exercised in the browser: completing a pomodoro end-to-end (session log write on finish), sounds, notifications, wake lock, export downloads, print, drag-and-drop reorder by pointer (keyboard/button path tested; HTML5 drag handlers are compiled only), Join.
 
 ## Unit tested only
 
@@ -51,29 +54,38 @@ The streak tests use the dates written in that file. They do not prove the live 
 
 Present in source and included in the production build. Not verified by the checks above.
 
-- Timer mode buttons, duration settings, auto-start flags, task add/edit/delete/clear, estimated versus completed counts.
+- Timer mode buttons beyond focus, duration settings, auto-start flags, task delete/clear, estimated versus completed counts.
 - Web Audio synth, document title updates, Notification API call, Wake Lock call.
-- Keyboard listeners for Space, R, S, 1, 2, 3, and `?`. There is no `N` listener.
+- Keyboard listeners for Space, R, S, 1, 2, 3, `?`, and `N`. The `N` handler dispatches `focus-plan:new-task`, verified end-to-end in the browser; the other shortcuts remain untested in the browser.
+- Pointer-based drag reorder (`draggable` + drag events in `TaskList`). The up/down buttons cover the same `moveTask` store action.
 - JSON and CSV task export from Settings. No import.
 - Seed colors through `@material/material-color-utilities`.
-- Test catalog cards and score-loop modal. `sourceUrls` and `unverifiedFields` are rendered in the catalog UI; only URLs confirmed against official pages are filled (SAT, ACT scores, IELTS, TOEFL scores, KFUPM dates). etec.gov.sa and englishtest.duolingo.com could not be confirmed, so GAT/SAAT/STEP/Duolingo fields are flagged unverified and the UI shows "Verify on official site". Section lists for unverified tests remain as editable defaults, not confirmed facts.
 - Print stylesheet in `WeeklyReportModal.tsx`. No PDF file writer.
 - Skeleton component. The Progress refresh button shows it for 400ms. Charts do not use it for their first paint.
 - PWA `manifest.json`. No service worker file.
 - ESLint flat config (`eslint.config.js`, `npm run lint:eslint`).
+- `MdSlider` (timer duration sliders) and `MdSelect` (ambient sound) wrappers exist; the slider was not driven in the browser, the select renders in screenshots.
+- `anime.js` drives the WavyRing phase loop; `motion` drives the button morph. Both verified visually/via DOM probes above.
 
 ## Not in this codebase
 
-- URL routes `/terms` and `/privacy`. Those screens are tab state.
-- Landing page.
-- `@material/web`, `anime.js`. `motion` is installed and not imported.
-- Wavy progress ring and a shape-morphing Start control. The timer SVG is a circular dash offset.
+- Path-based URL routes. Routing is hash-based (`#/...`); a static host serves `index.html` for any path, and deep links/refresh work through the hash parser.
 - Firebase Auth, Firestore, rules, or emulator tests.
 - Google Tasks, Google Calendar, Gemini, FCM.
-- Task drag reorder, per-topic timer lengths.
-- Real friend groups, invite links, shared tasks, public leaderboard, or profile privacy.
+- Per-topic timer lengths.
+- Real friend groups, working invite links, shared tasks, public leaderboard, or profile privacy. The invite route is a placeholder.
 - Goal and test-date reminders (in-app Notifications API). Moved to milestone 5; scheduled push is later work.
 - Chrome theme reading. Pages cannot read it.
+
+## Fixed in milestone 2b (was missing in the 2a audit)
+
+- Hash router with landing, app tabs, terms, privacy, and invite placeholder (`src/lib/router.ts`, `src/App.tsx`).
+- Landing page reusing real app components with footer links.
+- Wavy SVG progress ring (`WavyRing.tsx`, anime.js) and Start/Pause shape morph (`motion`), both reduced-motion aware.
+- Selective `@material/web` integration: switches, sliders, selects, dialogs, buttons in settings/store/timer/task dialog. Custom components kept where Material Web has no equivalent or where RTL was unverified.
+- Task reorder (drag + up/down buttons) and the `N` new-task shortcut.
+- `md-dialog` content-slot fix: children must be wrapped in `slot="content"` or the dialog renders empty.
+- Playwright functional suite (`e2e/app-flows.spec.ts`) covering onboarding, timer lifecycle incl. reload recovery, store purchase, score entry, and task create/edit/reorder.
 
 ## Fixed in milestone 2a (was broken in the Step 0 audit)
 
@@ -92,7 +104,9 @@ Present in source and included in the production build. Not verified by the chec
 ## Remaining known issues
 
 - `npm audit` dev-chain findings remain by owner decision (DECISIONS.md Decision 8).
-- Catalog sections for unverified tests (GAT, SAAT, STEP, KFUPM Early SAAT, ACT sections, TOEFL sections, Duolingo) are plausible defaults flagged "verify on official site", not confirmed data. Saudi test score scales are unconfirmed.
+- Catalog sections for unverified tests (GAT, SAAT, STEP, KFUPM Early SAAT, ACT sections, TOEFL sections, Duolingo) are plausible defaults flagged "verify on official site", not confirmed data. Saudi test score scales are unconfirmed. Owner accepted these as flagged.
 - Dialogs still use `shadow-xl`/`shadow-2xl`; some cards still use `rounded-2xl`/`rounded-3xl` rather than the full varied shape scale.
 - `.env.example` no longer documents any keys; Firebase config keys arrive in milestone 3.
 - No `docs/original-brief.md` or `docs/ai-studio-plan.md` in repo yet (owner adding them).
+- Functional Playwright flows run in English only; Arabic/RTL coverage is screenshot + overflow assertions.
+- `md-dialog`/`md-slider`/`md-select` RTL behavior was checked via rendered screenshots without dedicated interaction tests.

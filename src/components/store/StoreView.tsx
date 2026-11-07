@@ -155,17 +155,14 @@ export const StoreView: React.FC = () => {
                     </span>
                   </div>
 
-                  <button
+                  <md-filled-button
                     onClick={() => handleBuy(item)}
                     disabled={!canAfford}
-                    className="px-4 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition-transform active:scale-95 disabled:opacity-40"
-                    style={{
-                      backgroundColor: 'var(--md-sys-color-primary)',
-                      color: 'var(--md-sys-color-on-primary)',
-                    }}
+                    className="text-xs"
+                    style={{ opacity: canAfford ? 1 : 0.4 }}
                   >
                     {t.store.buy}
-                  </button>
+                  </md-filled-button>
                 </div>
               </div>
             );

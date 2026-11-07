@@ -71,7 +71,7 @@ for (const locale of ['en', 'ar'] as const) {
           { storedLocale: locale, storedTheme: theme },
         );
 
-        await page.goto('/');
+        await page.goto('/#/app');
         await expect(page.locator('html')).toHaveAttribute('dir', locale === 'ar' ? 'rtl' : 'ltr');
         await expect(page.locator('html')).toHaveAttribute('lang', locale);
         const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
@@ -124,6 +124,17 @@ for (const locale of ['en', 'ar'] as const) {
           await expect(page.getByRole('button', { name: labels.pause })).toBeVisible();
           await page.screenshot({ path: path.join(dir, 'focus-running.png'), fullPage: true });
         }
+
+        // Landing page and invite placeholder at the same locale/theme/viewport
+        await page.goto('/#/');
+        await page.waitForTimeout(400);
+        const landingScroll = await page.evaluate(() => document.documentElement.scrollWidth);
+        expect(landingScroll, `landing overflow at ${viewport.width}px`).toBeLessThanOrEqual(viewport.width + 1);
+        await page.screenshot({ path: path.join(dir, 'landing.png'), fullPage: true });
+
+        await page.goto('/#/invite/DEMO-GROUP-7');
+        await page.waitForTimeout(300);
+        await page.screenshot({ path: path.join(dir, 'invite.png'), fullPage: true });
       });
     }
   }

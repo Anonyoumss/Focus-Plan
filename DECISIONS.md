@@ -81,3 +81,17 @@ This log documents all technical, structural, and design decisions made during t
 ## Decision 12: Catalog facts carry per-field source URLs or stay flagged
 - **Decision**: `StandardizedTestDefinition` has `sourceUrls` (scoreScale/sections/dates) and `unverifiedFields`. Only URLs confirmed by fetching the official page on 2026-11-07 are filled (SAT, ACT scores page, IELTS, TOEFL scores). etec.gov.sa requires JavaScript and englishtest.duolingo.com returned non-HTML, so GAT/SAAT/STEP/Duolingo fields stay unverified and the UI shows "Verify on official site". KFUPM keeps only its `/important-dates` link; its section list is unverified. No test dates are prefilled anywhere.
 - **Rationale**: Owner rule — never invent catalog facts; blank means verify on the official site.
+
+---
+
+## Decision 13: Hash routing for all app surfaces
+- **Decision**: Routes are hash-based (`#/` landing, `#/app/<tab>`, `#/terms`, `#/privacy`, `#/invite/<code>`), parsed by `src/lib/router.ts`. Unknown or empty hashes fall back to landing. GitHub Pages serves `index.html` for any path, so hash routes keep deep links and refresh working without an SPA fallback rewrite.
+- **Rationale**: Milestone 2b requirement; zero server config needed and Capacitor can serve the same bundle.
+
+## Decision 14: anime.js package name and SVG morph approach
+- **Decision**: The npm package is `animejs` (v4 line); `npm install anime.js` returns E404. `WavyRing` animates the SVG path `d` attribute's wave phase in a loop via `animate()`; with `prefers-reduced-motion: reduce` the phase is frozen at 0 and only progress-driven redraws happen. The Start/Pause morph uses `motion` (`motion.button` borderRadius spring + `AnimatePresence` icon swap), disabled via `useReducedMotion()`.
+- **Rationale**: Owner-specified libraries; anime.js for SVG, motion for springs.
+
+## Decision 15: Selective @material/web with a content-slot wrapper
+- **Decision**: `@material/web` is used for switches (Settings), sliders (timer durations), selects (ambient sound), dialogs (task create/edit), and filled buttons (Store). `MdDialog` wraps children in `<div slot="content">` because md-dialog only renders slotted `content`; without it the dialog body is empty (found via Playwright). Custom components were kept for the timer ring, charts, nav, and cards. No RTL-specific defect was observed in AR screenshots, so no custom fallback was needed; RTL interaction coverage is thinner than LTR and is noted in FEATURE_PARITY.md.
+- **Rationale**: Milestone 2b "no wholesale rewrite" constraint.

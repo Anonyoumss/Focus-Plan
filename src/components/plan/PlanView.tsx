@@ -2,9 +2,10 @@ import React from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { TRANSLATIONS, getCategoryLabel, getCadenceLabel } from '../../i18n/translations';
 import { MaterialIcon } from '../common/MaterialIcon';
+import { navigateToAppTab } from '../../lib/router';
 
 export const PlanView: React.FC = () => {
-  const { locale, tasks, setActiveTaskId, setActiveTab } = useAppStore();
+  const { locale, tasks, setActiveTaskId } = useAppStore();
   const t = TRANSLATIONS[locale];
 
   const categories = [
@@ -18,7 +19,7 @@ export const PlanView: React.FC = () => {
 
   const startTaskInTimer = (taskId: string) => {
     setActiveTaskId(taskId);
-    setActiveTab('focus');
+    navigateToAppTab('focus');
   };
 
   return (
@@ -90,7 +91,7 @@ export const PlanView: React.FC = () => {
             {locale === 'ar' ? 'أهداف التكرار الأسبوعية واليومية' : 'Repetition Goals & Session Thresholds'}
           </h2>
           <button
-            onClick={() => setActiveTab('focus')}
+            onClick={() => navigateToAppTab('focus')}
             className="text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer"
             style={{
               borderColor: 'var(--md-sys-color-primary)',

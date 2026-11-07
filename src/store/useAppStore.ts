@@ -123,6 +123,7 @@ export interface AppState {
   deleteTask: (id: string) => void;
   toggleTaskDone: (id: string) => void;
   clearDoneTasks: () => void;
+  moveTask: (id: string, targetIndex: number) => void;
 
   // Test Goal actions
   addTestGoal: (goal: UserTestGoal) => void;
@@ -175,6 +176,9 @@ function persistState(state: AppState) {
       activeTaskId: state.activeTaskId,
       sessionLogs: state.sessionLogs,
       demoDataLoaded: state.demoDataLoaded,
+      timerMode: state.timerMode,
+      isRunning: state.isRunning,
+      targetEndTime: state.targetEndTime,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   } catch (e) {
@@ -183,6 +187,22 @@ function persistState(state: AppState) {
 }
 
 const initialPersisted = loadPersistedState();
+
+const initialTimerConfig = initialPersisted.timerConfig || DEFAULT_TIMER_CONFIG;
+const initialTimerMode = initialPersisted.timerMode || 'focus';
+const initialModeDuration =
+  initialTimerMode === 'focus'
+    ? initialTimerConfig.focusDuration
+    : initialTimerMode === 'shortBreak'
+    ? initialTimerConfig.shortBreakDuration
+    : initialTimerConfig.longBreakDuration;
+const recoveredEndTime =
+  initialPersisted.isRunning && initialPersisted.targetEndTime
+    ? initialPersisted.targetEndTime
+    : null;
+const recoveredRemaining = recoveredEndTime
+  ? Math.max(0, calculateRemainingSeconds(recoveredEndTime, Date.now()))
+  : initialModeDuration;
 
 const DEMO_TASKS: TaskItem[] = [
   {
@@ -252,10 +272,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   onboardingCompleted: initialPersisted.onboardingCompleted ?? false,
   showShortcutsModal: false,
 
-  timerMode: 'focus',
-  isRunning: false,
-  targetEndTime: null,
-  remainingSeconds: (initialPersisted.timerConfig?.focusDuration || DEFAULT_TIMER_CONFIG.focusDuration),
+  timerMode: initialTimerMode,
+  isRunning: !!recoveredEndTime,
+  targetEndTime: recoveredEndTime,
+  remainingSeconds: recoveredRemaining,
   completedFocusSessions: initialPersisted.completedFocusSessions || 0,
   dailyGoalSessions: initialPersisted.dailyGoalSessions || 4,
   todaySessionsCount: initialPersisted.todaySessionsCount || 0,
@@ -329,6 +349,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     restoreDefaultTitle();
     releaseScreenWakeLock();
     soundEngine.stopAmbient();
+    persistState(get());
   },
 
   startTimer: () => {
@@ -345,6 +366,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (ambientSound !== 'none') {
       soundEngine.setAmbient(ambientSound, ambientVolume);
     }
+    persistState(get());
   },
 
   pauseTimer: () => {
@@ -360,6 +382,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     releaseScreenWakeLock();
     soundEngine.stopAmbient();
+    persistState(get());
   },
 
   skipTimer: () => {
@@ -544,6 +567,16 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   clearDoneTasks: () => {
     const tasks = get().tasks.filter((t) => !t.isCompleted);
+    set({ tasks });
+    persistState(get());
+  },
+
+  moveTask: (id, targetIndex) => {
+    const tasks = [...get().tasks];
+    const index = tasks.findIndex((t) => t.id === id);
+    if (index === -1 || targetIndex < 0 || targetIndex >= tasks.length || targetIndex === index) return;
+    const [moved] = tasks.splice(index, 1);
+    tasks.splice(targetIndex, 0, moved);
     set({ tasks });
     persistState(get());
   },

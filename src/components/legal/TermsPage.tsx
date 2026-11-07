@@ -2,15 +2,16 @@ import React from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { TRANSLATIONS } from '../../i18n/translations';
 import { MaterialIcon } from '../common/MaterialIcon';
+import { navigateToAppTab } from '../../lib/router';
 
 export const TermsPage: React.FC = () => {
-  const { locale, setActiveTab } = useAppStore();
+  const { locale } = useAppStore();
   const t = TRANSLATIONS[locale];
 
   return (
     <div className="w-full max-w-3xl mx-auto px-4 py-8">
       <button
-        onClick={() => setActiveTab('focus')}
+        onClick={() => navigateToAppTab('focus')}
         className="flex items-center gap-1.5 text-xs font-semibold mb-6 px-3 py-1.5 rounded-lg border transition-colors cursor-pointer"
         style={{
           borderColor: 'var(--md-sys-color-outline-variant)',

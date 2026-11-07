@@ -3,6 +3,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { TRANSLATIONS } from '../../i18n/translations';
 import { THEME_PRESETS, ThemeMode } from '../../design/theme';
 import { MaterialIcon } from '../common/MaterialIcon';
+import { MdSwitch } from '../common/MdControls';
 
 export const SettingsView: React.FC = () => {
   const {
@@ -313,27 +314,17 @@ export const SettingsView: React.FC = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 pt-2 text-xs">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={timerConfig.autoStartBreaks}
-                onChange={(e) => updateTimerConfig({ autoStartBreaks: e.target.checked })}
-                className="w-4 h-4 rounded cursor-pointer"
-                style={{ accentColor: 'var(--md-sys-color-primary)' }}
-              />
-              <span style={{ color: 'var(--md-sys-color-on-surface)' }}>{t.settings.autoStartBreaks}</span>
-            </label>
+            <MdSwitch
+              selected={timerConfig.autoStartBreaks}
+              onSelectedChange={(v) => updateTimerConfig({ autoStartBreaks: v })}
+              label={t.settings.autoStartBreaks}
+            />
 
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={timerConfig.autoStartPomodoros}
-                onChange={(e) => updateTimerConfig({ autoStartPomodoros: e.target.checked })}
-                className="w-4 h-4 rounded cursor-pointer"
-                style={{ accentColor: 'var(--md-sys-color-primary)' }}
-              />
-              <span style={{ color: 'var(--md-sys-color-on-surface)' }}>{t.settings.autoStartPomodoros}</span>
-            </label>
+            <MdSwitch
+              selected={timerConfig.autoStartPomodoros}
+              onSelectedChange={(v) => updateTimerConfig({ autoStartPomodoros: v })}
+              label={t.settings.autoStartPomodoros}
+            />
           </div>
         </div>
 

@@ -58,6 +58,8 @@ export interface Translations {
     save: string;
     cancel: string;
     reorderHint: string;
+    moveUp: string;
+    moveDown: string;
   };
   categories: {
     work: string;
@@ -281,6 +283,29 @@ export interface Translations {
     historyTitle: string;
     noHistory: string;
   };
+  landing: {
+    headline: string;
+    subheadline: string;
+    cta: string;
+    openApp: string;
+    timerTitle: string;
+    timerDesc: string;
+    goalsTitle: string;
+    goalsDesc: string;
+    streakTitle: string;
+    streakDesc: string;
+    testsTitle: string;
+    testsDesc: string;
+    testsCta: string;
+    verifyNote: string;
+    privacyFirst: string;
+  };
+  invite: {
+    title: string;
+    body: string;
+    codeLabel: string;
+    backCta: string;
+  };
 }
 
 export const TRANSLATIONS: Record<Locale, Translations> = {
@@ -342,6 +367,8 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       save: 'Save Task',
       cancel: 'Cancel',
       reorderHint: 'Drag or reorder tasks in priority sequence',
+      moveUp: 'Move task up',
+      moveDown: 'Move task down',
     },
     categories: {
       work: 'Work',
@@ -565,6 +592,29 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       historyTitle: 'Historical Score Progression',
       noHistory: 'No prior trial attempts logged yet. Record your first attempt below.',
     },
+    landing: {
+      headline: 'Plan your focus. Track your progress.',
+      subheadline: 'A pomodoro timer with a study layer built for goals, streaks, and real test scores.',
+      cta: 'Start focusing',
+      openApp: 'Open app',
+      timerTitle: 'A timer that keeps the real state',
+      timerDesc: 'Focus, short break, and long break modes with session counting and ambient sound. This preview is live; what you start here is what the app sees.',
+      goalsTitle: 'Tasks with goals, not just checkboxes',
+      goalsDesc: 'Group work into categories, set minimum and maximum session goals, and choose how often each task repeats. Create your first task below; it saves to this browser immediately.',
+      streakTitle: 'Streaks that reward showing up',
+      streakDesc: 'Three or more finished pomodoros in a day keep your streak alive. Your current numbers are on the right, computed from your real sessions.',
+      testsTitle: 'Built for standardized tests',
+      testsDesc: 'Saudi GAT, SAAT, STEP, KFUPM Early SAAT, SAT, ACT, IELTS, TOEFL, Duolingo, and custom goals with per-section targets and a score loop.',
+      testsCta: 'Browse the test catalog',
+      verifyNote: 'Catalog details come from official sources where confirmed. Anything unverified is labeled verify on the official site.',
+      privacyFirst: 'Local first. Your data stays in this browser until you choose otherwise.',
+    },
+    invite: {
+      title: 'Group invites are not open yet',
+      body: 'Friend groups and invite links arrive with the social milestone. Nothing was shared or stored by opening this link.',
+      codeLabel: 'Invite code',
+      backCta: 'Back to the app',
+    },
   },
   ar: {
     appName: 'فوكس بلان M3E',
@@ -624,6 +674,8 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       save: 'حفظ المهمة',
       cancel: 'إلغاء',
       reorderHint: 'اسحب المهام لترتيبها حسب الأولوية',
+      moveUp: 'تحريك المهمة للأعلى',
+      moveDown: 'تحريك المهمة للأسفل',
     },
     categories: {
       work: 'العمل',
@@ -846,6 +898,29 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       logNewAttempt: 'تسجيل اختبار تجريبي جديد',
       historyTitle: 'سجل تتبع الدرجات السابقة',
       noHistory: 'لا توجد محاولات تجريبية مسجلة حتى الآن. سجّل نتيجتك الأولى أدناه.',
+    },
+    landing: {
+      headline: 'خطط لتركيزك. تتبّع تقدمك.',
+      subheadline: 'مؤقت بومودورو بطبقة دراسية مبنية للأهداف والسلاسل ودرجات الاختبارات الحقيقية.',
+      cta: 'ابدأ التركيز',
+      openApp: 'افتح التطبيق',
+      timerTitle: 'مؤقت يعرض الحالة الحقيقية',
+      timerDesc: 'أوضاع التركيز والاستراحة القصيرة والطويلة مع عد الجلسات والصوت المحيطي. هذه المعاينة تعمل فعلياً؛ ما تبدؤه هنا هو ما يراه التطبيق.',
+      goalsTitle: 'مهام بأهداف، وليست مجرد قوائم',
+      goalsDesc: 'جمّع عملك في فئات، وحدد أهداف الجلسات الدنيا والقصوى، واختر وتيرة تكرار كل مهمة. أنشئ مهمتك الأولى أدناه؛ تُحفظ في هذا المتصفح فوراً.',
+      streakTitle: 'سلاسل تكافئ الاستمرار',
+      streakDesc: 'ثلاث جلسات بومودورو مكتملة على الأقل في اليوم تحافظ على سلسلتك. أرقامك الحالية على اليسار محسوبة من جلساتك الفعلية.',
+      testsTitle: 'مصمم للاختبارات المعيارية',
+      testsDesc: 'القدرات والتحصيلي وSTEP والقبول المبكر في كفعم، إضافة إلى SAT وACT وIELTS وTOEFL ودوولينجو وأهداف مخصصة بمعايير أقسام وحلقة درجات.',
+      testsCta: 'تصفح دليل الاختبارات',
+      verifyNote: 'تفاصيل الدليل من مصادر رسمية حيثما تأكدت. أي حقل غير مؤكد موسوم بـ تحقق من الموقع الرسمي.',
+      privacyFirst: 'محلي أولاً. بياناتك تبقى في هذا المتصفح إلى أن تقرر غير ذلك.',
+    },
+    invite: {
+      title: 'دعوات المجموعات غير متاحة بعد',
+      body: 'مجموعات الأصدقاء وروابط الدعوة تصل مع مرحلة التواصل الاجتماعي. لم تتم مشاركة أو تخزين أي بيانات بفتح هذا الرابط.',
+      codeLabel: 'رمز الدعوة',
+      backCta: 'العودة إلى التطبيق',
     },
   },
 };

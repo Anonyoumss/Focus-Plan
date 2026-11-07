@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useAppStore, TaskItem } from '../../store/useAppStore';
 import { TRANSLATIONS, getCategoryLabel } from '../../i18n/translations';
 import { MaterialIcon } from '../common/MaterialIcon';
+import { MdDialog } from '../common/MdControls';
 
 export const TaskList: React.FC = () => {
   const {
@@ -14,11 +15,15 @@ export const TaskList: React.FC = () => {
     deleteTask,
     toggleTaskDone,
     clearDoneTasks,
+    moveTask,
   } = useAppStore();
 
   const t = TRANSLATIONS[locale];
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+  const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Standardized Tests');
@@ -28,7 +33,7 @@ export const TaskList: React.FC = () => {
   const [cadence, setCadence] = useState<'hourly' | 'daily' | 'weekly' | 'monthly'>('daily');
   const [notes, setNotes] = useState('');
 
-  const openNewTaskModal = () => {
+  const openNewTaskModal = useCallback(() => {
     setEditingTaskId(null);
     setTitle('');
     setCategory('Standardized Tests');
@@ -38,7 +43,15 @@ export const TaskList: React.FC = () => {
     setCadence('daily');
     setNotes('');
     setIsModalOpen(true);
-  };
+    setTimeout(() => titleInputRef.current?.focus(), 250);
+  }, []);
+
+  // N shortcut opens the new-task modal (dispatched by Shell)
+  useEffect(() => {
+    const handler = () => openNewTaskModal();
+    window.addEventListener('focus-plan:new-task', handler);
+    return () => window.removeEventListener('focus-plan:new-task', handler);
+  }, [openNewTaskModal]);
 
   const openEditModal = (task: TaskItem) => {
     setEditingTaskId(task.id);
@@ -50,6 +63,18 @@ export const TaskList: React.FC = () => {
     setCadence(task.cadence);
     setNotes(task.notes);
     setIsModalOpen(true);
+    setTimeout(() => titleInputRef.current?.focus(), 250);
+  };
+
+  const handleRowKeyDown = (e: React.KeyboardEvent, task: TaskItem, index: number) => {
+    if (!e.altKey) return;
+    if (e.key === 'ArrowUp' && index > 0) {
+      e.preventDefault();
+      moveTask(task.id, index - 1);
+    } else if (e.key === 'ArrowDown' && index < tasks.length - 1) {
+      e.preventDefault();
+      moveTask(task.id, index + 1);
+    }
   };
 
   const handleSave = (e: React.FormEvent) => {
@@ -97,6 +122,14 @@ export const TaskList: React.FC = () => {
           >
             {tasks.filter((x) => !x.isCompleted).length} active · {tasks.filter((x) => x.isCompleted).length} done
           </span>
+          {tasks.length > 1 && (
+            <span
+              className="block text-[10px] mt-0.5"
+              style={{ color: 'var(--md-sys-color-outline)' }}
+            >
+              {t.tasks.reorderHint}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -140,26 +173,61 @@ export const TaskList: React.FC = () => {
             <p className="text-sm font-medium">{t.tasks.noTasks}</p>
           </div>
         ) : (
-          tasks.map((task) => {
+          tasks.map((task, index) => {
             const isSelected = activeTaskId === task.id;
             return (
               <div
                 key={task.id}
+                data-task-row={task.id}
                 onClick={() => setActiveTaskId(task.id)}
+                onKeyDown={(e) => handleRowKeyDown(e, task, index)}
+                draggable
+                onDragStart={(e) => {
+                  setDraggedTaskId(task.id);
+                  e.dataTransfer.effectAllowed = 'move';
+                  e.dataTransfer.setData('text/plain', task.id);
+                }}
+                onDragEnd={() => {
+                  setDraggedTaskId(null);
+                  setDragOverTaskId(null);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                  setDragOverTaskId(task.id);
+                }}
+                onDragLeave={() => setDragOverTaskId((cur) => (cur === task.id ? null : cur))}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (draggedTaskId && draggedTaskId !== task.id) {
+                    moveTask(draggedTaskId, index);
+                  }
+                  setDraggedTaskId(null);
+                  setDragOverTaskId(null);
+                }}
                 className={`flex items-start justify-between p-3.5 rounded-xl border transition-all cursor-pointer ${
                   isSelected ? 'ring-2' : ''
-                }`}
+                } ${draggedTaskId === task.id ? 'opacity-50' : ''}`}
                 style={{
                   backgroundColor: isSelected
                     ? 'var(--md-sys-color-surface-container-high)'
                     : 'var(--md-sys-color-surface-container-low)',
-                  borderColor: isSelected
+                  borderColor: dragOverTaskId === task.id
+                    ? 'var(--md-sys-color-primary)'
+                    : isSelected
                     ? 'var(--md-sys-color-primary)'
                     : 'var(--md-sys-color-outline-variant)',
                   boxShadow: isSelected ? '0 0 0 2px var(--md-sys-color-primary)' : 'none',
                 }}
               >
                 <div className="flex items-start gap-3 min-w-0 flex-1">
+                  <MaterialIcon
+                    name="drag_indicator"
+                    size={18}
+                    className="mt-1 shrink-0 cursor-grab opacity-50"
+                    ariaLabel={t.tasks.reorderHint}
+                  />
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -216,6 +284,26 @@ export const TaskList: React.FC = () => {
 
                 <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                   <button
+                    onClick={() => moveTask(task.id, Math.max(0, index - 1))}
+                    disabled={index === 0}
+                    className="p-1 rounded transition-colors cursor-pointer disabled:opacity-30"
+                    style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+                    title={t.tasks.moveUp}
+                    aria-label={t.tasks.moveUp}
+                  >
+                    <MaterialIcon name="keyboard_arrow_up" size={18} />
+                  </button>
+                  <button
+                    onClick={() => moveTask(task.id, Math.min(tasks.length - 1, index + 1))}
+                    disabled={index === tasks.length - 1}
+                    className="p-1 rounded transition-colors cursor-pointer disabled:opacity-30"
+                    style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+                    title={t.tasks.moveDown}
+                    aria-label={t.tasks.moveDown}
+                  >
+                    <MaterialIcon name="keyboard_arrow_down" size={18} />
+                  </button>
+                  <button
                     onClick={() => openEditModal(task)}
                     className="p-1 rounded transition-colors cursor-pointer"
                     style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
@@ -240,34 +328,27 @@ export const TaskList: React.FC = () => {
         )}
       </div>
 
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div
-            className="w-full max-w-lg rounded-3xl p-6 shadow-xl border animate-in fade-in zoom-in-95 duration-150"
-            style={{
-              backgroundColor: 'var(--md-sys-color-surface)',
-              borderColor: 'var(--md-sys-color-outline-variant)',
-            }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3
-                className="text-lg font-bold"
-                style={{ color: 'var(--md-sys-color-on-surface)' }}
-              >
-                {editingTaskId ? t.tasks.editTask : t.tasks.addTask}
-              </h3>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
-                style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
-              >
-                <MaterialIcon name="close" size={20} />
-              </button>
-            </div>
+      <MdDialog
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        label={editingTaskId ? t.tasks.editTask : t.tasks.addTask}
+      >
+        <div className="w-[34rem] max-w-[calc(100vw-2rem)] p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3
+              className="text-lg font-bold"
+              style={{ color: 'var(--md-sys-color-on-surface)' }}
+            >
+              {editingTaskId ? t.tasks.editTask : t.tasks.addTask}
+            </h3>
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
+              style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+            >
+              <MaterialIcon name="close" size={20} />
+            </button>
+          </div>
 
             <form onSubmit={handleSave} className="space-y-4">
               <div>
@@ -278,6 +359,7 @@ export const TaskList: React.FC = () => {
                   {t.tasks.taskName}
                 </label>
                 <input
+                  ref={titleInputRef}
                   type="text"
                   required
                   value={title}
@@ -457,9 +539,8 @@ export const TaskList: React.FC = () => {
                 </button>
               </div>
             </form>
-          </div>
         </div>
-      )}
+      </MdDialog>
     </div>
   );
 };

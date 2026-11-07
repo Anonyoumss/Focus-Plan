@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAppStore, TabDestination } from '../../store/useAppStore';
 import { TRANSLATIONS } from '../../i18n/translations';
 import { MaterialIcon } from '../common/MaterialIcon';
+import { navigateToAppTab } from '../../lib/router';
 
 interface ShellProps {
   children: React.ReactNode;
@@ -14,7 +15,6 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
     themeMode,
     setThemeMode,
     activeTab,
-    setActiveTab,
     setShowShortcutsModal,
     startTimer,
     pauseTimer,
@@ -63,6 +63,9 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
       } else if (e.key === '?') {
         e.preventDefault();
         setShowShortcutsModal(true);
+      } else if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('focus-plan:new-task'));
       }
     };
 
@@ -113,7 +116,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
         {/* Brand Logo mark */}
         <div className="flex flex-col items-center gap-1">
           <button
-            onClick={() => setActiveTab('focus')}
+            onClick={() => navigateToAppTab('focus')}
             className="w-12 h-12 rounded-2xl flex items-center justify-center cursor-pointer transition-transform active:scale-95"
             style={{
               backgroundColor: 'var(--md-sys-color-primary-container)',
@@ -132,7 +135,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => navigateToAppTab(item.id)}
                 className="flex flex-col items-center justify-center w-16 py-1.5 rounded-2xl transition-all cursor-pointer group"
                 title={item.label}
               >
@@ -268,14 +271,14 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
         >
           <div className="flex items-center justify-center gap-4">
             <button
-              onClick={() => setActiveTab('terms')}
+              onClick={() => navigateToAppTab('terms')}
               className="hover:underline cursor-pointer"
             >
               {t.nav.terms}
             </button>
             <span aria-hidden="true">·</span>
             <button
-              onClick={() => setActiveTab('privacy')}
+              onClick={() => navigateToAppTab('privacy')}
               className="hover:underline cursor-pointer"
             >
               {t.nav.privacy}
@@ -300,7 +303,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
           return (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => navigateToAppTab(item.id)}
               className="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] cursor-pointer"
             >
               <div
@@ -394,7 +397,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
                   <button
                     key={item.id}
                     onClick={() => {
-                      setActiveTab(item.id);
+                      navigateToAppTab(item.id);
                       setShowMoreSheet(false);
                     }}
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold cursor-pointer text-start"
