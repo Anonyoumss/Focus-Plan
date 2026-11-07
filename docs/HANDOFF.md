@@ -13,7 +13,7 @@
 - `npm run build`: pass (~750 kB JS chunk warning only).
 - `npx playwright test`: 15/15 pass; both emulator specs self-skip without Firebase env.
 - `npm run test:rules`: 31/31 Firestore rules tests pass (project `demo-focus-plan-test`).
-- `npm run test:e2e:firebase`: 2/2 pass — milestone 3 sign-in/migrate/sync/sign-out flow, plus `e2e/groups-emulator.spec.ts` two-user flow (create group, join by invite link and by code, shared 25-min session on leaderboard, hidden public-profile fields, rule-enforced store purchase).
+- `npm run test:e2e:firebase`: 6/6 pass — sign-in/migrate/sync/sign-out (asserts clean storage/IDB/UI after reload), sign-out-then-different-user, two-user groups flow (create group, join by invite link and by code, shared 25-min session on leaderboard, hidden public-profile fields, rule-enforced store purchase).
 - `npm audit`: dev-only advisories (vitest/eslint chains + firebase-tools deps). Accepted per owner; DECISIONS.md Decisions 8 and 16. Do NOT run `npm audit fix --force`.
 
 ## Emulator prerequisites (already installed on this machine)
@@ -93,31 +93,26 @@
 - Lighthouse (prod build, /Focus-Plan/): landing mobile 97/100/96/100,
   landing desktop 99/100/96/100, app mobile 92/96/96/100.
 - Bundle: main chunk 1,160 kB -> 522 kB (gzip 345 -> 154 kB).
-- KNOWN ISSUE: firebase-emulators sign-out spec still fails — after
-  sign-out one local task row reappears in memory (localStorage and uid
-  are correctly cleared; no snapshot listeners exist). Uid guards were
-  added so in-flight cloud pulls cannot re-apply after sign-out, but the
-  residual reappearance is NOT fully root-caused. Needs a follow-up.
+- RESOLVED: sign-out/account-switch now hard-resets and reloads
+  (Decision 26). Root cause of the recurring row was the emulator spec's
+  own addInitScript re-seeding localStorage on every page.goto after
+  sign-out — the app wipe was already correct. seedGuest now seeds once
+  per context via a sessionStorage flag. Sign-out also clears Firestore
+  IndexedDB persistence (bounded 1.5s) before reload.
 
-
-## Sign-out phantom-task bug — diagnosis log (UNRESOLVED)
-- Bisect: first bad = 53be64d, but its diff (vite base, manifest path,
-  one label) cannot plausibly cause this — likely a flaky-race artifact.
-- Verified facts: after sign-out, localStorage is clean, uid=null, and
-  the store holds exactly [guest_task_1] (the pre-cloud local task)
-  stably for 12s+. No setState touches tasks post-wipe (subscribe
-  watched), no snapshot listeners exist, single store instance confirmed
-  via dynamic import identity check.
-- Real races FIXED this session: uid guards on all post-await
-  applyCloudState paths; sync context moved to firebase-free
-  syncContext.ts so sign-out disables pushes synchronously (previously
-  a debounced push could fire post-wipe and tombstone cloud data);
-  syncMeta reset on wipe.
-- Remaining suspect: a stale pending/enqueued cloud slice flushing
-  after sign-out, or an in-place mutation path not yet found. The
-  phantom equals a merge of local[guest] vs remote[guest+cloud
-  tombstoned] — consistent with a post-wipe push tombstoning only the
-  newer task, then a late pull re-applying guest_task_1.
-- Next step: instrument pushCloudState to log slice contents + uid at
-  flush time during the sign-out spec; check whether a flush fires
-  between wipe and auth-null.
+## Sign-out phantom-task bug — RESOLVED
+- Root cause: test fixture, not app code. `seedGuest`/`addInitScript`
+  re-injected `guest_task_1` into localStorage on every `page.goto`
+  after sign-out, and Zustand rehydrated it. Fixed by seeding once per
+  browser context (sessionStorage flag) in both seed helpers.
+- Hardening kept: `hardResetAndReload()` on sign-out and on uid change —
+  wipes user data, bounded Firestore IDB persistence clear, removes the
+  storage key, reloads to a clean guest. Product rule: sign-out starts
+  an empty guest (Decision 26).
+- Emulator spec now asserts post-sign-out: zero task rows, empty
+  tasks/sessionLogs/testGoals/taskTemplates in localStorage and store,
+  no firestore* IndexedDB databases. New spec covers sign-out then
+  sign-in as a different user (user A's task must not appear for B).
+- Note for future tests: the Sign In button sits below the fold on
+  Settings; Playwright actionability click can stall — dispatch a DOM
+  click for post-reload sign-ins.

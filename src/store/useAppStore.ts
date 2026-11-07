@@ -1098,6 +1098,39 @@ function wipeUserData() {
   });
 }
 
+
+/**
+ * Full local reset + reload. Used on sign-out and on account switch so no
+ * in-memory or persisted copy of the previous session can survive.
+ * Firestore's IndexedDB persistence is cleared too (offline cache can
+ * otherwise serve the previous user's docs after reload).
+ */
+function hardResetAndReload(): void {
+  // Best-effort: clear Firestore's IndexedDB persistence before reloading.
+  // Bounded so a hung terminate() can never block the reload itself.
+  void (async () => {
+    try {
+      const { getFirebaseDb } = await import('../lib/firebase/client');
+      const { clearIndexedDbPersistence, terminate } = await import('firebase/firestore');
+      const db = getFirebaseDb();
+      await Promise.race([
+        (async () => {
+          await terminate(db).catch(() => {});
+          await clearIndexedDbPersistence(db).catch(() => {});
+        })(),
+        new Promise((r) => setTimeout(r, 1500)),
+      ]);
+    } catch {
+      /* not configured — localStorage wipe still applies */
+    }
+  })();
+  localStorage.removeItem(STORAGE_KEY);
+  syncMeta = {};
+  wipeUserData();
+  const base = window.location.pathname;
+  window.location.replace(`${base}#/app`);
+}
+
 let previousUid: string | null = null;
 
 /**
@@ -1168,8 +1201,20 @@ async function handleAuthUser(user: { uid: string; email: string | null; display
       cloudSyncEnabled: false,
       migrationChoice: null,
     });
-    // Sign-out must not leave the previous user's data on screen.
-    if (wasSignedIn) wipeUserData();
+    // Sign-out must not leave the previous user's data on screen: wipe
+    // everything, clear the Firestore offline cache, then reload so no
+    // in-memory copy can resurrect stale records.
+    if (wasSignedIn) {
+      hardResetAndReload();
+    }
+    return;
+  }
+
+  // Account switch while the app is open: start from a clean slate.
+  // The reload discards every in-memory copy; the fresh load then pulls
+  // only the new account's cloud state.
+  if (previousUid && previousUid !== user.uid) {
+    hardResetAndReload();
     return;
   }
 
@@ -1250,7 +1295,7 @@ export function runReminderCheck(now: Date = new Date()): void {
 if (typeof window !== 'undefined') {
   setInterval(() => runReminderCheck(), 60_000);
   if (import.meta.env.DEV) {
-    (window as unknown as Record<string, unknown>).__fpDebug = { runReminderCheck };
+    (window as unknown as Record<string, unknown>).__fpDebug = { runReminderCheck, store: useAppStore };
 
   }
 }

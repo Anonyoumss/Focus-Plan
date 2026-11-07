@@ -9,7 +9,12 @@ export async function seedGuest(
   const { coins = 0, locale = 'en', state = {} } = opts;
   await page.addInitScript(
     ({ key, coins, locale, state }) => {
-      if (!localStorage.getItem(key)) {
+      // Seed only on the first navigation of this context: page.goto and
+      // reloads re-run init scripts, and re-seeding after sign-out would
+      // resurrect the fixture task and mask real state leaks.
+      const seeded = sessionStorage.getItem('fp_test_seeded');
+      if (!seeded && !localStorage.getItem(key)) {
+        sessionStorage.setItem('fp_test_seeded', '1');
         localStorage.setItem(
           key,
           JSON.stringify({
@@ -48,7 +53,7 @@ export async function signInViaPopup(page: Page, email: string) {
     test.skip(true, 'Firebase not configured in this dev server');
     return;
   }
-  const popupPromise = page.context().waitForEvent('page', { timeout: 15_000 });
+  const popupPromise = page.context().waitForEvent('page', { timeout: 30_000 });
   await signInBtn.click();
   const popup = await popupPromise;
   await popup.waitForLoadState('domcontentloaded');

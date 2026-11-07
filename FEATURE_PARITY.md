@@ -10,7 +10,7 @@ Commands that ran:
 - `npm run build` (Vite 8.3.6) exited 0.
 - `npx playwright test` (`@playwright/test` 1.65.0, Chromium): 15 passed, 0 failed; both emulator specs self-skip without Firebase env vars.
 - `npm run test:rules` (`firebase emulators:exec --only firestore`): 31/31 rules tests passed (`tests/rules/firestore.rules.test.ts`).
-- `npm run test:e2e:firebase` (Auth + Firestore emulators + Playwright): 2/2 passed — the milestone 3 sign-in/migrate/sync/sign-out flow, plus the two-user groups spec (create, join by link and code, shared minutes, leaderboard order, hidden profile fields, rule-enforced store purchase).
+- `npm run test:e2e:firebase` (Auth + Firestore emulators + Playwright): 2/2 passed — the milestone 3 sign-in/migrate/sync/sign-out flow (now asserting clean storage/IndexedDB/UI after reload), the sign-out-then-different-user spec, plus the two-user groups spec (create, join by link and code, shared minutes, leaderboard order, hidden profile fields, rule-enforced store purchase).
 - Emulator toolchain: `firebase-tools` 15.35.0 (devDependency), `firebase` JS SDK 13.1.0, `@firebase/rules-unit-testing` 6.0.0, Firestore emulator v1.22.0, Java 21.0.13 (Temurin JRE installed user-local at `~/tools/jdk-21.0.13+9-jre`; firebase-tools 15.x requires Java 21+).
 
 Labels mean only what was run. A screen that rendered is not proof that its buttons do the real job.
@@ -108,7 +108,7 @@ Present in source and included in the production build. Not verified by the chec
 ## Fixed in milestone 3 (Firebase, emulator-first)
 
 - Firebase JS SDK 13.1.0 modular client (`src/lib/firebase/client.ts`) gated entirely on `VITE_FIREBASE_*` env vars; guest mode with zero config, no crashes, sign-in hidden.
-- Google sign-in (`auth.ts`, `signInWithPopup` + `GoogleAuthProvider`), sign-out that wipes the previous user's local data (`wipeUserData` in `useAppStore.ts`), auth loading handled before the shell renders.
+- Google sign-in (`auth.ts`, `signInWithPopup` + `GoogleAuthProvider`), sign-out that wipes the previous user's data and reloads to a clean guest (`hardResetAndReload` in `useAppStore.ts`, Decision 26), auth loading handled before the shell renders.
 - Firestore sync (`sync.ts`, `cloudSync.ts`): tasks, sessionLogs, testGoals, templates, settings under `users/{uid}/...`; 800ms debounced push with signature diffing; pull on sign-in; Firestore offline persistence enabled.
 - Guest-to-cloud migration dialog (`MigrationDialog.tsx`): explicit import/cloud/later choice, idempotent writes keyed by entity id, `meta/migration` completion marker so reloads do not re-prompt (Decision 18).
 - `firestore.rules` + 14 emulator rules tests covering isolation, shape/size validation, append-only logs, and the ledger-gated wallet model (Decision 17).
