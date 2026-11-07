@@ -76,6 +76,7 @@ export const WavyRing: React.FC<WavyRingProps> = ({
       ease: 'linear',
       onUpdate: () => {
         phaseRef.current = state.phase;
+        if (document.hidden) return;
         draw(state.phase);
       },
     });

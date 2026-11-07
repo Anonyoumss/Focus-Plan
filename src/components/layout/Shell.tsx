@@ -245,6 +245,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
 
             <button
               onClick={toggleTheme}
+              aria-label={t.settings.themeMode}
               className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
               style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
             >
@@ -266,7 +267,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
           className="border-t py-4 px-6 text-center text-xs mt-auto"
           style={{
             borderColor: 'var(--md-sys-color-outline-variant)',
-            color: 'var(--md-sys-color-outline)',
+            color: 'var(--md-sys-color-on-surface-variant)',
           }}
         >
           <div className="flex items-center justify-center gap-4">

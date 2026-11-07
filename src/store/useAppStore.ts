@@ -31,38 +31,13 @@ import {
   generateDefaultSessionLogs,
   exportSessionsToCsv,
 } from '../lib/analyticsEngine';
-import { isFirebaseConfigured } from '../lib/firebase/client';
-import { signInWithGoogle, signOutUser, subscribeAuth } from '../lib/firebase/auth';
-import {
-  cloudHasData,
-  hasMigratableLocalData,
-  isMigrationComplete,
-  markMigrationComplete,
-  pullCloudState,
-  pushCloudState,
-  type CloudStateSlice,
-  type SyncedState,
-} from '../lib/firebase/sync';
-import {
-  enqueueCloudSync,
-  setCloudSyncContext,
-} from '../lib/firebase/cloudSync';
+import { isFirebaseConfigured } from '../lib/firebase/config';
+import type { CloudStateSlice, SyncedState } from '../lib/firebase/sync';
 import {
   mergeSyncedState,
   stampSyncedCollections,
   type SyncMeta,
 } from '../lib/syncMerge';
-import {
-  claimGroupAwards,
-  creditWallet,
-  getPublicProfile,
-  listMyGroups,
-  listPublicBoard,
-  logGroupSession,
-  reconcileWallet,
-  setPublicBoardEntry,
-  spendCoins,
-} from '../lib/firebase/groups';
 import { dayKey, recentDayKeys } from '../lib/groupStats';
 import {
   applyTemplate,
@@ -294,7 +269,9 @@ function persistState(state: AppState) {
   } catch (e) {
     console.warn('Failed to persist state:', e);
   }
-  enqueueCloudSync(slice as unknown as CloudStateSlice);
+  void import('../lib/firebase/cloudSync')
+    .then((m) => m.enqueueCloudSync(slice as unknown as CloudStateSlice))
+    .catch(() => {});
 }
 
 const initialPersisted = loadPersistedState();
@@ -624,22 +601,26 @@ export const useAppStore = create<AppState>((set, get) => ({
     const { user: authUser, cloudSyncEnabled, activeGroupId, groupFocusTaskId } = get();
     if (authUser && cloudSyncEnabled) {
       if (earnedCoins > 0) {
-        void creditWallet(authUser.uid, earnedCoins, 0, 'Focus session award', 'focus_session').catch(
-          (e) => console.warn('Wallet coin mirror failed:', e),
-        );
+        void import('../lib/firebase/groups')
+          .then((m) => m.creditWallet(authUser.uid, earnedCoins, 0, 'Focus session award', 'focus_session'))
+          .catch((e) => console.warn('Wallet coin mirror failed:', e));
       }
       if (earnedPoints > 0) {
-        void creditWallet(authUser.uid, 0, earnedPoints, 'Streak threshold award', 'streak_bonus').catch(
-          (e) => console.warn('Wallet FP mirror failed:', e),
-        );
+        void import('../lib/firebase/groups')
+          .then((m) => m.creditWallet(authUser.uid, 0, earnedPoints, 'Streak threshold award', 'streak_bonus'))
+          .catch((e) => console.warn('Wallet FP mirror failed:', e));
       }
       if (activeGroupId && groupFocusTaskId) {
-        void logGroupSession(
-          activeGroupId,
-          authUser.uid,
-          groupFocusTaskId,
-          timerConfig.focusDuration / 60,
-        ).catch((e) => console.warn('Group session log failed:', e));
+        void import('../lib/firebase/groups')
+          .then((m) =>
+            m.logGroupSession(
+              activeGroupId,
+              authUser.uid,
+              groupFocusTaskId,
+              timerConfig.focusDuration / 60,
+            ),
+          )
+          .catch((e) => console.warn('Group session log failed:', e));
       }
     }
 
@@ -864,6 +845,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     // update and ledger row commit in one transaction or not at all.
     if (user && cloudSyncEnabled) {
       try {
+        const { spendCoins } = await import('../lib/firebase/groups');
         await spendCoins(user.uid, item.price, item.id, `Purchased ${item.titleKey}`);
       } catch (e) {
         console.warn('Cloud purchase failed:', e);
@@ -965,6 +947,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   signIn: async () => {
     try {
       set({ syncError: null });
+      const { signInWithGoogle } = await import('../lib/firebase/auth');
       await signInWithGoogle();
       // Auth state listener drives the rest (migration check / pull).
     } catch (e) {
@@ -975,6 +958,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   signOutAccount: async () => {
     try {
+      const { signOutUser } = await import('../lib/firebase/auth');
       await signOutUser();
     } catch (e) {
       console.warn('Sign-out failed:', e);
@@ -992,22 +976,29 @@ export const useAppStore = create<AppState>((set, get) => ({
           syncMeta,
           Date.now(),
         );
-        await pushCloudState(uid, slice as unknown as CloudStateSlice);
-        await markMigrationComplete(uid);
-        setCloudSyncContext(uid, true);
+        const sync = await import('../lib/firebase/sync');
+        const cloudSync = await import('../lib/firebase/cloudSync');
+        await sync.pushCloudState(uid, slice as unknown as CloudStateSlice);
+        await sync.markMigrationComplete(uid);
+        cloudSync.setCloudSyncContext(uid, true);
         set({ cloudSyncEnabled: true, migrationChoice: null, syncError: null });
-        enqueueCloudSync(syncedSliceOf(get()));
+        cloudSync.enqueueCloudSync(syncedSliceOf(get()));
         void adoptWalletAndClaimAwards(uid);
       } else if (choice === 'cloud') {
-        const remote = await pullCloudState(uid);
+        const sync = await import('../lib/firebase/sync');
+        const cloudSync = await import('../lib/firebase/cloudSync');
+        const remote = await sync.pullCloudState(uid);
+        // User may have signed out while the pull was in flight.
+        if (get().user?.uid !== uid) return;
         applyCloudState(remote);
-        await markMigrationComplete(uid);
-        setCloudSyncContext(uid, true);
+        await sync.markMigrationComplete(uid);
+        cloudSync.setCloudSyncContext(uid, true);
         set({ cloudSyncEnabled: true, migrationChoice: null, syncError: null });
         void adoptWalletAndClaimAwards(uid);
       } else {
         // "Later": keep local data, leave cloud sync off until next sign-in.
-        setCloudSyncContext(uid, false);
+        const cloudSync = await import('../lib/firebase/cloudSync');
+        cloudSync.setCloudSyncContext(uid, false);
         set({ cloudSyncEnabled: false, migrationChoice: null });
       }
     } catch (e) {
@@ -1115,7 +1106,8 @@ let previousUid: string | null = null;
 async function adoptWalletAndClaimAwards(uid: string) {
   try {
     const s = useAppStore.getState();
-    const wallet = await reconcileWallet(uid, s.coins, s.focusPoints);
+    const groups = await import('../lib/firebase/groups');
+    const wallet = await groups.reconcileWallet(uid, s.coins, s.focusPoints);
     const patch: Partial<AppState> = {};
     if (wallet.coins !== s.coins) patch.coins = wallet.coins;
     if (wallet.focusPoints !== s.focusPoints) patch.focusPoints = wallet.focusPoints;
@@ -1124,14 +1116,14 @@ async function adoptWalletAndClaimAwards(uid: string) {
       persistState(useAppStore.getState());
     }
 
-    const groups = await listMyGroups(uid).catch(() => []);
-    for (const g of groups) {
-      await claimGroupAwards(uid, g.id).catch((e) =>
+    const myGroups = await groups.listMyGroups(uid).catch(() => []);
+    for (const g of myGroups) {
+      await groups.claimGroupAwards(uid, g.id).catch((e) =>
         console.warn('Group award claim failed:', g.id, e),
       );
     }
     // Awards may have raised focusPoints; refresh once.
-    const after = await reconcileWallet(uid, 0, 0).catch(() => null);
+    const after = await groups.reconcileWallet(uid, 0, 0).catch(() => null);
     if (after && after.focusPoints !== useAppStore.getState().focusPoints) {
       useAppStore.setState({ focusPoints: after.focusPoints });
       persistState(useAppStore.getState());
@@ -1139,8 +1131,8 @@ async function adoptWalletAndClaimAwards(uid: string) {
 
     // Public board stats refresh each time the member opens the app
     // (this runs on every auth-ready event for signed-in users).
-    const pub = await getPublicProfile(uid).catch(() => null);
-    const board = await listPublicBoard().catch(() => []);
+    const pub = await groups.getPublicProfile(uid).catch(() => null);
+    const board = await groups.listPublicBoard().catch(() => []);
     const onBoard = board.some((e) => e.uid === uid);
     if (pub && onBoard && (pub.shareMinutes || pub.shareStreak)) {
       const s = useAppStore.getState();
@@ -1148,7 +1140,7 @@ async function adoptWalletAndClaimAwards(uid: string) {
       const weeklyMinutes = s.sessionLogs
         .filter((l) => week.has(dayKey(new Date(l.dateStr + 'T12:00:00'))))
         .reduce((sum, l) => sum + l.durationMinutes, 0);
-      await setPublicBoardEntry(uid, {
+      await groups.setPublicBoardEntry(uid, {
         uid,
         alias: pub.alias,
         weeklyMinutes: pub.shareMinutes ? weeklyMinutes : 0,
@@ -1165,7 +1157,7 @@ async function handleAuthUser(user: { uid: string; email: string | null; display
   if (!user) {
     const wasSignedIn = previousUid !== null;
     previousUid = null;
-    setCloudSyncContext(null, false);
+    void import('../lib/firebase/cloudSync').then((m) => m.setCloudSyncContext(null, false)).catch(() => {});
     useAppStore.setState({
       user: null,
       authStatus: 'ready',
@@ -1173,6 +1165,9 @@ async function handleAuthUser(user: { uid: string; email: string | null; display
       migrationChoice: null,
     });
     // Sign-out must not leave the previous user's data on screen.
+    if (wasSignedIn) wipeUserData();
+    // A cloud pull that was in flight when sign-out happened must not
+    // re-apply the previous user's records afterwards.
     if (wasSignedIn) wipeUserData();
     return;
   }
@@ -1187,38 +1182,43 @@ async function handleAuthUser(user: { uid: string; email: string | null; display
   try {
     // Once the guest->cloud choice is resolved, later sign-ins (including
     // reloads) must not re-prompt: both sides legitimately hold data.
-    if (await isMigrationComplete(user.uid)) {
-      const remote = await pullCloudState(user.uid);
+    const sync = await import('../lib/firebase/sync');
+    const cloudSync = await import('../lib/firebase/cloudSync');
+    if (await sync.isMigrationComplete(user.uid)) {
+      const remote = await sync.pullCloudState(user.uid);
+      if (useAppStore.getState().user?.uid !== user.uid) return;
       applyCloudState(remote);
-      setCloudSyncContext(user.uid, true);
+      cloudSync.setCloudSyncContext(user.uid, true);
       useAppStore.setState({ cloudSyncEnabled: true, migrationChoice: null });
       void adoptWalletAndClaimAwards(user.uid);
       return;
     }
 
     const store = useAppStore.getState();
-    const localHas = hasMigratableLocalData(syncedSliceOf(store));
-    const cloudHas = await cloudHasData(user.uid);
+    const localHas = sync.hasMigratableLocalData(syncedSliceOf(store));
+    const cloudHas = await sync.cloudHasData(user.uid);
+    if (useAppStore.getState().user?.uid !== user.uid) return;
 
     if (localHas && !cloudHas) {
-      setCloudSyncContext(user.uid, false);
+      cloudSync.setCloudSyncContext(user.uid, false);
       useAppStore.setState({ migrationChoice: 'local-only', cloudSyncEnabled: false });
       return;
     }
     if (localHas && cloudHas) {
-      setCloudSyncContext(user.uid, false);
+      cloudSync.setCloudSyncContext(user.uid, false);
       useAppStore.setState({ migrationChoice: 'both', cloudSyncEnabled: false });
       return;
     }
 
-    const remote = await pullCloudState(user.uid);
+    const remote = await sync.pullCloudState(user.uid);
+    if (useAppStore.getState().user?.uid !== user.uid) return;
     applyCloudState(remote);
-    setCloudSyncContext(user.uid, true);
+    cloudSync.setCloudSyncContext(user.uid, true);
     useAppStore.setState({ cloudSyncEnabled: true, migrationChoice: null });
     void adoptWalletAndClaimAwards(user.uid);
   } catch (e) {
     console.warn('Cloud sync init failed:', e);
-    setCloudSyncContext(user.uid, false);
+    void import('../lib/firebase/cloudSync').then((m) => m.setCloudSyncContext(user.uid, false)).catch(() => {});
     useAppStore.setState({ syncError: 'cloud-sync-failed', cloudSyncEnabled: false });
   }
 }
@@ -1250,19 +1250,24 @@ if (typeof window !== 'undefined') {
   setInterval(() => runReminderCheck(), 60_000);
   if (import.meta.env.DEV) {
     (window as unknown as Record<string, unknown>).__fpDebug = { runReminderCheck };
+
   }
 }
 
 if (isFirebaseConfigured()) {
-  subscribeAuth((firebaseUser) => {
-    void handleAuthUser(
-      firebaseUser
-        ? {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName,
-          }
-        : null,
-    );
-  });
+  void import('../lib/firebase/auth')
+    .then((m) =>
+      m.subscribeAuth((firebaseUser) => {
+        void handleAuthUser(
+          firebaseUser
+            ? {
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                displayName: firebaseUser.displayName,
+              }
+            : null,
+        );
+      }),
+    )
+    .catch((e) => console.warn('Firebase auth init failed:', e));
 }

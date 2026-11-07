@@ -125,7 +125,7 @@ export const TaskList: React.FC = () => {
           {tasks.length > 1 && (
             <span
               className="block text-[10px] mt-0.5"
-              style={{ color: 'var(--md-sys-color-outline)' }}
+              style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
             >
               {t.tasks.reorderHint}
             </span>
@@ -354,7 +354,7 @@ export const TaskList: React.FC = () => {
               <div>
                 <label
                   className="block text-xs font-semibold uppercase tracking-wider mb-1"
-                  style={{ color: 'var(--md-sys-color-outline)' }}
+                  style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                 >
                   {t.tasks.taskName}
                 </label>
@@ -378,7 +378,7 @@ export const TaskList: React.FC = () => {
                 <div>
                   <label
                     className="block text-xs font-semibold uppercase tracking-wider mb-1"
-                    style={{ color: 'var(--md-sys-color-outline)' }}
+                    style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                   >
                     {t.tasks.category}
                   </label>
@@ -404,7 +404,7 @@ export const TaskList: React.FC = () => {
                 <div>
                   <label
                     className="block text-xs font-semibold uppercase tracking-wider mb-1"
-                    style={{ color: 'var(--md-sys-color-outline)' }}
+                    style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                   >
                     {t.tasks.cadence}
                   </label>
@@ -430,7 +430,7 @@ export const TaskList: React.FC = () => {
                 <div>
                   <label
                     className="block text-xs font-semibold uppercase tracking-wider mb-1"
-                    style={{ color: 'var(--md-sys-color-outline)' }}
+                    style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                   >
                     {t.tasks.estimatedPomodoros}
                   </label>
@@ -452,7 +452,7 @@ export const TaskList: React.FC = () => {
                 <div>
                   <label
                     className="block text-xs font-semibold uppercase tracking-wider mb-1"
-                    style={{ color: 'var(--md-sys-color-outline)' }}
+                    style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                   >
                     {t.tasks.minGoal}
                   </label>
@@ -474,7 +474,7 @@ export const TaskList: React.FC = () => {
                 <div>
                   <label
                     className="block text-xs font-semibold uppercase tracking-wider mb-1"
-                    style={{ color: 'var(--md-sys-color-outline)' }}
+                    style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                   >
                     {t.tasks.maxGoal}
                   </label>
@@ -497,7 +497,7 @@ export const TaskList: React.FC = () => {
               <div>
                 <label
                   className="block text-xs font-semibold uppercase tracking-wider mb-1"
-                  style={{ color: 'var(--md-sys-color-outline)' }}
+                  style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                 >
                   {t.tasks.notes}
                 </label>

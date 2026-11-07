@@ -156,7 +156,7 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
               >
                 {locale === 'ar' ? 'تقرير دوري' : 'Focus Dossier'}
               </span>
-              <span className="text-xs font-timer font-semibold tabular-nums" style={{ color: 'var(--md-sys-color-outline)' }}>
+              <span className="text-xs font-timer font-semibold tabular-nums" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 {weekRange.startStr} → {weekRange.endStr}
               </span>
             </div>
@@ -195,6 +195,7 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
 
             <button
               onClick={onClose}
+              aria-label={locale === 'ar' ? 'إغلاق' : 'Close'}
               className="p-2 rounded-xl border hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
               style={{ borderColor: 'var(--md-sys-color-outline-variant)', color: 'var(--md-sys-color-on-surface)' }}
             >
@@ -205,7 +206,7 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
 
         {/* Period Selector (Hidden in Print) */}
         <div className="flex flex-wrap items-center gap-2 mb-6 print:hidden">
-          <span className="text-xs font-semibold" style={{ color: 'var(--md-sys-color-outline)' }}>
+          <span className="text-xs font-semibold" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
             {t.reports.weekSelector}:
           </span>
           <div
@@ -260,7 +261,7 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
         {/* 4 Core Summary Metrics */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <div className="p-4 rounded-2xl border" style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)', borderColor: 'var(--md-sys-color-outline-variant)' }}>
-            <span className="block text-[11px] font-semibold uppercase" style={{ color: 'var(--md-sys-color-outline)' }}>
+            <span className="block text-[11px] font-semibold uppercase" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
               {t.analytics.totalHours}
             </span>
             <span className="text-2xl font-bold font-timer tabular-nums block mt-1" style={{ color: 'var(--md-sys-color-primary)' }}>
@@ -269,7 +270,7 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
           </div>
 
           <div className="p-4 rounded-2xl border" style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)', borderColor: 'var(--md-sys-color-outline-variant)' }}>
-            <span className="block text-[11px] font-semibold uppercase" style={{ color: 'var(--md-sys-color-outline)' }}>
+            <span className="block text-[11px] font-semibold uppercase" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
               {t.analytics.totalSessions}
             </span>
             <span className="text-2xl font-bold font-timer tabular-nums block mt-1" style={{ color: 'var(--md-sys-color-on-surface)' }}>
@@ -278,7 +279,7 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
           </div>
 
           <div className="p-4 rounded-2xl border" style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)', borderColor: 'var(--md-sys-color-outline-variant)' }}>
-            <span className="block text-[11px] font-semibold uppercase" style={{ color: 'var(--md-sys-color-outline)' }}>
+            <span className="block text-[11px] font-semibold uppercase" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
               {t.analytics.dailyAvg}
             </span>
             <span className="text-2xl font-bold font-timer tabular-nums block mt-1" style={{ color: 'var(--md-sys-color-secondary)' }}>
@@ -287,7 +288,7 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
           </div>
 
           <div className="p-4 rounded-2xl border" style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)', borderColor: 'var(--md-sys-color-outline-variant)' }}>
-            <span className="block text-[11px] font-semibold uppercase" style={{ color: 'var(--md-sys-color-outline)' }}>
+            <span className="block text-[11px] font-semibold uppercase" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
               {t.streaks.streakTitle}
             </span>
             <span className="text-2xl font-bold font-timer tabular-nums block mt-1" style={{ color: 'var(--md-sys-color-tertiary)' }}>
@@ -305,7 +306,7 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
           <div className="rounded-2xl border overflow-hidden" style={{ borderColor: 'var(--md-sys-color-outline-variant)' }}>
             <table className="w-full text-xs text-start border-collapse">
               <thead>
-                <tr className="border-b" style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)', borderColor: 'var(--md-sys-color-outline-variant)', color: 'var(--md-sys-color-outline)' }}>
+                <tr className="border-b" style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)', borderColor: 'var(--md-sys-color-outline-variant)', color: 'var(--md-sys-color-on-surface-variant)' }}>
                   <th className="py-2.5 px-3 text-start font-semibold uppercase">{t.analytics.date}</th>
                   <th className="py-2.5 px-3 text-start font-semibold uppercase">{locale === 'ar' ? 'اليوم' : 'Day'}</th>
                   <th className="py-2.5 px-3 text-start font-semibold uppercase">{t.analytics.minutes}</th>
@@ -346,12 +347,12 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           {/* Subject Allocation */}
           <div className="p-4 rounded-2xl border" style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)', borderColor: 'var(--md-sys-color-outline-variant)' }}>
-            <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--md-sys-color-outline)' }}>
+            <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
               {t.reports.studyEffort}
             </h3>
 
             {categoryBreakdown.length === 0 ? (
-              <p className="text-xs" style={{ color: 'var(--md-sys-color-outline)' }}>
+              <p className="text-xs" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 {locale === 'ar' ? 'لا توجد جلسات في هذا الأسبوع.' : 'No sessions recorded for this week.'}
               </p>
             ) : (
@@ -375,12 +376,12 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
 
           {/* Test Prep Status */}
           <div className="p-4 rounded-2xl border" style={{ backgroundColor: 'var(--md-sys-color-surface-container-low)', borderColor: 'var(--md-sys-color-outline-variant)' }}>
-            <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--md-sys-color-outline)' }}>
+            <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
               {t.reports.testPrepOverview}
             </h3>
 
             {testGoals.length === 0 ? (
-              <p className="text-xs" style={{ color: 'var(--md-sys-color-outline)' }}>
+              <p className="text-xs" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 {locale === 'ar' ? 'لم يتم تحديد أهداف اختبارات بعد.' : 'No active test goals registered.'}
               </p>
             ) : (
@@ -391,7 +392,7 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
                       <span className="font-semibold block truncate" style={{ color: 'var(--md-sys-color-on-surface)' }}>
                         {g.testName}
                       </span>
-                      <span className="text-[10px]" style={{ color: 'var(--md-sys-color-outline)' }}>
+                      <span className="text-[10px]" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                         {g.testDate}
                       </span>
                     </div>
@@ -400,7 +401,7 @@ export const WeeklyReportModal: React.FC<WeeklyReportModalProps> = ({ onClose })
                       <span className="block font-bold" style={{ color: 'var(--md-sys-color-primary)' }}>
                         {g.currentBaselineScore} / {g.targetScore}
                       </span>
-                      <span className="text-[10px]" style={{ color: 'var(--md-sys-color-outline)' }}>
+                      <span className="text-[10px]" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                         {g.completedPomodoros} / {g.weeklyPomodoros} p
                       </span>
                     </div>

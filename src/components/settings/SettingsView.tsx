@@ -146,7 +146,7 @@ export const SettingsView: React.FC = () => {
           <div className="mb-5">
             <label
               className="block text-xs font-semibold uppercase tracking-wider mb-2"
-              style={{ color: 'var(--md-sys-color-outline)' }}
+              style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
             >
               {t.settings.themeMode}
             </label>
@@ -179,7 +179,7 @@ export const SettingsView: React.FC = () => {
           <div>
             <label
               className="block text-xs font-semibold uppercase tracking-wider mb-2"
-              style={{ color: 'var(--md-sys-color-outline)' }}
+              style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
             >
               {t.settings.seedPalette}
             </label>
@@ -296,7 +296,7 @@ export const SettingsView: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
             <div>
-              <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--md-sys-color-outline)' }}>
+              <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 {t.settings.focusDuration} (min)
               </label>
               <input
@@ -317,7 +317,7 @@ export const SettingsView: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--md-sys-color-outline)' }}>
+              <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 {t.settings.shortBreakDuration} (min)
               </label>
               <input
@@ -338,7 +338,7 @@ export const SettingsView: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--md-sys-color-outline)' }}>
+              <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 {t.settings.longBreakDuration} (min)
               </label>
               <input
@@ -554,7 +554,7 @@ export const SettingsView: React.FC = () => {
                 </button>
               )}
               {notificationStatus === 'granted' && (
-                <p className="text-[11px]" style={{ color: 'var(--md-sys-color-outline)' }}>
+                <p className="text-[11px]" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                   {locale === 'ar' ? 'الإشعارات مسموحة' : 'Notifications allowed'}
                 </p>
               )}

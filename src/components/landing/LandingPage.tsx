@@ -115,7 +115,7 @@ export const LandingPage: React.FC = () => {
                 </button>
                 <span
                   className="text-xs flex items-center gap-1.5"
-                  style={{ color: 'var(--md-sys-color-outline)' }}
+                  style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                 >
                   <MaterialIcon name="lock" size={14} />
                   {t.landing.privacyFirst}
@@ -205,7 +205,7 @@ export const LandingPage: React.FC = () => {
                 </p>
                 <p
                   className="text-xs mt-4 flex items-start gap-1.5"
-                  style={{ color: 'var(--md-sys-color-outline)' }}
+                  style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                 >
                   <MaterialIcon name="verified" size={14} className="shrink-0 mt-0.5" />
                   {t.landing.verifyNote}
@@ -232,7 +232,7 @@ export const LandingPage: React.FC = () => {
                     <div className="min-w-0">
                       <span
                         className="text-xs font-bold me-2"
-                        style={{ color: 'var(--md-sys-color-outline)' }}
+                        style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                       >
                         {test.code}
                       </span>
@@ -265,7 +265,7 @@ export const LandingPage: React.FC = () => {
         className="border-t py-5 px-4"
         style={{
           borderColor: 'var(--md-sys-color-outline-variant)',
-          color: 'var(--md-sys-color-outline)',
+          color: 'var(--md-sys-color-on-surface-variant)',
         }}
       >
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">

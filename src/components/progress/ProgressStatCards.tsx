@@ -31,7 +31,7 @@ export const ProgressStatCards: React.FC = () => {
           <MaterialIcon name="timer" size={20} style={{ color: 'var(--md-sys-color-primary)' }} />
           <span
             className="text-xs font-semibold uppercase tracking-wider"
-            style={{ color: 'var(--md-sys-color-outline)' }}
+            style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
           >
             {locale === 'ar' ? 'إجمالي وقت التركيز' : 'Total Focus Time'}
           </span>
@@ -61,7 +61,7 @@ export const ProgressStatCards: React.FC = () => {
           <MaterialIcon name="local_fire_department" size={20} style={{ color: 'var(--md-sys-color-tertiary)' }} filled />
           <span
             className="text-xs font-semibold uppercase tracking-wider"
-            style={{ color: 'var(--md-sys-color-outline)' }}
+            style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
           >
             {t.streaks.streakTitle}
           </span>
@@ -95,7 +95,7 @@ export const ProgressStatCards: React.FC = () => {
           <MaterialIcon name="flag" size={20} style={{ color: 'var(--md-sys-color-secondary)' }} />
           <span
             className="text-xs font-semibold uppercase tracking-wider"
-            style={{ color: 'var(--md-sys-color-outline)' }}
+            style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
           >
             {t.timer.dailyTarget}
           </span>

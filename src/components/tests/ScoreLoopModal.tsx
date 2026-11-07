@@ -105,7 +105,7 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose, a
               >
                 {definition?.code || 'TEST'}
               </span>
-              <span className="text-xs font-semibold" style={{ color: 'var(--md-sys-color-outline)' }}>
+              <span className="text-xs font-semibold" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 {analysis.daysRemaining} {t.tests.daysRemaining}
               </span>
             </div>
@@ -140,7 +140,7 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose, a
         >
           <div className="flex items-center gap-6">
             <div>
-              <span className="block text-[11px] font-semibold uppercase" style={{ color: 'var(--md-sys-color-outline)' }}>
+              <span className="block text-[11px] font-semibold uppercase" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 {t.scoreLoop.target}
               </span>
               <span className="text-2xl font-bold font-timer tabular-nums" style={{ color: 'var(--md-sys-color-primary)' }}>
@@ -151,7 +151,7 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose, a
             <div className="h-8 w-px" style={{ backgroundColor: 'var(--md-sys-color-outline-variant)' }} />
 
             <div>
-              <span className="block text-[11px] font-semibold uppercase" style={{ color: 'var(--md-sys-color-outline)' }}>
+              <span className="block text-[11px] font-semibold uppercase" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 {t.scoreLoop.actual}
               </span>
               <span className="text-2xl font-bold font-timer tabular-nums" style={{ color: 'var(--md-sys-color-on-surface)' }}>
@@ -162,7 +162,7 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose, a
             <div className="h-8 w-px" style={{ backgroundColor: 'var(--md-sys-color-outline-variant)' }} />
 
             <div>
-              <span className="block text-[11px] font-semibold uppercase" style={{ color: 'var(--md-sys-color-outline)' }}>
+              <span className="block text-[11px] font-semibold uppercase" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 {t.scoreLoop.gap}
               </span>
               <span
@@ -204,7 +204,7 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose, a
             </h3>
 
             <div>
-              <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--md-sys-color-outline)' }}>
+              <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 {locale === 'ar' ? 'الدرجة الكلية المحققة' : 'Overall Composite Score'}
               </label>
               <input
@@ -224,7 +224,7 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose, a
             {/* Per-Section Score Inputs */}
             {sections.length > 0 && (
               <div>
-                <label className="block text-xs font-semibold mb-2" style={{ color: 'var(--md-sys-color-outline)' }}>
+                <label className="block text-xs font-semibold mb-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                   {t.scoreLoop.sectionBreakdown}
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -251,7 +251,7 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose, a
             )}
 
             <div>
-              <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--md-sys-color-outline)' }}>
+              <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 {t.tasks.notes}
               </label>
               <input
@@ -313,7 +313,7 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose, a
                     <span className="text-sm font-semibold block" style={{ color: 'var(--md-sys-color-on-surface)' }}>
                       {sec.sectionName}
                     </span>
-                    <span className="text-xs" style={{ color: 'var(--md-sys-color-outline)' }}>
+                    <span className="text-xs" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                       {t.scoreLoop.target}: {sec.targetScore} · {t.scoreLoop.actual}: {sec.actualScore} ·{' '}
                       {sec.targetScore > 0 ? `${Math.round((sec.actualScore / sec.targetScore) * 100)}%` : '—'}{' '}
                       {locale === 'ar' ? 'من الهدف' : 'of goal'}
@@ -329,7 +329,7 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose, a
                     >
                       {sec.gap > 0 ? `+${sec.gap}` : sec.gap}
                     </span>
-                    <span className="text-[11px]" style={{ color: 'var(--md-sys-color-outline)' }}>
+                    <span className="text-[11px]" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                       {sec.recommendedWeeklyPomodoros} {locale === 'ar' ? 'جلسة/أسبوع' : 'pomodoros/wk'}
                     </span>
                   </div>
@@ -395,7 +395,7 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose, a
           </h3>
 
           {goal.scoresHistory.length === 0 ? (
-            <div className="text-xs p-4 rounded-xl border text-center" style={{ borderColor: 'var(--md-sys-color-outline-variant)', color: 'var(--md-sys-color-outline)' }}>
+            <div className="text-xs p-4 rounded-xl border text-center" style={{ borderColor: 'var(--md-sys-color-outline-variant)', color: 'var(--md-sys-color-on-surface-variant)' }}>
               {t.scoreLoop.noHistory}
             </div>
           ) : (
@@ -436,7 +436,7 @@ export const ScoreLoopModal: React.FC<ScoreLoopModalProps> = ({ goal, onClose, a
                     <span className="font-semibold block font-timer tabular-nums" style={{ color: 'var(--md-sys-color-on-surface)' }}>
                       {item.date}
                     </span>
-                    <span className="text-[11px]" style={{ color: 'var(--md-sys-color-outline)' }}>
+                    <span className="text-[11px]" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                       {item.notes || 'Mock trial'}
                     </span>
                   </div>

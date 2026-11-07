@@ -147,7 +147,7 @@ export const TelemetryCharts: React.FC = () => {
             borderColor: 'var(--md-sys-color-outline-variant)',
           }}
         >
-          <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--md-sys-color-outline)' }}>
+          <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
             {t.analytics.totalHours}
           </div>
           <div className="text-2xl font-bold font-timer tabular-nums" style={{ color: 'var(--md-sys-color-on-surface)' }}>
@@ -165,7 +165,7 @@ export const TelemetryCharts: React.FC = () => {
             borderColor: 'var(--md-sys-color-outline-variant)',
           }}
         >
-          <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--md-sys-color-outline)' }}>
+          <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
             {t.analytics.dailyAvg}
           </div>
           <div className="text-2xl font-bold font-timer tabular-nums" style={{ color: 'var(--md-sys-color-primary)' }}>
@@ -183,7 +183,7 @@ export const TelemetryCharts: React.FC = () => {
             borderColor: 'var(--md-sys-color-outline-variant)',
           }}
         >
-          <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--md-sys-color-outline)' }}>
+          <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
             {t.analytics.completionRate}
           </div>
           <div className="text-2xl font-bold font-timer tabular-nums" style={{ color: 'var(--md-sys-color-secondary)' }}>
@@ -201,7 +201,7 @@ export const TelemetryCharts: React.FC = () => {
             borderColor: 'var(--md-sys-color-outline-variant)',
           }}
         >
-          <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--md-sys-color-outline)' }}>
+          <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
             {t.analytics.topCategory}
           </div>
           <div className="text-base font-bold truncate mt-1" style={{ color: 'var(--md-sys-color-on-surface)' }}>
@@ -330,7 +330,7 @@ export const TelemetryCharts: React.FC = () => {
                     {pt.sublabel && (
                       <span
                         className="block text-[10px]"
-                        style={{ color: 'var(--md-sys-color-outline)' }}
+                        style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                       >
                         {pt.sublabel}
                       </span>
@@ -355,7 +355,7 @@ export const TelemetryCharts: React.FC = () => {
                   {hoveredPoint.label} {hoveredPoint.sublabel ? `(${hoveredPoint.sublabel})` : ''}
                 </span>
                 {hoveredPoint.topCategory && (
-                  <span className="text-[11px]" style={{ color: 'var(--md-sys-color-outline)' }}>
+                  <span className="text-[11px]" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                     · {getCategoryLabel(t, hoveredPoint.topCategory)}
                   </span>
                 )}
@@ -429,7 +429,7 @@ export const TelemetryCharts: React.FC = () => {
               ))}
             </svg>
           </div>
-          <div className="text-center text-[11px] mt-2" style={{ color: 'var(--md-sys-color-outline)' }}>
+          <div className="text-center text-[11px] mt-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
             {locale === 'ar' ? 'منحنى تسارع جلسات التركيز عبر الزمن' : 'Continuous focus velocity trendline'}
           </div>
         </div>
@@ -488,7 +488,7 @@ export const TelemetryCharts: React.FC = () => {
                   </span>
                   <span
                     className="block text-[11px]"
-                    style={{ color: 'var(--md-sys-color-outline)' }}
+                    style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                   >
                     {cat.percentage}% ({cat.sessions} {locale === 'ar' ? 'جلسة' : 'sess'})
                   </span>
@@ -506,7 +506,7 @@ export const TelemetryCharts: React.FC = () => {
             <span className="font-bold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
               {t.analytics.activityHeatmapTitle} (4 Weeks)
             </span>
-            <div className="flex items-center gap-1.5 text-[11px]" style={{ color: 'var(--md-sys-color-outline)' }}>
+            <div className="flex items-center gap-1.5 text-[11px]" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
               <span>{t.analytics.less}</span>
               <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'var(--md-sys-color-surface-container-highest)' }} />
               <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'var(--md-sys-color-primary-container)', opacity: 0.5 }} />
@@ -558,7 +558,7 @@ export const TelemetryCharts: React.FC = () => {
                 className="border-b text-start"
                 style={{
                   borderColor: 'var(--md-sys-color-outline-variant)',
-                  color: 'var(--md-sys-color-outline)',
+                  color: 'var(--md-sys-color-on-surface-variant)',
                 }}
               >
                 <th className="py-2.5 px-3 text-start font-semibold uppercase">{t.analytics.date}</th>
@@ -603,7 +603,7 @@ export const TelemetryCharts: React.FC = () => {
             </tbody>
           </table>
           {filteredSessions.length > 10 && (
-            <div className="text-center text-[11px] pt-3" style={{ color: 'var(--md-sys-color-outline)' }}>
+            <div className="text-center text-[11px] pt-3" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
               {locale === 'ar' ? `عرض أول 10 من إجمالي ${filteredSessions.length} جلسة` : `Showing first 10 of ${filteredSessions.length} sessions`}
             </div>
           )}

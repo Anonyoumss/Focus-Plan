@@ -160,7 +160,7 @@ export const TestsView: React.FC = () => {
                       <div className="truncate">
                         <span
                           className="text-xs font-semibold uppercase tracking-wider"
-                          style={{ color: 'var(--md-sys-color-outline)' }}
+                          style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                         >
                           {definition?.code || 'EXAM'}
                         </span>
@@ -199,13 +199,13 @@ export const TestsView: React.FC = () => {
 
                     <div className="flex items-center justify-between text-xs my-3 tabular-nums">
                       <div>
-                        <span style={{ color: 'var(--md-sys-color-outline)' }}>{t.tests.currentScore}: </span>
+                        <span style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{t.tests.currentScore}: </span>
                         <span className="font-bold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
                           {goal.currentBaselineScore}
                         </span>
                       </div>
                       <div>
-                        <span style={{ color: 'var(--md-sys-color-outline)' }}>{t.tests.targetScore}: </span>
+                        <span style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{t.tests.targetScore}: </span>
                         <span className="font-bold" style={{ color: 'var(--md-sys-color-primary)' }}>
                           {goal.targetScore}
                         </span>
@@ -232,7 +232,7 @@ export const TestsView: React.FC = () => {
                             <span style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                               {locale === 'ar' ? sec.nameAr : sec.nameEn}
                               {sec.minScore !== undefined && (
-                                <span className="ms-1 text-[10px]" style={{ color: 'var(--md-sys-color-outline)' }}>
+                                <span className="ms-1 text-[10px]" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                                   ({sec.minScore}-{sec.maxScore})
                                 </span>
                               )}
@@ -375,12 +375,12 @@ export const TestsView: React.FC = () => {
                       className="text-xs font-bold px-2 py-0.5 rounded"
                       style={{
                         backgroundColor: 'var(--md-sys-color-surface-container-highest)',
-                        color: 'var(--md-sys-color-outline)',
+                        color: 'var(--md-sys-color-on-surface-variant)',
                       }}
                     >
                       {test.code}
                     </span>
-                    <span className="text-xs" style={{ color: 'var(--md-sys-color-outline)' }}>
+                    <span className="text-xs" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                       {test.sections.length} {t.tests.sections}
                     </span>
                   </div>
@@ -447,7 +447,7 @@ export const TestsView: React.FC = () => {
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-[10px] hover:underline flex items-center gap-0.5"
-                              style={{ color: 'var(--md-sys-color-outline)' }}
+                              style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                             >
                               <span>{fieldLabel}</span>
                               <MaterialIcon name="open_in_new" size={10} />

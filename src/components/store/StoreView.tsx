@@ -59,7 +59,7 @@ export const StoreView: React.FC = () => {
             <MaterialIcon name="monetization_on" size={20} style={{ color: 'var(--md-sys-color-primary)' }} />
           </div>
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--md-sys-color-outline)' }}>
+            <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
               {t.store.coinsBalance}
             </div>
             <div className="text-xl font-timer font-bold tabular-nums" style={{ color: 'var(--md-sys-color-on-surface)' }}>
@@ -150,7 +150,7 @@ export const StoreView: React.FC = () => {
                 <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'var(--md-sys-color-outline-variant)' }}>
                   <div className="flex items-center gap-1 font-timer font-bold text-sm tabular-nums">
                     <span>{item.price}</span>
-                    <span className="text-xs font-normal" style={{ color: 'var(--md-sys-color-outline)' }}>
+                    <span className="text-xs font-normal" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                       {t.store.price}
                     </span>
                   </div>
@@ -186,7 +186,7 @@ export const StoreView: React.FC = () => {
         </h2>
 
         {transactions.length === 0 ? (
-          <p className="text-xs" style={{ color: 'var(--md-sys-color-outline)' }}>
+          <p className="text-xs" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
             {locale === 'ar' ? 'لا توجد معاملات بعد.' : 'No transactions recorded yet.'}
           </p>
         ) : (
@@ -204,7 +204,7 @@ export const StoreView: React.FC = () => {
                   <div className="font-semibold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
                     {tx.reason}
                   </div>
-                  <div className="text-[10px]" style={{ color: 'var(--md-sys-color-outline)' }}>
+                  <div className="text-[10px]" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                     {new Date(tx.timestamp).toLocaleString()}
                   </div>
                 </div>

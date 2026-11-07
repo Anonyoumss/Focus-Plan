@@ -80,3 +80,21 @@
 - README/CODEBASE/CONTRIBUTING/CoC/SECURITY/LICENSE(MIT)/issue+PR templates written to match the code.
 - Scan: clean — no secrets in tree or history; tool dirs removed; no history rewrite required.
 - Owner actions remaining: push, make repo public, enable Pages (GitHub Actions source), add `VITE_FIREBASE_*` repo variables, add `anonyoumss.github.io` to Firebase authorized domains, publish `firestore.rules`.
+
+
+## Polish pass (post-M6)
+- A11y: all `outline` text colors moved to `on-surface-variant`; fixed
+  viewport meta (removed user-scalable lock), added aria-labels to the
+  theme toggle, ambient-sound select and report close button.
+- Perf: routes are React.lazy; Firebase SDK (629 kB chunk) and the
+  emulator hook load only via dynamic import — absent from the initial
+  bundle in guest mode. Env config split into `lib/firebase/config.ts`.
+  Fonts narrowed to used weight ranges, display=swap kept.
+- Lighthouse (prod build, /Focus-Plan/): landing mobile 97/100/96/100,
+  landing desktop 99/100/96/100, app mobile 92/96/96/100.
+- Bundle: main chunk 1,160 kB -> 522 kB (gzip 345 -> 154 kB).
+- KNOWN ISSUE: firebase-emulators sign-out spec still fails — after
+  sign-out one local task row reappears in memory (localStorage and uid
+  are correctly cleared; no snapshot listeners exist). Uid guards were
+  added so in-flight cloud pulls cannot re-apply after sign-out, but the
+  residual reappearance is NOT fully root-caused. Needs a follow-up.

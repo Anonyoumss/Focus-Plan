@@ -221,7 +221,7 @@ export const TimerDisplay: React.FC = () => {
           <div className="truncate text-start">
             <div
               className="text-xs uppercase tracking-wider font-semibold"
-              style={{ color: 'var(--md-sys-color-outline)' }}
+              style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
             >
               {t.timer.currentTask}
             </div>
@@ -252,6 +252,7 @@ export const TimerDisplay: React.FC = () => {
           <MaterialIcon name="graphic_eq" size={18} className="shrink-0" />
           <span className="shrink-0">{t.timer.ambientSound}:</span>
           <select
+            aria-label={t.timer.ambientSound}
             value={ambientSound}
             onChange={(e) => setAmbientSound(e.target.value as any)}
             className="bg-transparent border rounded-md px-2 py-1 text-xs outline-none cursor-pointer max-w-36 truncate"

@@ -129,7 +129,7 @@ export const ProgressView: React.FC = () => {
               </h2>
               <span
                 className="text-xs font-medium"
-                style={{ color: 'var(--md-sys-color-outline)' }}
+                style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
               >
                 {t.streaks.streakRuleNotice}
               </span>
@@ -238,7 +238,7 @@ export const ProgressView: React.FC = () => {
                             }}
                           />
                         </div>
-                        <span className="text-[10px] font-semibold tabular-nums" style={{ color: 'var(--md-sys-color-outline)' }}>
+                        <span className="text-[10px] font-semibold tabular-nums" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                           {isUnlocked ? t.badges.unlocked : `${badge.progressPercent}%`}
                         </span>
                       </div>

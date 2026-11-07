@@ -38,7 +38,7 @@ export const PrivacyPage: React.FC = () => {
           </h1>
           <p
             className="text-xs mt-1"
-            style={{ color: 'var(--md-sys-color-outline)' }}
+            style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
           >
             {t.legal.lastUpdated}
           </p>

@@ -485,7 +485,7 @@ export const FriendsView: React.FC = () => {
                           {m.uid === uid ? ` (${ar ? 'أنت' : 'you'})` : ''}
                           {m.role === 'owner' ? ' · owner' : ''}
                         </span>
-                        <span className="text-xs" style={{ color: 'var(--md-sys-color-outline)' }}>
+                        <span className="text-xs" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                           {new Date(m.joinedAt).toLocaleDateString()}
                         </span>
                       </li>
@@ -618,7 +618,7 @@ export const FriendsView: React.FC = () => {
                     </div>
                   ))}
                 </div>
-                <p className="text-xs mt-3" style={{ color: 'var(--md-sys-color-outline)' }}>
+                <p className="text-xs mt-3" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                   {t.friends.dailyWinnerNotice} · {t.friends.weeklyWinnerNotice}
                 </p>
               </div>
@@ -636,7 +636,7 @@ export const FriendsView: React.FC = () => {
             <h2 className="text-base font-bold mb-1" style={{ color: 'var(--md-sys-color-on-surface)' }}>
               {t.friends.publicBoard}
             </h2>
-            <p className="text-xs mb-4" style={{ color: 'var(--md-sys-color-outline)' }}>
+            <p className="text-xs mb-4" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
               {t.friends.publicBoardNote}
             </p>
             {board.length === 0 ? (

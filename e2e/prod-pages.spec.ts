@@ -33,7 +33,12 @@ test.afterAll(() => {
 test('prod build: landing, app routes, legal, invite, reloads, assets', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(String(e)));
-  page.on('requestfailed', (r) => errors.push(`reqfail:${r.url()}`));
+  page.on('requestfailed', (r) => {
+    // Code-split lazy chunks can be aborted by rapid route navigations;
+    // only real load failures matter.
+    if (r.failure()?.errorText?.includes('ERR_ABORTED')) return;
+    errors.push(`reqfail:${r.url()}`);
+  });
 
   // Landing
   await page.goto(BASE);

@@ -69,7 +69,7 @@ export const OnboardingModal: React.FC = () => {
           <button
             onClick={() => setOnboardingCompleted(true)}
             className="text-xs font-semibold hover:underline cursor-pointer"
-            style={{ color: 'var(--md-sys-color-outline)' }}
+            style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
           >
             {t.onboarding.skip}
           </button>
@@ -157,7 +157,7 @@ export const OnboardingModal: React.FC = () => {
             </p>
 
             <div className="space-y-3 mb-6">
-              <label className="block text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--md-sys-color-outline)' }}>
+              <label className="block text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 {t.tasks.taskName}
               </label>
               <input
@@ -224,7 +224,7 @@ export const OnboardingModal: React.FC = () => {
                 borderColor: 'var(--md-sys-color-outline-variant)',
               }}
             >
-              <div className="text-[11px] uppercase font-semibold mb-1" style={{ color: 'var(--md-sys-color-outline)' }}>
+              <div className="text-[11px] uppercase font-semibold mb-1" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 {locale === 'ar' ? 'رمز دائرة المذاكرة المبدئية' : 'Your Starter Circle Code'}
               </div>
               <div
