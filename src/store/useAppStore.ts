@@ -110,6 +110,15 @@ export interface AppState {
   tickVolume: number;
   reminderSettings: ReminderSettings;
   setReminderSettings: (settings: ReminderSettings) => void;
+  /** Spotlight (focus) mode: dims the app while the timer runs. */
+  spotlightMode: boolean;
+  setSpotlightMode: (on: boolean) => void;
+  /** Transient: Escape/pause dismissed the scrim for the current run. */
+  spotlightDismissed: boolean;
+  dismissSpotlight: () => void;
+  /** In-app "reduce animations" override on top of the OS setting. */
+  reduceAnimations: boolean;
+  setReduceAnimations: (on: boolean) => void;
   timerConfig: TimerConfig;
 
   // Tasks & Goals
@@ -222,6 +231,19 @@ function loadPersistedState(): PersistedShape {
   }
 }
 
+function prefersReducedMotionOS(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
+  );
+}
+
+/** Toggles the `reduce-motion` class on <html> for CSS animation overrides. */
+function applyMotionPreference(reduce: boolean) {
+  if (typeof document === 'undefined') return;
+  document.documentElement.classList.toggle('reduce-motion', reduce);
+}
+
 // Per-record { hash, updatedAt } map driving conflict-free sync merges.
 // Persisted inside the same localStorage blob under `syncMeta`.
 let syncMeta: SyncMeta = loadPersistedState().syncMeta ?? {};
@@ -255,6 +277,8 @@ function persistState(state: AppState) {
     activeGroupId: state.activeGroupId,
     groupFocusTaskId: state.groupFocusTaskId,
     reminderSettings: state.reminderSettings,
+    spotlightMode: state.spotlightMode,
+    reduceAnimations: state.reduceAnimations,
     tickSoundEnabled: state.tickSoundEnabled,
     tickVolume: state.tickVolume,
   };
@@ -329,7 +353,7 @@ const DEMO_TEST_GOALS: UserTestGoal[] = [
   {
     id: 'demo_gat_goal',
     testId: 'gat_qudurat',
-    testName: 'Saudi GAT (Qudurat)',
+    testName: 'GAT',
     testDate: '2026-12-15',
     targetScore: 92,
     currentBaselineScore: 81,
@@ -357,7 +381,11 @@ const DEMO_TEST_GOALS: UserTestGoal[] = [
 ];
 
 export const useAppStore = create<AppState>((set, get) => ({
-  locale: initialPersisted.locale || 'en',
+  locale:
+    initialPersisted.locale ||
+    (typeof navigator !== 'undefined' && navigator.languages?.[0]?.toLowerCase().startsWith('ar')
+      ? 'ar'
+      : 'en'),
   themeMode: initialPersisted.themeMode || 'system',
   seedHex: initialPersisted.seedHex || '#2e6b52',
   activeTab: 'focus',
@@ -381,6 +409,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   tickSoundEnabled: initialPersisted.tickSoundEnabled ?? false,
   tickVolume: initialPersisted.tickVolume ?? 0.3,
   reminderSettings: initialPersisted.reminderSettings || DEFAULT_REMINDER_SETTINGS,
+  spotlightMode: initialPersisted.spotlightMode ?? false,
+  spotlightDismissed: false,
+  reduceAnimations: initialPersisted.reduceAnimations ?? false,
   timerConfig: initialPersisted.timerConfig || DEFAULT_TIMER_CONFIG,
 
   tasks: initialPersisted.tasks || [],
@@ -468,6 +499,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({
       isRunning: true,
       targetEndTime,
+      spotlightDismissed: false,
     });
 
     requestScreenWakeLock();
@@ -677,6 +709,19 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setReminderSettings: (reminderSettings) => {
     set({ reminderSettings });
+    persistState(get());
+  },
+
+  setSpotlightMode: (spotlightMode) => {
+    set({ spotlightMode });
+    persistState(get());
+  },
+
+  dismissSpotlight: () => set({ spotlightDismissed: true }),
+
+  setReduceAnimations: (reduceAnimations) => {
+    set({ reduceAnimations });
+    applyMotionPreference(reduceAnimations || prefersReducedMotionOS());
     persistState(get());
   },
 
@@ -1021,6 +1066,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 }));
+
+// Apply persisted/OS motion preference once at startup.
+applyMotionPreference(
+  useAppStore.getState().reduceAnimations || prefersReducedMotionOS(),
+);
 
 // ---- Cloud auth lifecycle (module scope; uses store statics) ----
 

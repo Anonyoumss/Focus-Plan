@@ -4,10 +4,51 @@
 |-------|--------|-------|
 | A: secure Gemini changes | Done | auth+ratelimit+CORS+validation; dev script split; offline estimate labeled; legal updated; e2e mocked |
 | B: reviewer findings | Done | 9 items verified; 3 real bugs fixed; see detail |
-| C: layout/perf/focus/lang/footer | Pending | |
+| C: layout/perf/focus/lang/footer | Done | see detail |
 | D: tests intake + Plan page | Pending | |
 | E: audio + referrals | Pending | |
 | F: logo + PWA | Pending | |
+
+## Stage C detail
+- LAYOUT: app shell is now h-[100dvh] overflow-hidden; content column and
+  main got min-h-0 so only the content area scrolls. Rail/bottom nav
+  stay fixed (e2e asserts nav bottom == viewport height at 360px).
+- PERF: profiled with Playwright + PerformanceObserver. Finding: no
+  data-dependent slowness — 2000 seeded logs render Progress in ~19ms
+  warm; the 5-10s symptom is first-load chunk+font latency (cold vite
+  dev compile / first prod navigation). Longtasks ~70ms max. Added a
+  skeleton-first 250ms reveal on ProgressView (never blank) + e2e perf
+  smoke (<5s warm revisit with 2000 logs). Honest caveat: no count-up
+  animations yet; reveal is fade via existing skeleton.
+- MODE BG: shell background tints per timer mode via M3 tonal roles
+  (secondary-container for short break, tertiary-container for long
+  break, 30% mix over surface, 700ms transition). e2e asserts change.
+- SPOTLIGHT: new persisted setting (default OFF — opt-in, avoids
+  surprising click-blocking). While running, a surface-color scrim
+  (never black) dims everything except rail, bottom nav, clock and
+  pause/skip (relative z-30). Escape or pause exits; resume re-arms.
+  RTL/phone safe (z-order only). e2e covers scrim show/Escape/pause.
+- FOOTER: removed from in-app shell; legal entry added to Settings.
+  audit-screenshots spec updated (Terms/Privacy now via Settings,
+  goBack instead of reload because its init script re-seeds).
+- LANGUAGE: header/rail switches removed; onboarding step 1 now has
+  EN/AR picker; default locale from navigator.languages (not IP —
+  agreed, IP geolocation is unreliable and privacy-invasive).
+  Landing keeps its small switch; Settings keeps its switch.
+- A11Y: "Reduce animations" toggle in Settings overrides OS via
+  .reduce-motion class on <html> (kills CSS anims/transitions).
+  Custom seed color picker added: native color input + hex text field
+  (accepts any #rrggbb, live preview swatch + live theme).
+- FRIENDS: guest state now shows skeleton leaderboard preview +
+  explanation + sign-in CTA.
+- NAMING: catalog "Saudi GAT (Qudurat)" -> name "GAT" + subtitle
+  "Qudurat" / "القدرات العامة" rendered under the name in the picker.
+- Checks: tsc clean, eslint clean, 80/80 unit, 33/33 rules,
+  stage-c.spec 9/9, audit-screenshots 8/8, full Playwright + emulator
+  suite results below, build pass.
+- Untested: spotlight visuals verified via DOM/z-order only, not by
+  eye; mode tint verified by computed color change, not screenshot
+  diff; count-up animations not implemented (skeleton+fade only).
 
 ## Stage B detail
 - Reviewer findings treated as hypotheses; each reproduced with a failing

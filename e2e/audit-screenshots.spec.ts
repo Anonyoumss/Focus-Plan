@@ -113,8 +113,16 @@ for (const locale of ['en', 'ar'] as const) {
           await page.screenshot({ path: path.join(dir, `${id}.png`), fullPage: true });
         }
 
+        // Legal pages live in Settings now (in-app footer was removed)
+        let settingsButton = nav.getByRole('button', { name: labels.settings });
+        if (viewport.name === 'phone') {
+          await nav.getByRole('button', { name: labels.more }).click();
+          settingsButton = page.getByRole('dialog').getByRole('button', { name: labels.settings });
+        }
+        await settingsButton.click();
         await page.getByRole('button', { name: labels.terms }).click();
         await page.screenshot({ path: path.join(dir, 'terms.png'), fullPage: true });
+        await page.goBack(); // returns to Settings without a reload (init script would re-seed onboarding)
         await page.getByRole('button', { name: labels.privacy }).click();
         await page.screenshot({ path: path.join(dir, 'privacy.png'), fullPage: true });
 

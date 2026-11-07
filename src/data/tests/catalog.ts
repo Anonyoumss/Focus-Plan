@@ -18,6 +18,9 @@ export interface StandardizedTestDefinition {
   code: string;
   nameEn: string;
   nameAr: string;
+  /** Optional short subtitle shown under the name (e.g. "Qudurat"). */
+  subtitleEn?: string;
+  subtitleAr?: string;
   category: 'saudi' | 'international';
   minScore: number;
   maxScore: number;
@@ -37,8 +40,10 @@ export const TEST_CATALOG: StandardizedTestDefinition[] = [
   {
     id: 'gat_qudurat',
     code: 'GAT',
-    nameEn: 'Saudi GAT (Qudurat)',
-    nameAr: 'اختبار القدرات العامة (قياس)',
+    nameEn: 'GAT',
+    nameAr: 'GAT',
+    subtitleEn: 'Qudurat',
+    subtitleAr: 'القدرات العامة',
     category: 'saudi',
     minScore: 0,
     maxScore: 100,

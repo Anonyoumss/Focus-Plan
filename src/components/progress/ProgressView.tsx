@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { TRANSLATIONS, lookupTranslationString } from '../../i18n/translations';
 import { MaterialIcon } from '../common/MaterialIcon';
@@ -22,6 +22,13 @@ export const ProgressView: React.FC = () => {
   const t = TRANSLATIONS[locale];
   const [isLoading, setIsLoading] = useState(false);
   const [showWeeklyReportModal, setShowWeeklyReportModal] = useState(false);
+  // Skeleton-first reveal: data is synchronous from the store, so show the
+  // skeleton briefly on first paint, then fade the real content in.
+  const [revealed, setRevealed] = useState(false);
+  useEffect(() => {
+    const id = window.setTimeout(() => setRevealed(true), 250);
+    return () => window.clearTimeout(id);
+  }, []);
 
   const goalPercent = calculateGoalPercent(todaySessionsCount, dailyGoalSessions);
 
@@ -100,7 +107,12 @@ export const ProgressView: React.FC = () => {
         </div>
       </div>
 
-      {isLoading ? (
+      {!revealed ? (
+        <div aria-busy="true" aria-label={locale === 'ar' ? 'جارٍ التحميل' : 'Loading'}>
+          <SkeletonLoader variant="card" count={2} />
+          <SkeletonLoader variant="text" count={4} />
+        </div>
+      ) : isLoading ? (
         <div className="space-y-4">
           <SkeletonLoader variant="card" count={2} />
           <SkeletonLoader variant="text" count={4} />

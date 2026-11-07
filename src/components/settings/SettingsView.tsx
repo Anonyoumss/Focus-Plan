@@ -4,6 +4,7 @@ import { TRANSLATIONS } from '../../i18n/translations';
 import { THEME_PRESETS, ThemeMode } from '../../design/theme';
 import { MaterialIcon } from '../common/MaterialIcon';
 import { MdSwitch } from '../common/MdControls';
+import { navigateToAppTab } from '../../lib/router';
 
 export const SettingsView: React.FC = () => {
   const {
@@ -42,10 +43,14 @@ export const SettingsView: React.FC = () => {
     importTasksFromCsv,
     reminderSettings,
     setReminderSettings,
+    spotlightMode,
+    setSpotlightMode,
+    reduceAnimations,
+    setReduceAnimations,
   } = useAppStore();
 
   const t = TRANSLATIONS[locale];
-  const [, setCustomHex] = useState(seedHex);
+  const [customHex, setCustomHex] = useState(seedHex);
   const [notificationStatus, setNotificationStatus] = useState<string>(
     typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'
   );
@@ -212,6 +217,50 @@ export const SettingsView: React.FC = () => {
                   </button>
                 );
               })}
+            </div>
+            <div className="flex items-center gap-3 mt-4">
+              <input
+                type="color"
+                aria-label={locale === 'ar' ? 'اختيار لون مخصص' : 'Pick custom color'}
+                value={/^#[0-9a-fA-F]{6}$/.test(customHex) ? customHex : '#2e6b52'}
+                onChange={(e) => {
+                  setCustomHex(e.target.value);
+                  setSeedHex(e.target.value);
+                }}
+                className="w-11 h-11 rounded-xl border cursor-pointer p-1"
+                style={{
+                  backgroundColor: 'var(--md-sys-color-surface-container)',
+                  borderColor: 'var(--md-sys-color-outline-variant)',
+                }}
+              />
+              <input
+                type="text"
+                value={customHex}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setCustomHex(v);
+                  if (/^#[0-9a-fA-F]{6}$/.test(v)) setSeedHex(v);
+                }}
+                placeholder="#2e6b52"
+                maxLength={7}
+                spellCheck={false}
+                className="w-28 px-3 py-2 rounded-xl border text-xs font-mono outline-none"
+                style={{
+                  backgroundColor: 'var(--md-sys-color-surface-container)',
+                  borderColor: 'var(--md-sys-color-outline-variant)',
+                  color: 'var(--md-sys-color-on-surface)',
+                }}
+              />
+              <div
+                className="w-8 h-8 rounded-full border"
+                aria-hidden="true"
+                style={{
+                  backgroundColor: /^#[0-9a-fA-F]{6}$/.test(customHex)
+                    ? customHex
+                    : 'var(--md-sys-color-surface-container-highest)',
+                  borderColor: 'var(--md-sys-color-outline-variant)',
+                }}
+              />
             </div>
           </div>
         </div>
@@ -492,6 +541,43 @@ export const SettingsView: React.FC = () => {
               />
             </label>
           )}
+        </div>
+
+        {/* Focus mode & motion */}
+        <div
+          className="p-6 rounded-3xl border"
+          style={{
+            backgroundColor: 'var(--md-sys-color-surface-container-low)',
+            borderColor: 'var(--md-sys-color-outline-variant)',
+          }}
+        >
+          <h2 className="text-base font-bold mb-3" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+            {locale === 'ar' ? 'التركيز والحركة' : 'Focus & Motion'}
+          </h2>
+          <label className="flex items-center gap-3 text-sm mb-3 cursor-pointer" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+            <MdSwitch
+              selected={spotlightMode}
+              onSelectedChange={setSpotlightMode}
+              label={locale === 'ar' ? 'وضع التركيز (إبراز المؤقت)' : 'Spotlight mode (highlight the timer)'}
+            />
+          </label>
+          <p className="text-[11px] mb-3 ms-1" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+            {locale === 'ar'
+              ? 'يُبقي شريط التنقل والمؤقت وأزرار الإيقاف مؤقتاً والانتقال بارزة ويُخفت بقية الشاشة أثناء عمل المؤقت. اضغط Esc للخروج.'
+              : 'Keeps the navigation, clock and pause/skip buttons bright and dims the rest of the screen while the timer runs. Press Esc to exit.'}
+          </p>
+          <label className="flex items-center gap-3 text-sm cursor-pointer" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+            <MdSwitch
+              selected={reduceAnimations}
+              onSelectedChange={setReduceAnimations}
+              label={locale === 'ar' ? 'تقليل الحركة' : 'Reduce animations'}
+            />
+          </label>
+          <p className="text-[11px] mt-1 ms-1" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+            {locale === 'ar'
+              ? 'يتجاوز إعداد تقليل الحركة في نظام التشغيل.'
+              : 'Overrides the operating system reduce-motion setting.'}
+          </p>
         </div>
 
         {/* Reminders (in-app only, no push) */}
@@ -881,6 +967,41 @@ export const SettingsView: React.FC = () => {
               {locale === 'ar' ? 'إعادة ضبط البيانات' : 'Reset Local Data'}
             </button>
             </div>
+          </div>
+        </div>
+
+        {/* Legal */}
+        <div
+          className="p-6 rounded-3xl border"
+          style={{
+            backgroundColor: 'var(--md-sys-color-surface-container-low)',
+            borderColor: 'var(--md-sys-color-outline-variant)',
+          }}
+        >
+          <h2 className="text-base font-bold mb-3" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+            {locale === 'ar' ? 'قانوني' : 'Legal'}
+          </h2>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => navigateToAppTab('terms')}
+              className="px-4 py-2 rounded-xl text-sm font-semibold border cursor-pointer"
+              style={{
+                borderColor: 'var(--md-sys-color-outline-variant)',
+                color: 'var(--md-sys-color-on-surface-variant)',
+              }}
+            >
+              {t.nav.terms}
+            </button>
+            <button
+              onClick={() => navigateToAppTab('privacy')}
+              className="px-4 py-2 rounded-xl text-sm font-semibold border cursor-pointer"
+              style={{
+                borderColor: 'var(--md-sys-color-outline-variant)',
+                color: 'var(--md-sys-color-on-surface-variant)',
+              }}
+            >
+              {t.nav.privacy}
+            </button>
           </div>
         </div>
       </div>

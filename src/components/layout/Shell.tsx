@@ -11,7 +11,6 @@ interface ShellProps {
 export const Shell: React.FC<ShellProps> = ({ children }) => {
   const {
     locale,
-    setLocale,
     themeMode,
     setThemeMode,
     activeTab,
@@ -22,6 +21,10 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
     resetTimer,
     skipTimer,
     setTimerMode,
+    timerMode,
+    spotlightMode,
+    spotlightDismissed,
+    dismissSpotlight,
   } = useAppStore();
 
   const t = TRANSLATIONS[locale];
@@ -63,6 +66,11 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
       } else if (e.key === '?') {
         e.preventDefault();
         setShowShortcutsModal(true);
+      } else if (e.key === 'Escape') {
+        if (spotlightMode && isRunning && !spotlightDismissed) {
+          e.preventDefault();
+          dismissSpotlight();
+        }
       } else if (e.key === 'n' || e.key === 'N') {
         e.preventDefault();
         window.dispatchEvent(new CustomEvent('focus-plan:new-task'));
@@ -71,7 +79,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isRunning, startTimer, pauseTimer, resetTimer, skipTimer, setTimerMode, setShowShortcutsModal]);
+  }, [isRunning, startTimer, pauseTimer, resetTimer, skipTimer, setTimerMode, setShowShortcutsModal, spotlightMode, spotlightDismissed, dismissSpotlight]);
 
   const navItems: { id: TabDestination; label: string; icon: string }[] = [
     { id: 'focus', label: t.nav.focus, icon: 'timer' },
@@ -93,15 +101,16 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
     else setThemeMode('light');
   };
 
-  const toggleLocale = () => {
-    setLocale(locale === 'en' ? 'ar' : 'en');
-  };
-
   return (
     <div
-      className="min-h-screen flex flex-col md:flex-row transition-colors"
+      className="h-[100dvh] overflow-hidden flex flex-col md:flex-row transition-colors duration-700"
       style={{
-        backgroundColor: 'var(--md-sys-color-surface)',
+        backgroundColor:
+          timerMode === 'shortBreak'
+            ? 'color-mix(in srgb, var(--md-sys-color-secondary-container) 30%, var(--md-sys-color-surface))'
+            : timerMode === 'longBreak'
+            ? 'color-mix(in srgb, var(--md-sys-color-tertiary-container) 30%, var(--md-sys-color-surface))'
+            : 'var(--md-sys-color-surface)',
         color: 'var(--md-sys-color-on-surface)',
       }}
     >
@@ -185,16 +194,6 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
           </button>
 
           <button
-            onClick={toggleLocale}
-            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer text-xs font-bold"
-            style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
-            title="Toggle Language"
-            aria-label="Toggle Language"
-          >
-            {locale === 'en' ? 'AR' : 'EN'}
-          </button>
-
-          <button
             onClick={() => setShowShortcutsModal(true)}
             className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
             style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
@@ -207,7 +206,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 pb-20 md:pb-8">
+      <div className="flex-1 min-h-0 flex flex-col min-w-0 pb-20 md:pb-8">
         {/* Mobile Top Header Bar */}
         <header
           className="flex md:hidden items-center justify-between px-4 py-3 border-b sticky top-0 z-20"
@@ -236,14 +235,6 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
 
           <div className="flex items-center gap-1.5">
             <button
-              onClick={toggleLocale}
-              className="p-1.5 rounded-lg text-xs font-bold hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
-              style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
-            >
-              {locale === 'en' ? 'عربي' : 'EN'}
-            </button>
-
-            <button
               onClick={toggleTheme}
               aria-label={t.settings.themeMode}
               className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
@@ -258,37 +249,25 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
         </header>
 
         {/* Active Page Component Body */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 min-h-0 overflow-y-auto">
           {children}
         </main>
 
-        {/* Global Footer with Plain-Language Legal Links */}
-        <footer
-          className="border-t py-4 px-6 text-center text-xs mt-auto"
-          style={{
-            borderColor: 'var(--md-sys-color-outline-variant)',
-            color: 'var(--md-sys-color-on-surface-variant)',
-          }}
-        >
-          <div className="flex items-center justify-center gap-4">
-            <button
-              onClick={() => navigateToAppTab('terms')}
-              className="hover:underline cursor-pointer"
-            >
-              {t.nav.terms}
-            </button>
-            <span aria-hidden="true">·</span>
-            <button
-              onClick={() => navigateToAppTab('privacy')}
-              className="hover:underline cursor-pointer"
-            >
-              {t.nav.privacy}
-            </button>
-            <span aria-hidden="true">·</span>
-            <span>Focus Plan M3E © 2026</span>
-          </div>
-        </footer>
       </div>
+
+      {/* Spotlight scrim: dims everything except rail, bottom nav, clock and
+          timer controls (those carry relative z-30). Escape or pause exits. */}
+      {spotlightMode && isRunning && !spotlightDismissed && (
+        <div
+          className="fixed inset-0 z-[25]"
+          style={{
+            backgroundColor:
+              'color-mix(in srgb, var(--md-sys-color-surface) 55%, transparent)',
+          }}
+          aria-hidden="true"
+          data-testid="spotlight-scrim"
+        />
+      )}
 
       {/* Mobile Floating Bottom Navigation Bar */}
       <nav

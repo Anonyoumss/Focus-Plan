@@ -306,18 +306,37 @@ export const FriendsView: React.FC = () => {
       )}
 
       {!ready ? (
-        <div className={card} style={cardStyle}>
-          <p className="text-sm mb-4" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-            {t.friends.signInRequired}
-          </p>
-          <button
-            onClick={() => void signIn()}
-            className={primaryBtn}
-            style={primaryBtnStyle}
-            disabled={busy}
-          >
-            {t.friends.signInCta}
-          </button>
+        <div className="space-y-4">
+          {/* Skeleton leaderboard preview */}
+          <div className={card} style={cardStyle} aria-hidden="true">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-4 w-32 rounded-lg" style={{ backgroundColor: 'var(--md-sys-color-surface-container-highest)' }} />
+              <div className="h-6 w-20 rounded-full" style={{ backgroundColor: 'var(--md-sys-color-surface-container-highest)' }} />
+            </div>
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="flex items-center gap-3 py-2.5">
+                <div className="w-8 h-8 rounded-full shrink-0" style={{ backgroundColor: 'var(--md-sys-color-surface-container-highest)' }} />
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-3 w-2/5 rounded" style={{ backgroundColor: 'var(--md-sys-color-surface-container-highest)' }} />
+                  <div className="h-2.5 w-1/4 rounded" style={{ backgroundColor: 'var(--md-sys-color-surface-container-high)' }} />
+                </div>
+                <div className="h-3 w-12 rounded" style={{ backgroundColor: 'var(--md-sys-color-surface-container-highest)' }} />
+              </div>
+            ))}
+          </div>
+          <div className={card} style={cardStyle}>
+            <p className="text-sm mb-4" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+              {t.friends.signInRequired}
+            </p>
+            <button
+              onClick={() => void signIn()}
+              className={primaryBtn}
+              style={primaryBtnStyle}
+              disabled={busy}
+            >
+              {t.friends.signInCta}
+            </button>
+          </div>
         </div>
       ) : (
         <>

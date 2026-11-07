@@ -7,6 +7,7 @@ import { MaterialIcon } from '../common/MaterialIcon';
 export const OnboardingModal: React.FC = () => {
   const {
     locale,
+    setLocale,
     onboardingCompleted,
     setOnboardingCompleted,
     seedHex,
@@ -95,11 +96,41 @@ export const OnboardingModal: React.FC = () => {
               {t.onboarding.step1Title}
             </h2>
             <p
-              className="text-xs mb-6"
+              className="text-xs mb-4"
               style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
             >
               {t.onboarding.step1Subtitle}
             </p>
+
+            <div
+              className="flex items-center gap-2 mb-6 p-1.5 rounded-2xl border w-fit"
+              style={{
+                backgroundColor: 'var(--md-sys-color-surface-container)',
+                borderColor: 'var(--md-sys-color-outline-variant)',
+              }}
+              role="group"
+              aria-label="Language"
+            >
+              {(['en', 'ar'] as const).map((l) => (
+                <button
+                  key={l}
+                  onClick={() => setLocale(l)}
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer ${
+                    locale === l ? 'shadow-sm' : ''
+                  }`}
+                  style={{
+                    backgroundColor:
+                      locale === l ? 'var(--md-sys-color-primary)' : 'transparent',
+                    color:
+                      locale === l
+                        ? 'var(--md-sys-color-on-primary)'
+                        : 'var(--md-sys-color-on-surface-variant)',
+                  }}
+                >
+                  {l === 'en' ? 'English' : 'العربية'}
+                </button>
+              ))}
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
               {THEME_PRESETS.map((preset) => {
@@ -164,7 +195,7 @@ export const OnboardingModal: React.FC = () => {
                 type="text"
                 value={firstTaskName}
                 onChange={(e) => setFirstTaskName(e.target.value)}
-                placeholder="e.g. Saudi GAT Math Practice"
+                placeholder="e.g. GAT Math Practice"
                 className="w-full px-3.5 py-2.5 rounded-xl border text-sm outline-none"
                 style={{
                   backgroundColor: 'var(--md-sys-color-surface-container-low)',
@@ -173,7 +204,7 @@ export const OnboardingModal: React.FC = () => {
                 }}
               />
               <div className="flex flex-wrap gap-2 text-xs">
-                {['Saudi GAT Verbal', 'SAT Math Section', 'Physics Chapter 4', 'Deep Reading'].map((sample) => (
+                {['GAT Quantitative', 'SAT Math Section', 'Physics Chapter 4', 'Deep Reading'].map((sample) => (
                   <button
                     key={sample}
                     type="button"

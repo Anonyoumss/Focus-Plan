@@ -642,7 +642,7 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
           'Scheduled push notifications and calendar reminders are not part of this release. The only alerts today are in-app notification permission requests for session completion while the app is open.',
         ]},
         { heading: '3. Standardized Test Information Disclaimer', paragraphs: [
-          'Standardized test dates, syllabus structures, and scoring scales provided in the catalog (including Saudi GAT, SAAT, STEP, KFUPM and International SAT, ACT, IELTS, TOEFL, Duolingo) are reference benchmarks. You are solely responsible for verifying registration deadlines and test dates directly on official test authority portals.',
+          'Standardized test dates, syllabus structures, and scoring scales provided in the catalog (including GAT (Qudurat), SAAT, STEP, KFUPM and International SAT, ACT, IELTS, TOEFL, Duolingo) are reference benchmarks. You are solely responsible for verifying registration deadlines and test dates directly on official test authority portals.',
         ]},
         { heading: '4. Optional AI Features', paragraphs: [
           'When the optional AI assistant is available, requests are sent through our server to Google Gemini. Only what the feature needs is transmitted: test names, section names, target and current scores, section score ranges, and study-planning numbers. Your name, email, tasks, notes, and session history are never sent. AI output is always a suggestion you review and confirm; nothing is saved until you accept it.',
@@ -749,7 +749,7 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       streakTitle: 'Streaks that reward showing up',
       streakDesc: 'Three or more finished pomodoros in a day keep your streak alive. Your current numbers are on the right, computed from your real sessions.',
       testsTitle: 'Built for standardized tests',
-      testsDesc: 'Saudi GAT, SAAT, STEP, KFUPM Early SAAT, SAT, ACT, IELTS, TOEFL, Duolingo, and custom goals with per-section targets and a score loop.',
+      testsDesc: 'GAT (Qudurat), SAAT, STEP, KFUPM Early SAAT, SAT, ACT, IELTS, TOEFL, Duolingo, and custom goals with per-section targets and a score loop.',
       testsCta: 'Browse the test catalog',
       verifyNote: 'Catalog details come from official sources where confirmed. Anything unverified is labeled verify on the official site.',
       privacyFirst: 'Local first. Your data stays in this browser until you choose otherwise.',
@@ -1146,7 +1146,7 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       streakTitle: 'سلاسل تكافئ الاستمرار',
       streakDesc: 'ثلاث جلسات بومودورو مكتملة على الأقل في اليوم تحافظ على سلسلتك. أرقامك الحالية على اليسار محسوبة من جلساتك الفعلية.',
       testsTitle: 'مصمم للاختبارات المعيارية',
-      testsDesc: 'القدرات والتحصيلي وSTEP والقبول المبكر في كفعم، إضافة إلى SAT وACT وIELTS وTOEFL ودوولينجو وأهداف مخصصة بمعايير أقسام وحلقة درجات.',
+      testsDesc: 'القدرات العامة (GAT) والتحصيلي وSTEP والقبول المبكر في كفعم، إضافة إلى SAT وACT وIELTS وTOEFL ودوولينجو وأهداف مخصصة بمعايير أقسام وحلقة درجات.',
       testsCta: 'تصفح دليل الاختبارات',
       verifyNote: 'تفاصيل الدليل من مصادر رسمية حيثما تأكدت. أي حقل غير مؤكد موسوم بـ تحقق من الموقع الرسمي.',
       privacyFirst: 'محلي أولاً. بياناتك تبقى في هذا المتصفح إلى أن تقرر غير ذلك.',

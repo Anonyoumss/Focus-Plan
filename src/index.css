@@ -139,3 +139,14 @@ body {
   background: var(--md-sys-color-outline-variant);
   border-radius: 9999px;
 }
+
+/* In-app "reduce animations" override (Settings). Works alongside the OS
+   prefers-reduced-motion handling in components. */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

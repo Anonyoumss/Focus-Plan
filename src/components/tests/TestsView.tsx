@@ -450,7 +450,17 @@ export const TestsView: React.FC = () => {
                     className="text-sm font-bold mb-1"
                     style={{ color: 'var(--md-sys-color-on-surface)' }}
                   >
-                    {locale === 'ar' ? test.nameAr : test.nameEn}
+                    <span className="flex items-baseline gap-2">
+                      {locale === 'ar' ? test.nameAr : test.nameEn}
+                      {(locale === 'ar' ? test.subtitleAr : test.subtitleEn) && (
+                        <span
+                          className="text-xs font-medium"
+                          style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+                        >
+                          {locale === 'ar' ? test.subtitleAr : test.subtitleEn}
+                        </span>
+                      )}
+                    </span>
                   </h3>
 
                   <p

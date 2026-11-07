@@ -149,3 +149,14 @@ This log documents all technical, structural, and design decisions made during t
 - **Decision**: Signing out (or signing in as a different uid while signed in) wipes user data, clears the Firestore IndexedDB persistence on a best-effort bounded basis, removes the persisted storage key, and reloads the app to a clean guest session. The product rule is "sign-out starts an empty guest" — no previous user's tasks, sessions, templates, goals, or settings may survive on screen, in storage, or in the Firestore offline cache.
 - **Rationale**: Chasing the exact in-memory resurrection path proved unreliable; a full reload discards every in-memory copy by construction. The emulator spec re-seeding its own fixture on every navigation (`addInitScript` + `page.goto`) was the actual source of the recurring `guest_task_1` row — the app wipe was already correct — but the reload also covers real edge cases (late pulls, offline cache, in-place mutations).
 - **Source**: `useAppStore.ts` `hardResetAndReload`, `e2e/firebase-emulators.spec.ts` sign-out/account-switch specs.
+
+## Decision 27 — Stage C UX defaults
+- Spotlight (focus) mode ships OFF by default: the scrim blocks pointer
+  events on dimmed content, so opt-in avoids surprising users and test
+  breakage. Enable in Settings > Focus & Motion.
+- App language defaults from `navigator.languages` (browser setting),
+  not IP geolocation: IP geo is unreliable on VPNs and is a privacy
+  cost for zero benefit. First-run onboarding asks explicitly anyway.
+- "Reduce animations" is an in-app override layered on the OS
+  `prefers-reduced-motion` setting, implemented as a `reduce-motion`
+  class on `<html>` that clamps CSS animation/transition durations.

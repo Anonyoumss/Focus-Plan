@@ -28,6 +28,8 @@ export const TimerDisplay: React.FC = () => {
     tickTimer,
     setAmbientSound,
     setAlarmVolume,
+    spotlightMode,
+    spotlightDismissed,
   } = useAppStore();
 
   const t = TRANSLATIONS[locale];
@@ -54,6 +56,8 @@ export const TimerDisplay: React.FC = () => {
 
   const progress = calculateProgress(remainingSeconds, totalDuration);
   const reduceMotion = useReducedMotion();
+  const spotlight = spotlightMode && isRunning && !spotlightDismissed;
+  const exempt = spotlight ? 'relative z-30' : '';
   const morphTransition = reduceMotion
     ? { duration: 0 }
     : { type: 'spring' as const, stiffness: 420, damping: 32 };
@@ -130,7 +134,7 @@ export const TimerDisplay: React.FC = () => {
         </button>
       </div>
 
-      <div className="relative flex items-center justify-center w-72 h-72 sm:w-80 sm:h-80 mb-8 select-none">
+      <div className={`relative flex items-center justify-center w-72 h-72 sm:w-80 sm:h-80 mb-8 select-none ${exempt}`}>
         <WavyRing progress={progress} size={size} strokeWidth={strokeWidth} />
 
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
@@ -168,7 +172,7 @@ export const TimerDisplay: React.FC = () => {
           onClick={isRunning ? pauseTimer : startTimer}
           animate={{ borderRadius: isRunning ? 20 : 999 }}
           transition={morphTransition}
-          className="min-w-44 max-w-full h-14 px-6 sm:px-8 flex items-center justify-center gap-3 font-semibold text-base cursor-pointer shadow-md"
+          className={`min-w-44 max-w-full h-14 px-6 sm:px-8 flex items-center justify-center gap-3 font-semibold text-base cursor-pointer shadow-md ${exempt}`}
           style={{
             backgroundColor: 'var(--md-sys-color-primary)',
             color: 'var(--md-sys-color-on-primary)',
@@ -192,7 +196,7 @@ export const TimerDisplay: React.FC = () => {
 
         <button
           onClick={skipTimer}
-          className="w-12 h-12 rounded-full flex items-center justify-center transition-transform active:scale-95 cursor-pointer"
+          className={`w-12 h-12 rounded-full flex items-center justify-center transition-transform active:scale-95 cursor-pointer ${exempt}`}
           style={{
             backgroundColor: 'var(--md-sys-color-surface-container)',
             color: 'var(--md-sys-color-on-surface-variant)',

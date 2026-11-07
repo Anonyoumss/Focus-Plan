@@ -80,12 +80,40 @@ Present in source and included in the production build. Not verified by the chec
 - `MdSlider` (timer duration sliders) and `MdSelect` (ambient sound) wrappers exist; the slider was not driven in the browser, the select renders in screenshots.
 - `anime.js` drives the WavyRing phase loop; `motion` drives the button morph. Both verified visually/via DOM probes above.
 
+
+## Overnight hardening stages (2026-11-08, commits after `before-gemini`)
+
+### Stage A — Gemini proxy security (Verified in browser + unit tested)
+- `server.ts` rewritten: Firebase ID-token verification (Google x509 certs, cached) on every `/api/gemini/*` route; per-user daily quota persisted to a JSON file that survives restarts; CORS restricted to owned origins; request/field size caps; shared schema + per-section score-range validation in `src/lib/ai/validation.ts`; sanitized logging (no tokens/emails/prompts).
+- `npm run dev` is plain Vite again; AI server is `npm run dev:server` (`tsx server.ts`, runs on Node 24). Client reads `VITE_AI_API_URL` (empty = same origin); unreachable/404 disables AI and shows "Offline estimate" — never "AI suggested".
+- `e2e/ai-features.spec.ts` (4 tests): three modals EN + AR/RTL, edit-before-save, offline fallback, error path — all with a mocked endpoint. Verified in browser.
+- Terms/Privacy updated EN+AR for what is sent to Gemini and Google's data-use terms.
+
+### Stage B — reviewer findings (Verified where reproduced)
+- Rules: ledger doc must be new for walletDeltaOk; wallet docs constrained to canonical id. Rules tests 33/33.
+- `todaySessionsCount` stale-date fix (e2e reproduced streak=4 bug, now passes); streakCalculator resets after gaps exceeding freezes (unit tests).
+- `hardResetAndReload` awaits bounded IndexedDB clear before reload; emulator sign-out specs 2/2.
+- a11y: mode buttons `aria-pressed`, `skip_next` mirrors RTL, TelemetryCharts logical `me-1` + localized unit label; Terms/Privacy AR bodies via i18n (legal-i18n spec EN+AR).
+- README offline claim corrected (no service worker yet — stage F).
+
+### Stage C — layout, motion, language (Verified in browser)
+- Fixed-height shell (`100dvh`, `min-h-0` chain): only content scrolls; rail/bottom nav fixed. e2e at 360px.
+- Mode-tinted shell background per timer mode (M3 tonal mixes, 700ms). e2e asserts computed-color change.
+- Spotlight mode (Settings toggle, default off): surface scrim dims all but nav/clock/pause/skip; Escape or pause exits. e2e covers show/Escape/pause.
+- "Reduce animations" Settings toggle overrides OS via `.reduce-motion` class.
+- Language: header switches removed; onboarding step 1 has EN/AR picker; default from `navigator.languages`; Settings + landing keep switches.
+- In-app footer removed; Legal entry in Settings. Custom seed-color picker (any #rrggbb, live preview).
+- Friends guest state: skeleton leaderboard preview + sign-in CTA.
+- Catalog: "Saudi GAT (Qudurat)" renamed to "GAT" + subtitle "Qudurat" / "القدرات العامة".
+- Perf: profiled — no data-dependent slowness (2000 logs ≈19ms warm); first-load latency is chunk+font. ProgressView now skeleton-first (250ms) then reveals. e2e perf smoke added.
+
 ## Not in this codebase
 
 - Path-based URL routes. Routing is hash-based (`#/...`); a static host serves `index.html` for any path, and deep links/refresh work through the hash parser.
 - Real Firebase project wiring. Everything was verified against the Emulator Suite with demo config; no production Firebase project exists yet. App Check is a documented placeholder, not implemented.
 - Multi-device conflict resolution beyond last-write-wins per document. Offline edits made while signed in can be overwritten by a cloud pull on the next sign-in (DECISIONS.md).
-- Google Tasks, Google Calendar, Gemini, FCM.
+- Google Tasks, Google Calendar, FCM.
+- Gemini via Firebase AI Logic or a hosted function — the current proxy is a local `server.ts` for development; production deployment of the AI endpoints is not set up.
 - Per-topic timer lengths.
 - Group member alias editing, group rename, group deletion by non-last-owner, ownership-transfer edge cases beyond the tested leave flow.
 - Group award claiming in the browser (runs on sign-in via `adoptWalletAndClaimAwards`; exercised indirectly — the two-user spec signs in twice but does not assert award docs). Rules-tested shapes only.
