@@ -26,7 +26,10 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": ["icons/icon.png"],
+    "icon": [
+      "icons/icon.png",
+      "icons/icon.ico"
+    ],
     "category": "Productivity",
     "shortDescription": "Pomodoro focus timer with study goals",
     "longDescription": "Focus Plan: a pomodoro timer with goal-driven study tracking, streaks, badges, friends and test preparation. English and Arabic."
