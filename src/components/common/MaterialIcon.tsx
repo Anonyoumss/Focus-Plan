@@ -1,4 +1,5 @@
 import React from 'react';
+import { ICON_CODEPOINTS } from '../../lib/iconCodepoints';
 
 interface MaterialIconProps {
   name: string;
@@ -31,7 +32,9 @@ export const MaterialIcon: React.FC<MaterialIconProps> = ({
       aria-label={ariaLabel}
       role={ariaLabel ? 'img' : undefined}
     >
-      {name}
+      {ICON_CODEPOINTS[name] !== undefined
+        ? String.fromCodePoint(ICON_CODEPOINTS[name])
+        : name}
     </span>
   );
 };

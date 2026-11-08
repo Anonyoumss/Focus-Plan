@@ -409,7 +409,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   tickSoundEnabled: initialPersisted.tickSoundEnabled ?? false,
   tickVolume: initialPersisted.tickVolume ?? 0.3,
   reminderSettings: initialPersisted.reminderSettings || DEFAULT_REMINDER_SETTINGS,
-  spotlightMode: initialPersisted.spotlightMode ?? false,
+  spotlightMode: initialPersisted.spotlightMode ?? true,
   spotlightDismissed: false,
   reduceAnimations: initialPersisted.reduceAnimations ?? false,
   timerConfig: initialPersisted.timerConfig || DEFAULT_TIMER_CONFIG,

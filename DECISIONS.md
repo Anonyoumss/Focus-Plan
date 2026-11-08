@@ -151,9 +151,11 @@ This log documents all technical, structural, and design decisions made during t
 - **Source**: `useAppStore.ts` `hardResetAndReload`, `e2e/firebase-emulators.spec.ts` sign-out/account-switch specs.
 
 ## Decision 27 — Stage C UX defaults
-- Spotlight (focus) mode ships OFF by default: the scrim blocks pointer
-  events on dimmed content, so opt-in avoids surprising users and test
-  breakage. Enable in Settings > Focus & Motion.
+- Spotlight (focus) mode defaults ON for users without a saved
+  preference (updated after owner review): the scrim blocks pointer
+  events on dimmed content, so it is skipped entirely under reduced
+  motion (OS or in-app override) and exits on pause/Escape. Users can
+  disable it in Settings > Focus & Motion.
 - App language defaults from `navigator.languages` (browser setting),
   not IP geolocation: IP geo is unreliable on VPNs and is a privacy
   cost for zero benefit. First-run onboarding asks explicitly anyway.

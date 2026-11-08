@@ -30,6 +30,7 @@ export const TimerDisplay: React.FC = () => {
     setAlarmVolume,
     spotlightMode,
     spotlightDismissed,
+    reduceAnimations,
   } = useAppStore();
 
   const t = TRANSLATIONS[locale];
@@ -56,7 +57,12 @@ export const TimerDisplay: React.FC = () => {
 
   const progress = calculateProgress(remainingSeconds, totalDuration);
   const reduceMotion = useReducedMotion();
-  const spotlight = spotlightMode && isRunning && !spotlightDismissed;
+  const spotlight =
+    spotlightMode &&
+    isRunning &&
+    !spotlightDismissed &&
+    !reduceAnimations &&
+    !reduceMotion;
   const exempt = spotlight ? 'relative z-30' : '';
   const morphTransition = reduceMotion
     ? { duration: 0 }

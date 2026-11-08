@@ -25,6 +25,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
     spotlightMode,
     spotlightDismissed,
     dismissSpotlight,
+    reduceAnimations,
   } = useAppStore();
 
   const t = TRANSLATIONS[locale];
@@ -257,7 +258,11 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
 
       {/* Spotlight scrim: dims everything except rail, bottom nav, clock and
           timer controls (those carry relative z-30). Escape or pause exits. */}
-      {spotlightMode && isRunning && !spotlightDismissed && (
+      {spotlightMode &&
+        isRunning &&
+        !spotlightDismissed &&
+        !reduceAnimations &&
+        !window.matchMedia('(prefers-reduced-motion: reduce)').matches && (
         <div
           className="fixed inset-0 z-[25]"
           style={{
