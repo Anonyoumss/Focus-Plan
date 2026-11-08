@@ -24,6 +24,7 @@ const MigrationDialog = lazy(() => import('./components/auth/MigrationDialog').t
 const ShortcutsModal = lazy(() => import('./components/common/ShortcutsModal').then((m) => ({ default: m.ShortcutsModal })));
 const LandingPage = lazy(() => import('./components/landing/LandingPage').then((m) => ({ default: m.LandingPage })));
 const InvitePage = lazy(() => import('./components/landing/InvitePage').then((m) => ({ default: m.InvitePage })));
+const ReferralPage = lazy(() => import('./components/landing/ReferralPage').then((m) => ({ default: m.ReferralPage })));
 import { AppRoute, parseHashRoute, subscribeToHash } from './lib/router';
 
 function SwUpdateBanner() {
@@ -119,6 +120,14 @@ export default function App() {
     return (
       <Suspense fallback={null}>
         <InvitePage code={route.code} />
+      </Suspense>
+    );
+  }
+
+  if (route.name === 'referral') {
+    return (
+      <Suspense fallback={null}>
+        <ReferralPage code={route.code} />
       </Suspense>
     );
   }

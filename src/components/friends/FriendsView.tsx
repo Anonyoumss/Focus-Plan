@@ -27,6 +27,7 @@ import {
 } from '../../lib/firebase/groups';
 import { dayKey, minutesByMember, rankLeaderboard, recentDayKeys } from '../../lib/groupStats';
 import { MdSwitch } from '../common/MdControls';
+import { ReferralsCard } from './ReferralsCard';
 
 interface GroupDetail {
   members: GroupMember[];
@@ -291,6 +292,10 @@ export const FriendsView: React.FC = () => {
             ? 'مجموعات مذاكرة حقيقية مع مهام مشتركة ولوحات صدارة.'
             : 'Real study groups with shared tasks and leaderboards.'}
         </p>
+      </div>
+
+      <div className="mb-6">
+        <ReferralsCard />
       </div>
 
       {notice && (

@@ -172,6 +172,23 @@ export interface Translations {
     addTask: string;
     errorGeneric: string;
     groupMinutes: string;
+    referralTitle: string;
+    referralSubtitle: string;
+    referralCode: string;
+    referralLink: string;
+    referralCopy: string;
+    referralCopied: string;
+    referralStats: string;
+    referralRedeemTitle: string;
+    referralRedeemPlaceholder: string;
+    referralRedeem: string;
+    referralRedeemed: string;
+    referralSelf: string;
+    referralAlready: string;
+    referralInvalid: string;
+    referralFull: string;
+    referralSignIn: string;
+    referralRewardNote: string;
   };
   settings: {
     title: string;
@@ -536,6 +553,23 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       addTask: 'Add task',
       errorGeneric: 'Something went wrong. Try again.',
       groupMinutes: 'group minutes',
+      referralTitle: 'Invite friends',
+      referralSubtitle: 'Share your link — you both earn Focus Coins.',
+      referralCode: 'Your code',
+      referralLink: 'Your link',
+      referralCopy: 'Copy',
+      referralCopied: 'Copied',
+      referralStats: 'redemptions',
+      referralRedeemTitle: 'Have a code?',
+      referralRedeemPlaceholder: 'Enter REF code',
+      referralRedeem: 'Claim reward',
+      referralRedeemed: 'Reward claimed — 15 Focus Coins added.',
+      referralSelf: 'That is your own code.',
+      referralAlready: 'You already redeemed a code.',
+      referralInvalid: 'Code not found.',
+      referralFull: 'This code has reached its limit.',
+      referralSignIn: 'Sign in to create your link or redeem a code.',
+      referralRewardNote: 'You earn nothing extra; the new member gets 15 Focus Coins.',
     },
     settings: {
       title: 'App Settings',
@@ -936,6 +970,23 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       addTask: 'إضافة مهمة',
       errorGeneric: 'حدث خطأ ما. حاول مرة أخرى.',
       groupMinutes: 'دقائق المجموعة',
+      referralTitle: 'ادعُ أصدقاءك',
+      referralSubtitle: 'شارك رابطك — تحصلان معاً على عملات التركيز.',
+      referralCode: 'رمزك',
+      referralLink: 'رابطك',
+      referralCopy: 'نسخ',
+      referralCopied: 'تم النسخ',
+      referralStats: 'استردادات',
+      referralRedeemTitle: 'لديك رمز؟',
+      referralRedeemPlaceholder: 'أدخل رمز REF',
+      referralRedeem: 'استلم المكافأة',
+      referralRedeemed: 'تم استلام المكافأة — أُضيفت 15 عملة تركيز.',
+      referralSelf: 'هذا رمزك الخاص.',
+      referralAlready: 'لقد استردمت رمزاً من قبل.',
+      referralInvalid: 'الرمز غير موجود.',
+      referralFull: 'بلغ هذا الرمز حدّه الأقصى.',
+      referralSignIn: 'سجّل الدخول لإنشاء رابطك أو استرداد رمز.',
+      referralRewardNote: 'لا تكسب شيئاً إضافياً؛ العضو الجديد يحصل على 15 عملة تركيز.',
     },
     settings: {
       title: 'إعدادات التطبيق',

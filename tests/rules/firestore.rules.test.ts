@@ -606,3 +606,64 @@ describe('aiUsage quota docs', () => {
 });
 });
 
+
+describe('referrals', () => {
+  const codeDoc = {
+    code: 'REFTEST123',
+    ownerUid: 'user_a',
+    alias: 'Alice',
+    uses: 0,
+    maxUses: 100,
+    createdAt: 1700000000000,
+  };
+
+  it('public read works; unauthenticated create fails; owner create succeeds', async () => {
+    const anon = testEnv.unauthenticatedContext().firestore();
+    const dbA = testEnv.authenticatedContext('user_a').firestore();
+    await assertFails(anon.doc('referralCodes/REFTEST123').set(codeDoc));
+    await assertSucceeds(dbA.doc('referralCodes/REFTEST123').set(codeDoc));
+    await assertSucceeds(anon.doc('referralCodes/REFTEST123').get());
+  });
+
+  it('non-owner cannot create a code for someone else; wrong uses rejected', async () => {
+    const dbB = testEnv.authenticatedContext('user_b').firestore();
+    await assertFails(
+      dbB.doc('referralCodes/REFOTHER99').set({ ...codeDoc, code: 'REFOTHER99', ownerUid: 'user_a' }),
+    );
+    await assertFails(
+      dbB.doc('referralCodes/REFUSES001').set({ ...codeDoc, code: 'REFUSES001', uses: 5 }),
+    );
+  });
+
+  it('redeemer can increment uses by exactly one; owner cannot self-increment', async () => {
+    const dbA = testEnv.authenticatedContext('user_a').firestore();
+    const dbB = testEnv.authenticatedContext('user_b').firestore();
+    await assertSucceeds(
+      dbB.doc('referralCodes/REFTEST123').update({ uses: 1 }),
+    );
+    await assertFails(
+      dbA.doc('referralCodes/REFTEST123').update({ uses: 2 }),
+    );
+    await assertFails(
+      dbB.doc('referralCodes/REFTEST123').update({ uses: 5 }),
+    );
+    await assertFails(
+      dbB.doc('referralCodes/REFTEST123').update({ uses: 2, alias: 'hax' }),
+    );
+  });
+
+  it('user referral markers are owner-only and create-only', async () => {
+    const dbA = testEnv.authenticatedContext('user_a').firestore();
+    const dbB = testEnv.authenticatedContext('user_b').firestore();
+    await assertSucceeds(
+      dbA.doc('users/user_a/referral/REFTEST123').set({ code: 'REFTEST123', redeemedAt: 1, bonusCoins: 15 }),
+    );
+    await assertFails(dbB.doc('users/user_a/referral/REFTEST123').get());
+    await assertFails(
+      dbA.doc('users/user_a/referral/REFTEST123').set({ code: 'X', redeemedAt: 2, bonusCoins: 15 }),
+    );
+    await assertFails(
+      dbA.doc('users/user_a/referralCode/main').set({ code: 'REFTEST123', ownerUid: 'user_b' }),
+    );
+  });
+});

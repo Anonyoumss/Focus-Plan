@@ -4,6 +4,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { TRANSLATIONS } from '../../i18n/translations';
 import { MaterialIcon } from '../common/MaterialIcon';
 import { WavyRing } from './WavyRing';
+import { JumpingClock } from './JumpingClock';
 import { MdSlider } from '../common/MdControls';
 import { formatTime, calculateProgress } from '../../lib/timerEngine';
 
@@ -160,7 +161,8 @@ export const TimerDisplay: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-6">
+      <div className="relative flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-6">
+        <JumpingClock />
         <button
           onClick={resetTimer}
           className="w-12 h-12 rounded-full flex items-center justify-center transition-transform active:scale-95 cursor-pointer"
@@ -274,6 +276,9 @@ export const TimerDisplay: React.FC = () => {
             <option value="none">{locale === 'ar' ? 'إيقاف' : 'Off'}</option>
             <option value="whitenoise">{locale === 'ar' ? 'ضوضاء وردية' : 'Pink Noise'}</option>
             <option value="binaural">{locale === 'ar' ? 'موجات ألفا (ثنائية الأذن)' : 'Alpha Waves (Binaural)'}</option>
+            <option value="rain">{locale === 'ar' ? 'مطر' : 'Rain'}</option>
+            <option value="stream">{locale === 'ar' ? 'جدول' : 'Stream'}</option>
+            <option value="alpha">{locale === 'ar' ? 'ألفا 10 هرتز' : 'Alpha 10Hz'}</option>
           </select>
         </div>
 

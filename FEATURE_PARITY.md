@@ -238,3 +238,11 @@ Pure Kotlin + Compose M3 app, no Capacitor. Focus timer (end-timestamp
 persistence), tasks, streak progress, EN/AR, Google sign-in + Firestore
 push-sync of tasks/sessions. Docs: docs/ANDROID-NATIVE.md. Not a parity
 claim — groups, store, catalog, notifications and pull-sync are gaps.
+
+## Added in Stage E + desktop session
+
+- Custom audio: 5 alarm presets, 4 tick styles, 5 ambient beds, custom uploads (IndexedDB + localStorage fallback, device-local, never synced). Unit tested (`customAudio.test.ts`), Verified in browser via Settings card.
+- Referrals: `referralCodes/{code}` public-read/owner-write rules, atomic redeem transaction, 15 Focus Coins ledger reward, `#/referral/<code>` landing + Friends card. Rules tests 38/38; unit tested.
+- Easter egg: Three.js game lazy-loaded from Settings once unlocked (badge or 4 sessions/day). Unit tested unlock logic; Compiled only in browser (WebGL not exercised headless).
+- Jumping clock on Home timer buttons: spring-animated SVG clock hopping between controls, respects reduced motion. Verified in browser (app-flows suite green).
+- Desktop: `desktop/` Tauri 2 shell → Linux .deb/AppImage, macOS .app/.dmg (x86_64 + aarch64), macOS Liquid Glass vibrancy. Compiled only in CI; never run on a real machine.

@@ -20,6 +20,7 @@ import {
   scheduleSessionEndNotification,
 } from '../lib/native/capacitor';
 import type { ExtensionSnapshot } from '../lib/extension/client';
+import { getCustomAudioDataUrl } from '../lib/customAudio';
 import { soundEngine } from '../lib/soundEngine';
 import {
   StreakState,
@@ -113,11 +114,17 @@ export interface AppState {
   /** Local date (YYYY-MM-DD) the count belongs to; stale counts reset. */
   todayCountDate: string;
   activeTaskId: string | null;
-  ambientSound: 'none' | 'whitenoise' | 'binaural' | 'rain';
+  ambientSound: string;
+  /** Alarm preset id: 'chime'|'zen'|'temple'|'beep'|'wood'|'bowl'|'custom:<id>' */
+  alarmPreset: string;
+  /** Tick style: 'default'|'clock'|'pulse'|'metronome'|'tap' */
+  tickPreset: string;
   alarmVolume: number;
   ambientVolume: number;
   tickSoundEnabled: boolean;
   tickVolume: number;
+  setAlarmPreset: (preset: string) => void;
+  setTickPreset: (style: string) => void;
   reminderSettings: ReminderSettings;
   setReminderSettings: (settings: ReminderSettings) => void;
   /** Spotlight (focus) mode: dims the app while the timer runs. */
@@ -301,6 +308,11 @@ function persistState(state: AppState) {
     extensionLists: state.extensionLists,
     tickSoundEnabled: state.tickSoundEnabled,
     tickVolume: state.tickVolume,
+    ambientSound: state.ambientSound,
+    alarmVolume: state.alarmVolume,
+    ambientVolume: state.ambientVolume,
+    alarmPreset: state.alarmPreset,
+    tickPreset: state.tickPreset,
   };
   // Stamp updatedAt for the cloud push and advance the sync meta map.
   // localStorage keeps the clean records; only the enqueued slice carries
@@ -423,7 +435,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   // today's streak math for installs upgrading from before this field.
   todayCountDate: initialPersisted.todayCountDate || '',
   activeTaskId: initialPersisted.activeTaskId || null,
-  ambientSound: 'none',
+  ambientSound: initialPersisted.ambientSound ?? 'none',
+  alarmPreset: initialPersisted.alarmPreset ?? 'chime',
+  tickPreset: initialPersisted.tickPreset ?? 'default',
   alarmVolume: 0.7,
   ambientVolume: 0.5,
   tickSoundEnabled: initialPersisted.tickSoundEnabled ?? false,
@@ -538,7 +552,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     );
     void import('../lib/extension/client').then((m) => m.notifyExtensionSession('running'));
     if (ambientSound !== 'none') {
+      if (ambientSound.startsWith('custom:')) {
+      void getCustomAudioDataUrl(ambientSound.slice(7)).then((d) => soundEngine.setAmbient(ambientSound, ambientVolume, d));
+    } else {
       soundEngine.setAmbient(ambientSound, ambientVolume);
+    }
     }
     persistState(get());
   },
@@ -576,7 +594,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   tickTimer: () => {
     const { isRunning, targetEndTime, timerMode, completedFocusSessions, timerConfig, activeTaskId, tasks, streak, todaySessionsCount, coins, focusPoints, alarmVolume, tickSoundEnabled, tickVolume } = get();
     if (isRunning && tickSoundEnabled) {
-      soundEngine.playTick(tickVolume);
+      soundEngine.playTickStyled(get().tickPreset, tickVolume);
     }
     if (!isRunning || !targetEndTime) return;
 
@@ -592,7 +610,12 @@ export const useAppStore = create<AppState>((set, get) => ({
       return;
     }
 
-    soundEngine.playChime(alarmVolume);
+    const ap = get().alarmPreset;
+    if (ap.startsWith('custom:')) {
+      void getCustomAudioDataUrl(ap.slice(7)).then((d) => soundEngine.playAlarm(ap, alarmVolume, d));
+    } else {
+      soundEngine.playAlarm(ap, alarmVolume);
+    }
     soundEngine.stopAmbient();
     void nativeHaptic();
     void nativeKeepAwake(false);
@@ -721,6 +744,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     persistState(get());
   },
 
+  setAlarmPreset: (alarmPreset) => set({ alarmPreset }),
+  setTickPreset: (tickPreset) => set({ tickPreset }),
   setAmbientSound: (ambientSound) => {
     set({ ambientSound });
     if (get().isRunning) {

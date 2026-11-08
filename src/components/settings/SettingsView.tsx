@@ -6,6 +6,8 @@ import { MaterialIcon } from '../common/MaterialIcon';
 import { MdSwitch } from '../common/MdControls';
 import { navigateToAppTab } from '../../lib/router';
 import ExtensionSettingsCard from './ExtensionSettingsCard';
+import { CustomAudioSettingsCard } from './CustomAudioSettingsCard';
+import { EasterEggLauncher } from '../easter/EasterEggLauncher';
 
 export const SettingsView: React.FC = () => {
   const {
@@ -543,6 +545,9 @@ export const SettingsView: React.FC = () => {
             </label>
           )}
         </div>
+
+        <CustomAudioSettingsCard />
+        <EasterEggLauncher />
 
         {/* Focus mode & motion */}
         <div

@@ -191,9 +191,34 @@ Logo options + adopted icons shipped; real service worker with precache
 offline claim now accurate. Gotcha recorded: `Vary: Origin` response
 header breaks `caches.match` — always pass `ignoreVary` in SW lookups.
 
-STILL NOT DONE: Stage E (custom audio library + referrals) — never
-implemented; the overnight prompt incorrectly listed it as done. Next
-session should do Stage E, then optionally Android/Capacitor.
+STILL NOT DONE at that point: Stage E (custom audio library + referrals).
+Stage E has since been implemented (see below).
+
+## Stage E — DONE (AI Studio + integration session)
+
+Custom audio library (5 alarm presets, 4 tick styles, 5 ambient beds,
+custom uploads in IndexedDB, device-local only), referral program
+(referralCodes collection, atomic redeem, 15 Focus Coins ledger reward,
+#/referral/<code> landing, Friends card), Firestore rules + 38/38 rules
+tests, EN+AR strings, privacy/terms updates.
+
+This session added on top:
+- Three.js easter-egg game (`src/components/easter/`, lazy chunk) in
+  Settings, unlocked by any badge or 4 focus sessions in one local day
+  (`src/lib/easterEgg.ts`).
+- Jumping physics clock on the Home timer controls
+  (`src/components/focus/JumpingClock.tsx`), reduced-motion aware.
+- AI study plan already existed via AiStudyPlanModal in TestsView.
+- Desktop shells: `desktop/` Tauri 2 app serving the same dist build on
+  Linux (.deb/AppImage) and macOS (.app/.dmg, both x86_64 and aarch64),
+  macOS Liquid Glass via window-vibrancy. Compiled in CI only — not run
+  on a real desktop yet. See docs/DESKTOP.md.
+
+Honest limits: desktop is a native-packaged web app, not a GTK/SwiftUI
+rewrite; easter egg/clock/audio are web-bundle features so they appear
+in every shell that serves dist/ (web, Capacitor, Tauri desktop,
+extension popup does NOT include them); native Android (android-native/)
+does not yet have them.
 
 ## Part 0 + Part 1 (hosting prep + Android) — this session
 

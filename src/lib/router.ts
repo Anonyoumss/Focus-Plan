@@ -3,7 +3,8 @@ import { TabDestination } from '../store/useAppStore';
 export type AppRoute =
   | { name: 'landing' }
   | { name: 'app'; tab: TabDestination }
-  | { name: 'invite'; code: string };
+  | { name: 'invite'; code: string }
+  | { name: 'referral'; code: string };
 
 const APP_TABS: TabDestination[] = [
   'focus',
@@ -36,6 +37,10 @@ export function parseHashRoute(hash: string): AppRoute {
     return { name: 'invite', code: decodeURIComponent(segments[1]) };
   }
 
+  if (segments[0] === 'referral' && segments[1]) {
+    return { name: 'referral', code: decodeURIComponent(segments[1]) };
+  }
+
   return { name: 'landing' };
 }
 
@@ -49,6 +54,8 @@ export function routeToHash(route: AppRoute): string {
       return route.tab === 'focus' ? '#/app' : `#/app/${route.tab}`;
     case 'invite':
       return `#/invite/${encodeURIComponent(route.code)}`;
+    case 'referral':
+      return `#/referral/${encodeURIComponent(route.code)}`;
   }
 }
 

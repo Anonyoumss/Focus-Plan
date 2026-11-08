@@ -119,3 +119,5 @@ review + screenshot suite (`e2e/audit-screenshots.spec.ts`).
 - `docs/logo/`: six logo interpretations awaiting owner pick.
 - `docs/screenshots/extension/options-real.png`: captured from the unpacked
   extension in Chromium via Playwright.
+
+- `desktop/` — Tauri 2 desktop shell (Linux/macOS) serving `dist/`; see docs/DESKTOP.md.
