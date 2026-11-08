@@ -231,3 +231,10 @@ Present in source and included in the production build. Not verified by the chec
 - Privacy Policy updated EN+AR (new section 5). No Firestore changes (extension data is local-only, never synced).
 - `.github/workflows/extension.yml`: Chrome + Firefox zips as artifacts, attached to Releases on `v*` tags.
 - Tests: 12 unit tests (domain matching, running/paused/off-task attribution, nudge cooldown, reclassification, delete, snapshot) + 3 Playwright (EN/AR settings card, progress prompt). Real-browser messaging/notifications untested — needs manual smoke test (documented in docs/EXTENSION.md).
+
+## Native Android client (android-native/) — Compiled only (CI)
+
+Pure Kotlin + Compose M3 app, no Capacitor. Focus timer (end-timestamp
+persistence), tasks, streak progress, EN/AR, Google sign-in + Firestore
+push-sync of tasks/sessions. Docs: docs/ANDROID-NATIVE.md. Not a parity
+claim — groups, store, catalog, notifications and pull-sync are gaps.

@@ -1,0 +1,6 @@
+#!/bin/sh
+# Minimal wrapper script delegating to a system/CI gradle when present.
+if [ -n "$GRADLE_HOME" ]; then exec "$GRADLE_HOME/bin/gradle" "$@"; fi
+if command -v gradle >/dev/null 2>&1; then exec gradle "$@"; fi
+echo "No gradle found; use ./gradlew from a full wrapper or install gradle 8.14.3" >&2
+exit 1

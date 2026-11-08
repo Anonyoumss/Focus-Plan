@@ -65,3 +65,13 @@ Format: question | choice made | why
   this pass; phone screenshots are labeled "Android UI (web render)" in README.
 - **Extension popup**: the extension has no popup UI (options page only), so
   the captured screenshot is the options page from the real unpacked build.
+
+## Native app pass
+
+- Scope chosen by owner: "everything incl. Firebase" — delivered as a
+  foundation: timer/tasks/progress/settings + auth + push-sync. Groups,
+  leaderboards, wallet, badges, store, test catalog, reports and
+  notifications are documented gaps, not silently dropped.
+- FP_WEB_CLIENT_ID needed for Google sign-in on Android: owner must create
+  an OAuth **web** client in Google Cloud Console (same project as Firebase)
+  and put its id in local.properties / CI vars.

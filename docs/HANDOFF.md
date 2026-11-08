@@ -231,3 +231,12 @@ session should do Stage E, then optionally Android/Capacitor.
   set Vercel env vars (docs/VERCEL-SETUP.md), add GEMINI_API_KEY on Vercel,
   add authorized domains, Google sign-in test with two accounts, keystore
   secrets for signed releases.
+
+## Native Android app (android-native/)
+
+Pure Kotlin/Compose M3 client, parallel to the Capacitor app (kept). DataStore
+persistence, end-timestamp timer, tasks, streak progress, EN/AR strings,
+Firebase Auth (Credential Manager) + Firestore push-sync of tasks/sessions.
+Config via FP_* gradle properties — no google-services.json. CI workflow
+android-native.yml builds debug APK. Big gaps documented in
+docs/ANDROID-NATIVE.md (no notifications, pull-sync, groups, store, catalog).
