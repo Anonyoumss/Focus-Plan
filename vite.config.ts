@@ -7,9 +7,16 @@ import { defineConfig } from 'vite';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// DEPLOY_TARGET controls the asset base path:
+//   'pages'   -> '/Focus-Plan/'  (GitHub Pages project site)
+//   'android' -> './'            (Capacitor serves from the device filesystem)
+//   unset     -> '/'             (local dev, Vercel root domain)
+const deployTarget = process.env.DEPLOY_TARGET;
+const base = deployTarget === 'pages' ? '/Focus-Plan/' : deployTarget === 'android' ? './' : '/';
+
 export default defineConfig(() => {
   return {
-    base: '/Focus-Plan/',
+    base,
     plugins: [
       react(),
       tailwindcss(),

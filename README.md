@@ -8,6 +8,7 @@ for cloud sync, groups, and leaderboards — the app works fully as a
 guest with no configuration.
 
 Live demo: _placeholder — GitHub Pages URL after first deploy_
+Vercel preview: _placeholder — Vercel URL after first deploy_
 
 ## Features (what actually exists today)
 
@@ -116,6 +117,26 @@ app runs as a guest.
 6. App Check (reCAPTCHA) is recommended before real users — placeholder
    only today.
 
+## Deploying
+
+Two static hosts from one codebase, selected by `DEPLOY_TARGET` in
+`vite.config.ts`:
+
+- **GitHub Pages** (project site): the deploy workflow builds with
+  `DEPLOY_TARGET=pages` → base `/Focus-Plan/`. Enable Pages with
+  Source: GitHub Actions; add the six `VITE_FIREBASE_*` repository
+  variables (leave unset for a guest-only deploy). No `vercel.json`
+  needed for Vercel — hash routing (`#/...`) never hits the server, so
+  no rewrites are required.
+- **Vercel**: import the repo, leave `DEPLOY_TARGET` unset → base `/`.
+  Set the same `VITE_FIREBASE_*` env vars in the Vercel project if you
+  want sign-in.
+- **Local dev / preview**: `DEPLOY_TARGET` unset → base `/`.
+
+Static hosts have no AI server: with `VITE_AI_API_URL` unset the AI
+buttons show the labeled offline estimate. With `VITE_FIREBASE_*` unset
+the build runs fully as a guest.
+
 ## Honest limits
 
 - Group leaderboards, wallet deltas, and award claims are written by
@@ -140,6 +161,9 @@ FCM web push reminders, Capacitor Android shell, richer reports.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Please read [AGENTS.md](AGENTS.md)
 for design and honesty rules. Security reports: [SECURITY.md](SECURITY.md).
+
+Built with AI assistance (Google AI Studio, Cursor, Devin, Claude).
+Plans and prompts are in `docs/`.
 
 ## Credits & licenses
 
