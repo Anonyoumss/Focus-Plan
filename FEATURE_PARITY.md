@@ -107,6 +107,14 @@ Present in source and included in the production build. Not verified by the chec
 - Catalog: "Saudi GAT (Qudurat)" renamed to "GAT" + subtitle "Qudurat" / "القدرات العامة".
 - Perf: profiled — no data-dependent slowness (2000 logs ≈19ms warm); first-load latency is chunk+font. ProgressView now skeleton-first (250ms) then reveals. e2e perf smoke added.
 
+## Added in stage D (test intake + plan page)
+
+- Test picker is a single flat searchable list (name, provider, Arabic+English names, sections); Local/Global grouping removed. Verified in browser (`e2e/stage-d.spec.ts`).
+- Test intake flow (`TestIntakeModal`): custom-test name, test date, sessions/week, current score validated against section ranges, per-section targets, "I don't know my score yet" path; AI Consult stays an optional step. Verified in browser EN + AR search coverage (`e2e/stage-d.spec.ts`, `ai-features.spec.ts`).
+- Task deadlines: optional date + time on tasks, overdue/due chips in the task list, deadline reminder candidates, JSON import/export. Verified in browser (`e2e/stage-d.spec.ts`); reminder firing Unit tested only via `reminders.ts` logic coverage in existing specs.
+- Plan page rebuilt as a 7-day agenda: cadence-derived study blocks, task deadlines (overdue flagged), test dates, weekly plan cards per test goal, empty state with one-tap actions (add task/test/set cadence), skeleton-first reveal, RTL. Verified in browser EN + AR (`e2e/stage-d.spec.ts`); agenda math Unit tested (`planAgenda.test.ts`, 5 tests).
+- Progress tab perf re-measured on production build with 2,000 seeded session logs: ~450 ms to first chart paint, 129 ms long-task total — earlier 7.6 s figure was a cold-load artifact, not reproducible. Verified in browser via Playwright probe.
+
 ## Not in this codebase
 
 - Path-based URL routes. Routing is hash-based (`#/...`); a static host serves `index.html` for any path, and deep links/refresh work through the hash parser.

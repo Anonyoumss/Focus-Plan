@@ -162,13 +162,16 @@
   vars). Kill any `vite --port=3000` process before
   `npm run test:e2e:firebase`.
 
-## Stage D handoff (partial)
+## Stage D — DONE (a80fcf3 + follow-up commit)
 
-Shipped: flat searchable test picker, TestIntakeModal intake flow (incl. AI consult step), task deadlines end-to-end (UI, reminders, JSON port, Firestore sync undefined-strip fix in src/lib/firebase/sync.ts stripUndefined).
+All Stage D items shipped: searchable flat test picker, TestIntakeModal intake
+flow (incl. optional AI consult), task deadlines end-to-end (UI chips,
+reminder candidates, JSON port, sync undefined-strip), Plan page week agenda
+(src/lib/planAgenda.ts + PlanView), EN+AR e2e (stage-d.spec.ts, 7 tests).
+Progress 7.6 s figure was a cold-load artifact: prod-build probe with 2,000
+logs shows ~450 ms first paint, 129 ms longtasks.
 
-Next session priorities:
-1. Plan page: rebuild PlanView as week agenda — test dates, task deadlines, cadence-derived study blocks, weekly plan from test goals, skeleton + animated reveal, EN+AR, RTL.
-2. Arabic e2e for intake/search/deadline (mirror stage-d.spec.ts with locale:'ar').
-3. Then Stage E (custom audio + referrals), Stage F (logo + service worker).
+Next: Stage E (custom audio library + referrals) then Stage F (logo, service
+worker/PWA offline). See docs/OVERNIGHT-QUESTIONS.md for open decisions.
 
 Caution: md-dialog has no role="dialog" — locate via page.locator('md-dialog') in specs.

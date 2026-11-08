@@ -122,3 +122,12 @@ Not done (ran out of budget):
 - Plan page rewrite (week agenda, cadence blocks, weekly plan from goals, skeleton reveal) — existing PlanView unchanged.
 - Arabic Playwright coverage for intake/search/deadline (EN only so far).
 - Plan page empty states/one-tap actions.
+
+## Stage D — completed (second session)
+
+- Progress perf: re-measured on `vite preview` prod build under /Focus-Plan/ with 2,000 seeded session logs. Progress ~454 ms to first chart/svg, 129 ms longtasks; focus 92 ms, tests 438 ms. The earlier 7.6 s was a cold first-load artifact (chunk fetch + font), not reproducible — no code change needed. Skeleton-first reveal already in place.
+- Plan page rewritten (`PlanView` + framework-free `src/lib/planAgenda.ts`): 7-day agenda grid with cadence study blocks (daily/hourly→every day, weekly→created weekday, monthly→created day-of-month), deadline entries (overdue flagged), test-date entries, weekly-plan cards per goal (sessions/week, progress, score delta), empty state with Add task / Add test / Set cadence actions, skeleton + fade reveal under global reduce-motion override. 5 new unit tests.
+- E2E: stage-d.spec.ts now 7 tests — picker search, intake save + range rejection, deadline overdue chip, plan agenda, plan empty state, Arabic RTL plan+search.
+
+Checks: tsc clean, eslint clean, 85/85 unit, build pass, Playwright 49 pass + 6 emulator-skips, emulator suite 6/6.
+Stage D status: DONE. Stage E/F remain for a future session.

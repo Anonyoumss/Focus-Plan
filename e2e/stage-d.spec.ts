@@ -71,3 +71,46 @@ test('task deadline: set via dialog, shown and overdue state', async ({ page }) 
   await page.goto('/#/app/focus');
   await expect(page.getByText('overdue').first()).toBeVisible();
 });
+
+const planTask = {
+  id: 'pt1', title: 'Math practice', category: 'Study', estimatedSessions: 8,
+  minGoal: 2, maxGoal: 6, cadence: 'daily', notes: '', isCompleted: false,
+  createdAt: Date.now(), completedSessions: 2,
+};
+const planGoal = {
+  id: 'pg1', testId: 'sat', testName: 'SAT Digital', testDate: (() => {
+    const d = new Date(); d.setDate(d.getDate() + 3);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })(),
+  targetScore: 1500, currentBaselineScore: 1200, sectionTargets: {},
+  weeklyHours: 5, weeklyPomodoros: 10, completedPomodoros: 4, scoresHistory: [],
+};
+
+test('plan page: week agenda shows study blocks, deadline and test date', async ({ page }) => {
+  await seed(page, { tasks: [planTask], testGoals: [planGoal] });
+  await page.goto('/#/app/plan');
+  await expect(page.getByText('Math practice').first()).toBeVisible();
+  await expect(page.getByText('SAT Digital').first()).toBeVisible();
+  await expect(page.getByText('Weekly plan from test goals')).toBeVisible();
+  await expect(page.getByText('Sessions / week')).toBeVisible();
+});
+
+test('plan page: empty state with one-tap actions', async ({ page }) => {
+  await seed(page);
+  await page.goto('/#/app/plan');
+  await expect(page.getByText('Nothing planned yet')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add task' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add test' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Set cadence' })).toBeVisible();
+});
+
+test('arabic: plan page and intake search render RTL', async ({ page }) => {
+  await seed(page, { locale: 'ar', tasks: [planTask], testGoals: [planGoal] });
+  await page.goto('/#/app/plan');
+  await expect(page.getByText('الخطة الأسبوعية للأهداف')).toBeVisible();
+  await expect(page.getByText('اليوم').first()).toBeVisible();
+  await expect(page.getByText('Math practice').first()).toBeVisible();
+  await page.goto('/#/app/tests');
+  await page.getByRole('searchbox').fill('SAT');
+  await expect(page.getByText('SAT Digital').first()).toBeVisible();
+});
