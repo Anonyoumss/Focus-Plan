@@ -17,19 +17,6 @@ test.describe('live smoke', () => {
 
     await page.goto(LIVE_URL!, { waitUntil: 'networkidle' });
 
-    // The built bundle must reference the real Firebase project.
-    const html = await page.content();
-    const scripts = await page.$$eval('script[src]', (els) => els.map((e) => (e as HTMLScriptElement).src));
-    let sawProject = html.includes('focus-plan-m3e');
-    for (const src of scripts) {
-      if (!src) continue;
-      try {
-        const body = await (await page.request.get(src)).text();
-        if (body.includes('focus-plan-m3e')) sawProject = true;
-      } catch { /* ignore */ }
-    }
-    expect(sawProject, 'built JS should reference focus-plan-m3e').toBe(true);
-
     // Dismiss onboarding if shown, then open the app.
     const skip = page.getByRole('button', { name: /skip|تخطي/i });
     if (await skip.isVisible().catch(() => false)) await skip.click();
@@ -41,8 +28,24 @@ test.describe('live smoke', () => {
 
     // Friends tab: create/join controls for a signed-out but configured user.
     await page.goto(`${LIVE_URL}#/app/friends`);
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(2500);
     await expect(page.getByText(/create.*group|إنشاء.*مجموعة/i).first()).toBeVisible();
+
+    // The built bundle must reference the real Firebase project. The config
+    // lives in a lazily-loaded chunk, so scan every JS asset the page loaded.
+    const assets = await page.evaluate(() =>
+      performance.getEntriesByType('resource')
+        .map((e) => e.name)
+        .filter((n) => n.includes('/assets/') && n.endsWith('.js')),
+    );
+    let sawProject = false;
+    for (const src of assets) {
+      try {
+        const body = await (await page.request.get(src)).text();
+        if (body.includes('focus-plan-m3e')) sawProject = true;
+      } catch { /* ignore */ }
+    }
+    expect(sawProject, `built JS should reference focus-plan-m3e (scanned ${assets.length} chunks)`).toBe(true);
 
     expect(errors, `console errors: ${errors.join(' | ')}`).toEqual([]);
     expect(failed, `failed requests: ${failed.join(' | ')}`).toEqual([]);
