@@ -34,7 +34,12 @@ jobs:
       - name: Debug APK
         working-directory: android
         run: |
-          for i in 1 2 3; do ./gradlew assembleDebug --no-daemon && break || sleep 20; done
+          ok=0
+          for i in 1 2 3 4 5; do
+            ./gradlew assembleDebug --no-daemon && { ok=1; break; }
+            sleep 30
+          done
+          [ "$ok" = "1" ]
       - name: Package extension zips
         run: |
           mkdir -p dist-ext/chrome dist-ext/firefox
