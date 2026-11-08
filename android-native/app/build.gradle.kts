@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -36,7 +38,7 @@ android {
 
 // Public Firebase config injected from gradle properties / local.properties.
 // Empty defaults keep the app buildable and runnable as a guest.
-val fpProps = java.util.Properties().apply {
+val fpProps = Properties().apply {
     val f = rootProject.file("local.properties")
     if (f.exists()) f.inputStream().use { load(it) }
 }
