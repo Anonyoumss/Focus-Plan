@@ -103,8 +103,8 @@ jobs:
         with:
           name: desktop-macos-intel
           path: |
-            desktop/src-tauri/target/release/bundle/dmg/*
-            desktop/src-tauri/target/release/bundle/macos/*.app.tar.gz
+            desktop/src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*
+            desktop/src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz
           if-no-files-found: ignore
 
   windows:
