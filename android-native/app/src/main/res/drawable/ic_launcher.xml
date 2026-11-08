@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#1B4332" android:pathData="M0,0h108v108h-108z"/>
+    <!-- clock face -->
+    <path android:fillColor="#40916C" android:pathData="M54,30a24,24 0 1,0 0.01,0z"/>
+    <path android:fillColor="#D8F3DC" android:pathData="M54,34a20,20 0 1,0 0.01,0z"/>
+    <!-- tick hands: hour at 12, minute at 4 -->
+    <path android:fillColor="#1B4332" android:pathData="M54,38v10" android:strokeColor="#1B4332" android:strokeWidth="3" android:strokeLineCap="round"/>
+    <path android:fillColor="#1B4332" android:pathData="M54,54l8,-8" android:strokeColor="#1B4332" android:strokeWidth="3" android:strokeLineCap="round"/>
+    <!-- graduation cap -->
+    <path android:fillColor="#2D6A4F" android:pathData="M54,10 L74,18 L54,26 L34,18 Z"/>
+    <path android:fillColor="#2D6A4F" android:pathData="M34,18 v6 c0,4 8,8 20,8 c12,0 20,-4 20,-8 v-6 l-20,8 z"/>
+    <path android:fillColor="#74C69D" android:pathData="M70,20 v6 c0,3 -6,6 -16,6 c-10,0 -16,-3 -16,-6 v-6 l16,6 z"/>
+    <path android:fillColor="#D8F3DC" android:pathData="M74,18 l4,2 -4,2 z"/>
+</vector>
