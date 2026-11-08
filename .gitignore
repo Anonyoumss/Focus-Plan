@@ -19,3 +19,4 @@ android/app/google-services.json
 *.keystore
 *.jks
 focus-plan-companion-*.zip
+*.apk
