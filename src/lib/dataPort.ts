@@ -27,6 +27,8 @@ function normalizeBlueprint(raw: unknown): PortResult['tasks'][number] | null {
     maxGoal: (b.maxGoal as number) ?? (b.minGoal as number) ?? 1,
     cadence: b.cadence as TaskItem['cadence'],
     notes: (b.notes as string) ?? '',
+    deadline: typeof b.deadline === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(b.deadline) ? b.deadline : undefined,
+    deadlineTime: typeof b.deadlineTime === 'string' && /^\d{2}:\d{2}$/.test(b.deadlineTime) ? b.deadlineTime : undefined,
   };
 }
 

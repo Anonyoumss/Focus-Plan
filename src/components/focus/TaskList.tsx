@@ -32,6 +32,8 @@ export const TaskList: React.FC = () => {
   const [maxGoal, setMaxGoal] = useState(6);
   const [cadence, setCadence] = useState<'hourly' | 'daily' | 'weekly' | 'monthly'>('daily');
   const [notes, setNotes] = useState('');
+  const [deadline, setDeadline] = useState('');
+  const [deadlineTime, setDeadlineTime] = useState('');
 
   const openNewTaskModal = useCallback(() => {
     setEditingTaskId(null);
@@ -42,6 +44,8 @@ export const TaskList: React.FC = () => {
     setMaxGoal(6);
     setCadence('daily');
     setNotes('');
+    setDeadline('');
+    setDeadlineTime('');
     setIsModalOpen(true);
     setTimeout(() => titleInputRef.current?.focus(), 250);
   }, []);
@@ -62,6 +66,8 @@ export const TaskList: React.FC = () => {
     setMaxGoal(task.maxGoal);
     setCadence(task.cadence);
     setNotes(task.notes);
+    setDeadline(task.deadline ?? '');
+    setDeadlineTime(task.deadlineTime ?? '');
     setIsModalOpen(true);
     setTimeout(() => titleInputRef.current?.focus(), 250);
   };
@@ -90,6 +96,8 @@ export const TaskList: React.FC = () => {
         maxGoal,
         cadence,
         notes: notes.trim(),
+        deadline: deadline || undefined,
+        deadlineTime: deadline ? deadlineTime || undefined : undefined,
       });
     } else {
       addTask({
@@ -100,6 +108,8 @@ export const TaskList: React.FC = () => {
         maxGoal,
         cadence,
         notes: notes.trim(),
+        deadline: deadline || undefined,
+        deadlineTime: deadline ? deadlineTime || undefined : undefined,
       });
     }
 
@@ -278,6 +288,31 @@ export const TaskList: React.FC = () => {
                           <span className="truncate min-w-0">{task.notes}</span>
                         </>
                       )}
+                      {task.deadline && (() => {
+                        const todayStr = new Date().toISOString().slice(0, 10);
+                        const overdue = !task.isCompleted && task.deadline < todayStr;
+                        const dueToday = !overdue && task.deadline === todayStr;
+                        return (
+                          <>
+                            <span aria-hidden="true">·</span>
+                            <span
+                              className="shrink-0 inline-flex items-center gap-1 font-semibold"
+                              style={{
+                                color: overdue
+                                  ? 'var(--md-sys-color-error)'
+                                  : dueToday
+                                  ? 'var(--md-sys-color-tertiary)'
+                                  : 'var(--md-sys-color-on-surface-variant)',
+                              }}
+                            >
+                              <MaterialIcon name={overdue ? 'warning' : 'event'} size={13} />
+                              {task.deadline}
+                              {task.deadlineTime ? ` ${task.deadlineTime}` : ''}
+                              {overdue && (locale === 'ar' ? ' · متأخر' : ' · overdue')}
+                            </span>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -485,6 +520,48 @@ export const TaskList: React.FC = () => {
                     value={maxGoal}
                     onChange={(e) => setMaxGoal(parseInt(e.target.value) || 1)}
                     className="w-full px-3 py-2 rounded-xl border text-sm text-center outline-none tabular-nums"
+                    style={{
+                      backgroundColor: 'var(--md-sys-color-surface-container-low)',
+                      borderColor: 'var(--md-sys-color-outline-variant)',
+                      color: 'var(--md-sys-color-on-surface)',
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label
+                    className="block text-xs font-semibold uppercase tracking-wider mb-1"
+                    style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+                  >
+                    {locale === 'ar' ? 'الموعد النهائي (اختياري)' : 'Deadline (optional)'}
+                  </label>
+                  <input
+                    type="date"
+                    value={deadline}
+                    onChange={(e) => setDeadline(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border text-sm outline-none"
+                    style={{
+                      backgroundColor: 'var(--md-sys-color-surface-container-low)',
+                      borderColor: 'var(--md-sys-color-outline-variant)',
+                      color: 'var(--md-sys-color-on-surface)',
+                    }}
+                  />
+                </div>
+                <div>
+                  <label
+                    className="block text-xs font-semibold uppercase tracking-wider mb-1"
+                    style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+                  >
+                    {locale === 'ar' ? 'الوقت (اختياري)' : 'Time (optional)'}
+                  </label>
+                  <input
+                    type="time"
+                    value={deadlineTime}
+                    onChange={(e) => setDeadlineTime(e.target.value)}
+                    disabled={!deadline}
+                    className="w-full px-3 py-2 rounded-xl border text-sm outline-none disabled:opacity-50"
                     style={{
                       backgroundColor: 'var(--md-sys-color-surface-container-low)',
                       borderColor: 'var(--md-sys-color-outline-variant)',

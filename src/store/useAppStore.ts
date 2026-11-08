@@ -69,6 +69,9 @@ export interface TaskItem {
   maxGoal: number;
   cadence: 'hourly' | 'daily' | 'weekly' | 'monthly';
   notes: string;
+  /** Optional deadline date 'YYYY-MM-DD' and time 'HH:MM' (local). */
+  deadline?: string;
+  deadlineTime?: string;
   isCompleted: boolean;
   createdAt: number;
 }

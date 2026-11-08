@@ -107,3 +107,18 @@ the stage C commit.
 - npm audit now reports 31 vulnerabilities (24 mod / 5 high / 2 crit),
   up from dev-only advisories — new server deps. Not fixed (no
   --force per HANDOFF rule); owner should review.
+
+## Stage D — Partly done (this session)
+
+Done and verified:
+- Test picker: Local/Global grouping removed; single search bar (name, provider, Arabic+English, sections) over a flat list; "verify on official site" labels and source URLs kept.
+- Intake flow: new `TestIntakeModal` collects test name (custom), date, sessions/week, current score (validated against section ranges), per-section targets, with "I don't know my score yet" path. AI Consult remains an optional step inside the flow. Goal cards now open edit/intake instead of a bare preset form.
+- Task deadlines: optional `deadline` (YYYY-MM-DD) + `deadlineTime` (HH:MM) on TaskItem; dialog inputs; overdue/due-today chips in the task list; deadline candidates added to `buildReminderCandidates` (today, within horizon, overdue-once); JSON import/export carries the fields (CSV unchanged); Firestore sync now strips undefined fields recursively (fixed a push failure the emulator suite surfaced).
+- Material Symbols subset regenerated (99 glyphs, ~100 KB) including search/event/schedule/warning.
+
+Tests: tsc clean, eslint clean, 80/80 unit, build pass, Playwright 46 pass + 6 emulator-skips (incl. new stage-d.spec.ts 4/4: search, intake save, range rejection, overdue chip), emulator suite 6/6.
+
+Not done (ran out of budget):
+- Plan page rewrite (week agenda, cadence blocks, weekly plan from goals, skeleton reveal) — existing PlanView unchanged.
+- Arabic Playwright coverage for intake/search/deadline (EN only so far).
+- Plan page empty states/one-tap actions.

@@ -10,6 +10,7 @@ import { AiIntakeConsultModal } from './AiIntakeConsultModal';
 import { AiStudyPlanModal } from './AiStudyPlanModal';
 import { AiPostTestAnalysisModal } from './AiPostTestAnalysisModal';
 import { checkGeminiStatus } from '../../lib/ai/geminiClient';
+import { TestIntakeModal } from './TestIntakeModal';
 
 export const TestsView: React.FC = () => {
   const { locale, testGoals, addTestGoal, deleteTestGoal, updateTestGoal } = useAppStore();
@@ -17,7 +18,8 @@ export const TestsView: React.FC = () => {
 
   const [activeScoreLoopGoal, setActiveScoreLoopGoal] = useState<{ goal: UserTestGoal; autoLog: boolean } | null>(null);
   const [editingSectionsGoal, setEditingSectionsGoal] = useState<UserTestGoal | null>(null);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'saudi' | 'international'>('all');
+  const [search, setSearch] = useState('');
+  const [intake, setIntake] = useState<{ test: StandardizedTestDefinition | null } | null>(null);
   const [aiConsultTest, setAiConsultTest] = useState<{ test: StandardizedTestDefinition; existingGoal?: UserTestGoal } | null>(null);
   const [aiStudyPlanGoal, setAiStudyPlanGoal] = useState<UserTestGoal | null>(null);
   const [aiPostTestGoal, setAiPostTestGoal] = useState<UserTestGoal | null>(null);
@@ -30,10 +32,21 @@ export const TestsView: React.FC = () => {
     return () => { alive = false; };
   }, []);
 
-  const filteredCatalog = TEST_CATALOG.filter((test) => {
-    if (activeFilter === 'saudi') return test.category === 'saudi';
-    if (activeFilter === 'international') return test.category === 'international';
-    return true;
+  const visibleCatalog = TEST_CATALOG.filter((test) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    const haystack = [
+      test.nameEn,
+      test.nameAr,
+      test.code,
+      test.descriptionEn,
+      test.descriptionAr,
+      test.officialPortal,
+      ...test.sections.flatMap((s) => [s.nameEn, s.nameAr]),
+    ]
+      .join(' ')
+      .toLowerCase();
+    return haystack.includes(q);
   });
 
   const adoptTestGoal = (test: StandardizedTestDefinition) => {
@@ -42,53 +55,7 @@ export const TestsView: React.FC = () => {
       alert(locale === 'ar' ? 'هذا الاختبار مضاف بالفعل في قائمة أهدافك.' : 'This exam is already in your active goals.');
       return;
     }
-
-    const defaultDate = new Date();
-    defaultDate.setDate(defaultDate.getDate() + test.typicalPrepWeeks * 7);
-    const dateStr = defaultDate.toISOString().split('T')[0];
-
-    const sectionTargets: Record<string, number> = {};
-    test.sections.forEach((s) => {
-      sectionTargets[s.id] = s.defaultTargetScore;
-    });
-
-    const newGoal: UserTestGoal = {
-      id: `goal_${test.id}`,
-      testId: test.id,
-      testName: locale === 'ar' ? test.nameAr : test.nameEn,
-      testDate: dateStr,
-      targetScore: test.sections.reduce((acc, s) => acc + s.defaultTargetScore, 0) / test.sections.length,
-      currentBaselineScore: Math.round(test.minScore + (test.maxScore - test.minScore) * 0.7),
-      sectionTargets,
-      weeklyHours: 10,
-      weeklyPomodoros: 20,
-      completedPomodoros: 0,
-      scoresHistory: [],
-    };
-
-    addTestGoal(newGoal);
-  };
-
-  const adoptCustomGoal = () => {
-    const id = `goal_custom_${Date.now().toString(36)}`;
-    const defaultDate = new Date();
-    defaultDate.setDate(defaultDate.getDate() + 84);
-    addTestGoal({
-      id,
-      testId: 'custom',
-      testName: locale === 'ar' ? 'اختبار مخصص' : 'Custom test',
-      testDate: defaultDate.toISOString().split('T')[0],
-      targetScore: 0,
-      currentBaselineScore: 0,
-      sectionTargets: {},
-      customSections: [
-        { id: 'section_1', nameEn: 'Section 1', nameAr: 'القسم 1', minScore: 0, maxScore: 100, defaultTargetScore: 50 },
-      ],
-      weeklyHours: 10,
-      weeklyPomodoros: 20,
-      completedPomodoros: 0,
-      scoresHistory: [],
-    });
+    setIntake({ test });
   };
 
   const isTestDatePassed = (g: UserTestGoal) =>
@@ -372,54 +339,31 @@ export const TestsView: React.FC = () => {
             {t.tests.catalogTitle}
           </h2>
 
-          <div
-            className="flex items-center p-0.5 rounded-lg border text-xs"
-            style={{
-              backgroundColor: 'var(--md-sys-color-surface-container)',
-              borderColor: 'var(--md-sys-color-outline-variant)',
-            }}
-          >
-            <button
-              onClick={() => setActiveFilter('all')}
-              className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
-                activeFilter === 'all' ? 'font-semibold' : ''
-              }`}
+          <div className="relative w-full sm:w-72">
+            <MaterialIcon
+              name="search"
+              size={18}
+              className="absolute start-3 top-1/2 -translate-y-1/2 pointer-events-none"
+              ariaLabel={undefined}
+            />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={locale === 'ar' ? 'ابحث بالاسم أو القسم أو الجهة' : 'Search name, section or provider'}
+              aria-label={locale === 'ar' ? 'بحث في الاختبارات' : 'Search tests'}
+              className="w-full ps-9 pe-3 py-2 rounded-xl border text-sm outline-none"
               style={{
-                backgroundColor: activeFilter === 'all' ? 'var(--md-sys-color-primary)' : 'transparent',
-                color: activeFilter === 'all' ? 'var(--md-sys-color-on-primary)' : 'inherit',
+                backgroundColor: 'var(--md-sys-color-surface-container)',
+                borderColor: 'var(--md-sys-color-outline-variant)',
+                color: 'var(--md-sys-color-on-surface)',
               }}
-            >
-              {locale === 'ar' ? 'الكل' : 'All'}
-            </button>
-            <button
-              onClick={() => setActiveFilter('saudi')}
-              className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
-                activeFilter === 'saudi' ? 'font-semibold' : ''
-              }`}
-              style={{
-                backgroundColor: activeFilter === 'saudi' ? 'var(--md-sys-color-primary)' : 'transparent',
-                color: activeFilter === 'saudi' ? 'var(--md-sys-color-on-primary)' : 'inherit',
-              }}
-            >
-              {locale === 'ar' ? 'السعودية' : 'Saudi'}
-            </button>
-            <button
-              onClick={() => setActiveFilter('international')}
-              className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
-                activeFilter === 'international' ? 'font-semibold' : ''
-              }`}
-              style={{
-                backgroundColor: activeFilter === 'international' ? 'var(--md-sys-color-primary)' : 'transparent',
-                color: activeFilter === 'international' ? 'var(--md-sys-color-on-primary)' : 'inherit',
-              }}
-            >
-              {locale === 'ar' ? 'الدولية' : 'Global'}
-            </button>
+            />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-          {filteredCatalog.map((test) => {
+          {visibleCatalog.map((test) => {
             const isAlreadyAdded = testGoals.some((g) => g.testId === test.id);
             return (
               <div
@@ -562,7 +506,7 @@ export const TestsView: React.FC = () => {
           })}
 
           <button
-            onClick={adoptCustomGoal}
+            onClick={() => setIntake({ test: null })}
             className="p-4 rounded-2xl border border-dashed text-xs font-semibold cursor-pointer flex items-center justify-center gap-2 min-h-[120px]"
             style={{
               borderColor: 'var(--md-sys-color-outline-variant)',
@@ -588,6 +532,27 @@ export const TestsView: React.FC = () => {
           goal={editingSectionsGoal}
           definition={TEST_CATALOG.find((x) => x.id === editingSectionsGoal.testId)}
           onClose={() => setEditingSectionsGoal(null)}
+        />
+      )}
+
+      {intake && (
+        <TestIntakeModal
+          test={intake.test}
+          locale={locale}
+          aiAvailable={aiAvailable ?? undefined}
+          onClose={() => setIntake(null)}
+          onSave={(goal) => {
+            addTestGoal(goal);
+            setIntake(null);
+          }}
+          onAiConsult={
+            intake.test
+              ? () => {
+                  setAiConsultTest({ test: intake.test! });
+                  setIntake(null);
+                }
+              : undefined
+          }
         />
       )}
 

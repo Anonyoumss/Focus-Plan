@@ -130,6 +130,19 @@ const APPEND_ONLY_COLLECTIONS = new Set(['sessionLogs']);
 // simply never removed client-side.
 const TOMBSTONE_COLLECTIONS = new Set(['tasks', 'testGoals', 'templates']);
 
+// Firestore rejects undefined field values anywhere in a document.
+function stripUndefined<T>(value: T): T {
+  if (Array.isArray(value)) return value.map(stripUndefined) as T;
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (v !== undefined) out[k] = stripUndefined(v);
+    }
+    return out as T;
+  }
+  return value;
+}
+
 async function syncDocCollection(
   uid: string,
   name: string,
@@ -192,7 +205,7 @@ async function syncDocCollection(
     ) {
       continue;
     }
-    batch.set(doc(getFirebaseDb(), 'users', uid, name, id), data);
+    batch.set(doc(getFirebaseDb(), 'users', uid, name, id), stripUndefined(data));
     ops++;
     changed = true;
     if (ops >= BATCH_LIMIT) await flush();

@@ -161,3 +161,14 @@
   emulator suite self-skip (it reuses the server without emulator env
   vars). Kill any `vite --port=3000` process before
   `npm run test:e2e:firebase`.
+
+## Stage D handoff (partial)
+
+Shipped: flat searchable test picker, TestIntakeModal intake flow (incl. AI consult step), task deadlines end-to-end (UI, reminders, JSON port, Firestore sync undefined-strip fix in src/lib/firebase/sync.ts stripUndefined).
+
+Next session priorities:
+1. Plan page: rebuild PlanView as week agenda — test dates, task deadlines, cadence-derived study blocks, weekly plan from test goals, skeleton + animated reveal, EN+AR, RTL.
+2. Arabic e2e for intake/search/deadline (mirror stage-d.spec.ts with locale:'ar').
+3. Then Stage E (custom audio + referrals), Stage F (logo + service worker).
+
+Caution: md-dialog has no role="dialog" — locate via page.locator('md-dialog') in specs.

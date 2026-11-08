@@ -86,7 +86,17 @@ export function markFired(
  * Returns at most a handful; caller decides notification text.
  */
 export function buildReminderCandidates(
-  tasks: { id: string; title: string; cadence: string; isCompleted: boolean; completedSessions: number; minGoal: number; maxGoal: number }[],
+  tasks: {
+    id: string;
+    title: string;
+    cadence: string;
+    isCompleted: boolean;
+    completedSessions: number;
+    minGoal: number;
+    maxGoal: number;
+    deadline?: string;
+    deadlineTime?: string;
+  }[],
   testGoals: { id: string; testName: string; testDate: string }[],
   now: Date,
   daysAhead = 3
@@ -104,6 +114,25 @@ export function buildReminderCandidates(
       body: `Daily goal pending: ${t.title}`,
     });
   }
+  // Task deadlines: fire when the deadline is today or within the horizon,
+  // and once when overdue (still incomplete).
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  for (const t of tasks) {
+    if (!t.deadline || t.isCompleted) continue;
+    const dueToday = t.deadline === todayStr;
+    const dueSoon = t.deadline > todayStr && t.deadline <= new Date(now.getTime() + daysAhead * 86400000).toISOString().slice(0, 10);
+    const overdue = t.deadline < todayStr;
+    if (!dueToday && !dueSoon && !overdue) continue;
+    const timePart = t.deadlineTime ? ` ${t.deadlineTime}` : '';
+    out.push({
+      id: `deadline_${t.id}_${t.deadline}`,
+      title: 'Focus Plan',
+      body: overdue
+        ? `Overdue: ${t.title} (was due ${t.deadline}${timePart})`
+        : `Due ${t.deadline}${timePart}: ${t.title}`,
+    });
+  }
+
   const horizon = now.getTime() + daysAhead * 86400000;
   for (const g of testGoals) {
     const d = new Date(g.testDate).getTime();
