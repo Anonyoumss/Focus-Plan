@@ -75,7 +75,7 @@ Present in source and included in the production build. Not verified by the chec
 - Seed colors through `@material/material-color-utilities`.
 - Print stylesheet in `WeeklyReportModal.tsx`. No PDF file writer.
 - Skeleton component. The Progress refresh button shows it for 400ms. Charts do not use it for their first paint.
-- PWA `manifest.json` with `start_url: "/#/app"` so installed PWAs open the app, not the landing page. No service worker file.
+- PWA `manifest.json` with `start_url: "./#/app"` and a real service worker (`public/sw.js`, precache via `precache.json`); offline reload verified under both `/Focus-Plan/` and `/` bases (e2e/prod-pages.spec.ts).
 - ESLint flat config (`eslint.config.js`, `npm run lint:eslint`).
 - `MdSlider` (timer duration sliders) and `MdSelect` (ambient sound) wrappers exist; the slider was not driven in the browser, the select renders in screenshots.
 - `anime.js` drives the WavyRing phase loop; `motion` drives the button morph. Both verified visually/via DOM probes above.
@@ -217,3 +217,8 @@ Present in source and included in the production build. Not verified by the chec
 - `.env.example` documents the `VITE_FIREBASE_*` keys (empty) and `VITE_USE_EMULATORS`; real values go in `.env.local` (gitignored).
 - Functional Playwright flows run in English only; Arabic/RTL coverage is screenshot + overflow assertions.
 - `md-dialog`/`md-slider`/`md-select` RTL behavior was checked via rendered screenshots without dedicated interaction tests.
+
+## Added in Part 0/1 (hosting + Android, this session)
+
+- Hosting: `DEPLOY_TARGET` selects Vite base — `pages` → `/Focus-Plan/`, `android` → `./`, otherwise `/` (local dev + Vercel). `DEPLOY_TARGET=pages` set in `.github/workflows/deploy.yml`. No `vercel.json` needed (hash routing). Production-path e2e covers both bases incl. offline reload and manifest/icon fetches. Secret scan of tree + history: clean.
+- Android (Capacitor 8): `capacitor.config.ts`, `android/` project (app id `com.focusplan.m3e`, minSdk 24, target/compile 36), `src/lib/native/capacitor.ts` lazy bridge, native keep-awake + haptics + status-bar sync + session-end local notification (id 4242) + splash/icons from the logo. Google sign-in uses `@capgo/capacitor-social-login` ID token → `signInWithCredential` on native; popup unchanged on web. `google-services.json` optional (gitignored; Gradle skips Google Services plugin without it). `.github/workflows/android.yml` builds debug APK artifact on main, release APK on `v*` tags (signed when `ANDROID_KEYSTORE_*` secrets exist, debug APK otherwise). **Compiled only — no emulator/device was available; Android runtime is untested.** See docs/ANDROID.md.

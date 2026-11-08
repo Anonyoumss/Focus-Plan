@@ -12,7 +12,15 @@ if (import.meta.env.VITE_USE_EMULATORS === 'true') {
 // Production-only service worker: caches the app shell so the installed PWA
 // works offline. Resolves './sw.js' relative to the deploy base, so it works
 // under both '/Focus-Plan/' and '/'.
-if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+// Native app (Capacitor WebView): init splash/status-bar/notifications and
+// skip the service worker — the WebView loads from the filesystem.
+const isNativeShell = typeof window !== 'undefined' &&
+  (window as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.() === true;
+if (isNativeShell) {
+  void import('./lib/native/capacitor').then((m) => m.nativeInit());
+}
+
+if (import.meta.env.PROD && !isNativeShell && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('./sw.js', { scope: './' })

@@ -4,7 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'node_modules/**', 'docs/**', 'test-results/**', '.playwright-browsers/**', 'playwright-report/**'],
+    ignores: ['dist/**', 'node_modules/**', 'docs/**', 'android/**', 'extension/**', 'public/sw.js', 'test-results/**', '.playwright-browsers/**', 'playwright-report/**'],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

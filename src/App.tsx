@@ -90,6 +90,8 @@ export default function App() {
   // Initialize dynamic M3 theme & text direction on launch
   useEffect(() => {
     syncDocumentTheme(themeMode, seedHex);
+    const dark = themeMode === 'dark' || (themeMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    void import('./lib/native/capacitor').then((m) => m.nativeSyncStatusBar(dark));
   }, [themeMode, seedHex]);
 
   useEffect(() => {

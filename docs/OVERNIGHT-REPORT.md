@@ -140,3 +140,28 @@ Stage D status: DONE. Stage E/F remain for a future session.
 - Offline e2e passes (load once → offline → reload → tasks+timer work). README offline claim updated to true.
 
 Checks: tsc clean, eslint clean, 85/85 unit, build pass, Playwright 50 pass + 6 emulator-skips, emulator suite 6/6.
+
+## Part 0 — done (commit cb9764e)
+
+- vite.config.ts DEPLOY_TARGET bases (pages=/Focus-Plan/, android=./, else /); deploy.yml sets pages.
+- prod-pages.spec.ts rewritten: both bases, landing/#/app/#/terms/#/privacy/invite/reloads/manifest/icon/offline, zero failed requests — 2/2 pass.
+- Guest-mode + no-AI-endpoint verified on prod build (AI buttons hidden/disabled, offline estimate labeled).
+- README: live-link placeholders, Pages+Vercel deploy steps, env vars, AI-assistance note. No vercel.json (hash routing). Secret scan tree+history: no secrets found.
+
+## Part 1 — done (this commit)
+
+- Capacitor 8 Android: config, generated project, native bridge (keep-awake, haptics, status bar, splash, session-end local notification), native Google sign-in via social-login plugin → Firebase credential, optional google-services.json, icons/splash from logo, android.yml workflow (debug artifact + tag release), docs/ANDROID.md incl. F-Droid analysis.
+- Checks: tsc clean, eslint clean (added ignores for android/, extension/, public/sw.js), 89/89 unit, rules 33/33, Playwright 50 pass + 6 emulator-skips, emulator 6/6, web build + DEPLOY_TARGET=android build + `npx cap sync android` all pass.
+- Untested: Android runtime itself (no emulator/device); APK build verified only in CI config, not executed locally (no SDK, per constraints).
+- Skipped: Part 2 browser extension — out of context budget; see docs/NEXT.md.
+
+### Owner checklist (exact clicks)
+
+1. Make the repo public on GitHub.
+2. Repo Settings > Pages > Source: **GitHub Actions** (deploy.yml builds on push to main).
+3. Repo Settings > Secrets and variables > Actions > Variables: add `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID` (public web config values from Firebase Console > Project settings).
+4. Vercel: Import the repo, no env needed for guest mode; add the same `VITE_FIREBASE_*` vars if enabling accounts.
+5. Firebase Console > Authentication > Settings > Authorized domains: add the Pages host (`<user>.github.io`) and the Vercel domain.
+6. Android: Firebase Console > add Android app `com.focusplan.m3e`, download `google-services.json` to `android/app/` locally (never commit), add SHA-1 fingerprints.
+7. Optional release signing: create keystore (`keytool -genkeypair ...`, see docs/ANDROID.md), add `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` secrets.
+8. Release: `git tag v0.1.0 && git push origin v0.1.0` — android.yml attaches the APK to the GitHub Release.

@@ -186,3 +186,10 @@ header breaks `caches.match` — always pass `ignoreVary` in SW lookups.
 STILL NOT DONE: Stage E (custom audio library + referrals) — never
 implemented; the overnight prompt incorrectly listed it as done. Next
 session should do Stage E, then optionally Android/Capacitor.
+
+## Part 0 + Part 1 (hosting prep + Android) — this session
+
+- Part 0 committed earlier (`cb9764e`): DEPLOY_TARGET bases, dual-base prod e2e, README hosting/env/AI-assistance note, secret scan clean, no vercel.json (hash routes need no rewrites).
+- Part 1: Capacitor 8 Android app. Native bridge `src/lib/native/capacitor.ts` — all dynamic imports, no-ops off-native, unit-tested. Timer recovery relies on persisted `targetEndTime` + scheduled local notification. Native Google sign-in via `@capgo/capacitor-social-login` (ID token → Firebase credential); popup kept for web. `android/app/google-services.json` optional & gitignored. Workflow `.github/workflows/android.yml`: Node 22, Temurin 21, setup-android, debug APK artifact always, release APK on `v*` tags. Launcher icons + splash generated from `public/icon.svg`; notification icon `ic_stat_notify`.
+- Gotchas: eslint needed ignores for `android/**`, `extension/**`, `public/sw.js`; Playwright browsers live in `.playwright-browsers` (set `PLAYWRIGHT_BROWSERS_PATH`); Java for emulators is `~/tools/jdk-21.0.13+9-jre` (export JAVA_HOME+PATH).
+- **Android runtime untested** — no emulator/device; CI builds the APK. Part 2 (browser extension) NOT started — see docs/NEXT.md.

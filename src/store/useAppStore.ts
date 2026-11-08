@@ -13,6 +13,12 @@ import {
   releaseScreenWakeLock,
   sendWebNotification,
 } from '../lib/timerEngine';
+import {
+  cancelSessionEndNotification,
+  nativeHaptic,
+  nativeKeepAwake,
+  scheduleSessionEndNotification,
+} from '../lib/native/capacitor';
 import { soundEngine } from '../lib/soundEngine';
 import {
   StreakState,
@@ -491,11 +497,13 @@ export const useAppStore = create<AppState>((set, get) => ({
     restoreDefaultTitle();
     releaseScreenWakeLock();
     soundEngine.stopAmbient();
+    void nativeKeepAwake(false);
+    void cancelSessionEndNotification();
     persistState(get());
   },
 
   startTimer: () => {
-    const { remainingSeconds, isRunning, ambientSound, ambientVolume } = get();
+    const { remainingSeconds, isRunning, ambientSound, ambientVolume, timerMode } = get();
     if (isRunning) return;
 
     const targetEndTime = Date.now() + remainingSeconds * 1000;
@@ -506,6 +514,13 @@ export const useAppStore = create<AppState>((set, get) => ({
     });
 
     requestScreenWakeLock();
+    void nativeKeepAwake(true);
+    const endLabel = timerMode === 'focus' ? 'Focus session' : 'Break';
+    void scheduleSessionEndNotification(
+      targetEndTime,
+      `${endLabel} complete`,
+      get().locale === 'ar' ? 'انتهى الوقت - عد إلى التطبيق' : 'Time is up - head back to the app',
+    );
     if (ambientSound !== 'none') {
       soundEngine.setAmbient(ambientSound, ambientVolume);
     }
@@ -525,6 +540,8 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     releaseScreenWakeLock();
     soundEngine.stopAmbient();
+    void nativeKeepAwake(false);
+    void cancelSessionEndNotification();
     persistState(get());
   },
 
@@ -560,6 +577,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     soundEngine.playChime(alarmVolume);
     soundEngine.stopAmbient();
+    void nativeHaptic();
+    void nativeKeepAwake(false);
+    void cancelSessionEndNotification();
     releaseScreenWakeLock();
 
     const isFocus = timerMode === 'focus';
