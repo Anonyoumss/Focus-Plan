@@ -7,7 +7,7 @@ import { MdSwitch } from '../common/MdControls';
 import { navigateToAppTab } from '../../lib/router';
 import ExtensionSettingsCard from './ExtensionSettingsCard';
 import { CustomAudioSettingsCard } from './CustomAudioSettingsCard';
-import { EasterEggLauncher } from '../easter/EasterEggLauncher';
+import { PomoDefense3D } from '../game/PomoDefense3D';
 
 export const SettingsView: React.FC = () => {
   const {
@@ -31,10 +31,6 @@ export const SettingsView: React.FC = () => {
     syncError,
     signIn,
     signOutAccount,
-    tickSoundEnabled,
-    tickVolume,
-    setTickSoundEnabled,
-    setTickVolume,
     tasks,
     taskTemplates,
     saveTaskListAsTemplate,
@@ -50,7 +46,17 @@ export const SettingsView: React.FC = () => {
     setSpotlightMode,
     reduceAnimations,
     setReduceAnimations,
+    todaySessionsCount,
+    interactiveSoundEnabled,
+    setInteractiveSoundEnabled,
+    physicsClockEnabled,
+    setPhysicsClockEnabled,
+    physicsClockLowMotion,
+    setPhysicsClockLowMotion,
   } = useAppStore();
+
+  const [showGame, setShowGame] = useState(false);
+  const [easterEggTaps, setEasterEggTaps] = useState(0);
 
   const t = TRANSLATIONS[locale];
   const [customHex, setCustomHex] = useState(seedHex);
@@ -516,38 +522,64 @@ export const SettingsView: React.FC = () => {
           </div>
         </div>
 
-        {/* Sounds */}
+        {/* Sounds & Custom Audio (Stage E) */}
+        <CustomAudioSettingsCard />
+
+        {/* Physics Clock & Interactive Sounds Settings */}
         <div
-          className="p-6 rounded-3xl border"
+          className="p-6 rounded-3xl border space-y-4"
           style={{
             backgroundColor: 'var(--md-sys-color-surface-container-low)',
             borderColor: 'var(--md-sys-color-outline-variant)',
           }}
         >
-          <h2 className="text-base font-bold mb-3" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-            {locale === 'ar' ? 'الأصوات' : 'Sounds'}
-          </h2>
-          <label className="flex items-center gap-3 text-sm mb-3 cursor-pointer" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-            <MdSwitch selected={tickSoundEnabled} onSelectedChange={setTickSoundEnabled} label={t.settings.tickSound} />
-          </label>
-          {tickSoundEnabled && (
-            <label className="flex items-center gap-3 text-xs" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-              <span className="w-28">{t.settings.tickVolume}</span>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.05}
-                value={tickVolume}
-                onChange={(e) => setTickVolume(Number(e.target.value))}
-                className="flex-1 accent-[var(--md-sys-color-primary)]"
+          <div className="flex items-center gap-2 mb-2">
+            <MaterialIcon name="tune" size={20} style={{ color: 'var(--md-sys-color-primary)' }} />
+            <h2 className="text-base font-bold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+              {locale === 'ar' ? 'ساعة الفيزياء والمؤثرات التفاعلية' : 'Physics Clock & Interactive Sounds'}
+            </h2>
+          </div>
+
+          <div className="space-y-3">
+            <label className="flex items-center justify-between text-sm cursor-pointer">
+              <span style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                {locale === 'ar' ? 'تفعيل أصوات الاصطدام والتفاعل' : 'Enable interactive element impact sound effects'}
+              </span>
+              <MdSwitch
+                selected={interactiveSoundEnabled}
+                onSelectedChange={setInteractiveSoundEnabled}
+                label={locale === 'ar' ? 'أصوات التفاعل' : 'Interactive sounds'}
               />
             </label>
-          )}
-        </div>
 
-        <CustomAudioSettingsCard />
-        <EasterEggLauncher />
+            <label className="flex items-center justify-between text-sm cursor-pointer">
+              <span style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                {locale === 'ar' ? 'عرض ساعة الفيزياء التفاعلية في الرئيسية' : 'Show 2D Physics Clock on Home page'}
+              </span>
+              <MdSwitch
+                selected={physicsClockEnabled}
+                onSelectedChange={setPhysicsClockEnabled}
+                label={locale === 'ar' ? 'ساعة الفيزياء' : 'Physics Clock'}
+              />
+            </label>
+
+            <label className="flex items-center justify-between text-sm cursor-pointer">
+              <div>
+                <span className="block" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                  {locale === 'ar' ? 'وضع الحركة الهادئة لساعة الفيزياء (Low-Motion)' : 'Low-Motion Physics Clock (Disable Bouncing)'}
+                </span>
+                <span className="text-[11px] block" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                  {locale === 'ar' ? 'إلغاء قفل الجاذبية والقفز لحركة هادئة دون تشتيت.' : 'Disables gravity bouncing & flinging for an accessible, stationary clock.'}
+                </span>
+              </div>
+              <MdSwitch
+                selected={physicsClockLowMotion}
+                onSelectedChange={setPhysicsClockLowMotion}
+                label={locale === 'ar' ? 'حركة هادئة' : 'Low motion'}
+              />
+            </label>
+          </div>
+        </div>
 
         {/* Focus mode & motion */}
         <div
@@ -979,6 +1011,53 @@ export const SettingsView: React.FC = () => {
         {/* Browser extension (optional, local-first) */}
         <ExtensionSettingsCard />
 
+        {/* 3D Three.js Arcade Easter Egg Card */}
+        <div
+          className="p-6 rounded-3xl border space-y-4"
+          style={{
+            backgroundColor: 'var(--md-sys-color-surface-container-low)',
+            borderColor: 'var(--md-sys-color-outline-variant)',
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-10 h-10 rounded-2xl flex items-center justify-center cursor-pointer transition-transform active:scale-90"
+                style={{
+                  backgroundColor: 'var(--md-sys-color-primary-container)',
+                  color: 'var(--md-sys-color-on-primary-container)',
+                }}
+                onClick={() => setEasterEggTaps((c) => c + 1)}
+                title={locale === 'ar' ? 'انقر 5 مرات لتفعيل السر!' : 'Secret Easter Egg (Tap 5x)'}
+              >
+                <MaterialIcon name="sports_esports" size={22} />
+              </div>
+              <div>
+                <h2 className="text-base font-bold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                  {locale === 'ar' ? 'لعبة 3D Arcade (سرية)' : '3D Focus Arcade (Easter Egg)'}
+                </h2>
+                <p className="text-xs" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                  {todaySessionsCount >= 4 || easterEggTaps >= 5
+                    ? (locale === 'ar' ? 'مفتوحة الآن! ابدأ المعركة ثلاثية الأبعاد.' : 'Unlocked! Battle distractions in 3D.')
+                    : (locale === 'ar' ? `أكمل 4 جلسات اليوم (الحالي: ${todaySessionsCount}/4) أو انقر الأيقونة 5 مرات.` : `Complete 4 focus sessions today (Current: ${todaySessionsCount}/4) or tap icon 5x.`)}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowGame(true)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer border shadow-sm transition-transform hover:scale-105"
+              style={{
+                backgroundColor: 'var(--md-sys-color-primary)',
+                color: 'var(--md-sys-color-on-primary)',
+                borderColor: 'var(--md-sys-color-primary)',
+              }}
+            >
+              {locale === 'ar' ? 'تشغيل 3D Arcade' : 'Launch 3D Game'}
+            </button>
+          </div>
+        </div>
+
         {/* Legal */}
         <div
           className="p-6 rounded-3xl border"
@@ -1013,6 +1092,9 @@ export const SettingsView: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* Render 3D Three.js Game Overlay */}
+        {showGame && <PomoDefense3D onClose={() => setShowGame(false)} />}
       </div>
     </div>
   );

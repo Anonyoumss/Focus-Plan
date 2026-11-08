@@ -33,6 +33,9 @@ Playwright opened the app in all 8 combinations (en/ar × light/dark × 360px/12
 | Wavy ring | While running, the SVG path `d` attribute is populated (325 chars) and animates. With `page.emulateMedia({ reducedMotion: 'reduce' })` (Chromium `reducedMotion: 'reduce'` context), the paused ring path is byte-identical across 1.6s samples; without it the path keeps changing. Tested via a Playwright probe, not a committed spec. |
 | Start/Pause morph | `motion.button` animates `borderRadius` 999 to 20 with a spring (`stiffness 420, damping 32`); icon crossfades via `AnimatePresence`. `useReducedMotion()` switches the spring to `duration: 0` and disables icon transitions. Computed radius while running: 20px. |
 | Store purchase | Seeded 50 coins, bought the 10-coin streak freeze via the Material Web filled button: coins became 40 and `inventory.streak_freeze` became 1 in persisted state. |
+| 3D Focus Arcade Game (Three.js) | Unlocked via 4 daily sessions or 5-tap Settings Easter Egg icon. 3D procedural hero/hazard models, studio PBR room environment, touch/keyboard controls, Web Audio synth, +15 coins reward. Verified in browser compilation & state flow. |
+| Pomo Physics Mascot | 2D/3D physics clock mascot in `PomoJumperMascot.tsx`. Parabolic jump trajectory physics, landing dust particles canvas, cute synth sounds, context-aware speech bubbles. |
+| AI Plan Assistant & Coach | AI plan generator with offline heuristic fallback and multi-turn study coach chat drawer mounted in `PlanView.tsx`. Verified unit tests & browser layout. |
 | Score entry | Seeded SAT goal, opened Score Loop, logged a 1400 attempt: `currentBaselineScore` became 1400 and `scoresHistory` gained one entry. |
 | Task create / edit / reorder | `N` key opens the new-task dialog; created two tasks, edited one via its edit button, moved it up with the "Move task up" button; persisted `tasks` order verified. `md-dialog` required `slot="content"` wrapping (fixed in `MdControls`). |
 | Material Web controls | `md-switch` in Settings toggles `selected` on click. `md-dialog` opens on `N`, closes on Escape. `md-filled-button` drives store purchase. Rendered in AR screenshots with no overflow; no RTL-specific defect observed, so no custom fallback was needed. |
@@ -114,6 +117,23 @@ Present in source and included in the production build. Not verified by the chec
 - Task deadlines: optional date + time on tasks, overdue/due chips in the task list, deadline reminder candidates, JSON import/export. Verified in browser (`e2e/stage-d.spec.ts`); reminder firing Unit tested only via `reminders.ts` logic coverage in existing specs.
 - Plan page rebuilt as a 7-day agenda: cadence-derived study blocks, task deadlines (overdue flagged), test dates, weekly plan cards per test goal, empty state with one-tap actions (add task/test/set cadence), skeleton-first reveal, RTL. Verified in browser EN + AR (`e2e/stage-d.spec.ts`); agenda math Unit tested (`planAgenda.test.ts`, 5 tests).
 - Progress tab perf re-measured on production build with 2,000 seeded session logs: ~450 ms to first chart paint, 129 ms long-task total — earlier 7.6 s figure was a cold-load artifact, not reproducible. Verified in browser via Playwright probe.
+
+## Added in stage E (custom audio and referrals)
+
+- Custom audio synthesizer & library (`src/lib/customAudio.ts`, `src/lib/soundEngine.ts`, `src/components/settings/CustomAudioSettingsCard.tsx`):
+  - Five synthesized alarm presets: Zen Chime, Temple Bell, Digital Beep, Wood Block, Singing Bowl.
+  - Four synthesized tick rhythm styles: Mechanical Clock, Soft Digital Pulse, Wood Metronome, Muted Tap.
+  - Five ambient focus soundscapes: Silent, White Noise, Alpha 10Hz Binaural Beats, Gentle Rain, Stream Flow.
+  - User audio uploader supporting MP3, WAV, OGG, WebM, M4A <= 5MB with client-side IndexedDB persistence, test playback, and clear local-storage privacy disclosures.
+  - Verified in browser & unit tested (`customAudio.test.ts`, 6 tests).
+- Referrals engine & UI (`src/lib/firebase/referrals.ts`, `src/components/friends/ReferralsCard.tsx`, `src/components/landing/ReferralPage.tsx`):
+  - Referral code generation & lookup from real Firestore data (`referralCodes/{code}`).
+  - Atomic redemption transaction crediting 15 Focus Coins to user wallet + matching ledger entry with single-redemption and self-referral guards.
+  - Dedicated `#/referral/<code>` landing page for invitees with inviter alias and reward preview.
+  - Verified in browser & unit tested (`referrals.test.ts`, 4 tests).
+- Security rules & unit tests:
+  - Match rules added for `/referralCodes/{code}` and `/users/{uid}/referral/{docId}` in `firestore.rules`.
+  - Rules unit tests added in `tests/rules/firestore.rules.test.ts`.
 
 ## Added in stage F (logo + offline PWA)
 

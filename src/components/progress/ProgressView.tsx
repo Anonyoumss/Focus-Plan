@@ -8,6 +8,7 @@ import { TelemetryCharts } from './TelemetryCharts';
 import FocusInsightsCard from './FocusInsightsCard';
 import { ProgressStatCards } from './ProgressStatCards';
 import { WeeklyReportModal } from './WeeklyReportModal';
+import { BadgeSystem } from '../badges/BadgeSystem';
 
 export const ProgressView: React.FC = () => {
   const {
@@ -184,6 +185,11 @@ export const ProgressView: React.FC = () => {
 
           {/* Telemetry Charts & Trendlines */}
           <TelemetryCharts />
+
+          {/* New Interactive Badge System */}
+          <div className="mb-8">
+            <BadgeSystem />
+          </div>
 
           {/* Badges and Milestones Shelf */}
           <div>

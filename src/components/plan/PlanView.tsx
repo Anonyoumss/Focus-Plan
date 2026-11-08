@@ -5,6 +5,7 @@ import { MaterialIcon } from '../common/MaterialIcon';
 import { SkeletonLoader } from '../common/SkeletonLoader';
 import { navigateToAppTab } from '../../lib/router';
 import { buildWeekAgenda, buildWeeklyPlan, type AgendaEntry } from '../../lib/planAgenda';
+import { AiPlanAssistantCard } from './AiPlanAssistantCard';
 
 const KIND_ICON: Record<AgendaEntry['kind'], string> = {
   study: 'timer',
@@ -93,6 +94,9 @@ export const PlanView: React.FC = () => {
           className="space-y-6 transition-opacity duration-300"
           style={{ opacity: revealed ? 1 : 0 }}
         >
+          {/* AI Plan Assistant Card */}
+          <AiPlanAssistantCard />
+
           {isEmpty ? (
             <div
               className="rounded-3xl border border-dashed p-10 text-center"

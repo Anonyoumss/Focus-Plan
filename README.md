@@ -94,6 +94,9 @@ Chromium:
   SVG progress ring, Start/Pause shape morph, keyboard shortcuts,
   reload recovery, exactly-once session completion, screen wake lock,
   Web Audio chimes, ambient sound, optional tick sound.
+- **Interactive Pomo Physics Mascot**: 2D/3D physics clock mascot jumping around home page buttons with real parabolic arc gravity physics, landing dust particles canvas, Web Audio synth sounds, and context-aware speech bubbles.
+- **3D Focus Arcade Game (Three.js)**: Easter egg & badge reward mini-game ("Pomo Defense 3D") hidden in Settings and unlocked after 4 focus sessions per day. Features 3-12 part procedural models, studio PBR lighting, 60fps loop, mobile touch D-pad, Web Audio sound synthesis, and +15 Focus Coins reward.
+- **AI Plan Assistant & Coach**: AI-powered weekly study plan generator for standardized tests (GAT, SAAT, SAT, IELTS) and multi-turn AI Study Coach chat drawer mounted in the Plan view with offline heuristic fallbacks.
 - **Tasks**: categories, min/max session goals, cadences
   (hourly/daily/weekly/monthly), drag + keyboard reorder, edit, templates
   (single task or whole list, cloud-synced), JSON/CSV import and export

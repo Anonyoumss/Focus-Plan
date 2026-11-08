@@ -349,6 +349,7 @@ export const FriendsView: React.FC = () => {
               </button>
             )}
           </div>
+          <ReferralsCard />
         </div>
       ) : (
         <>
@@ -444,6 +445,11 @@ export const FriendsView: React.FC = () => {
                 </button>
               </div>
             </div>
+          </div>
+
+          {/* Referrals (Stage E) */}
+          <div className="mb-8">
+            <ReferralsCard alias={alias} />
           </div>
 
           {/* Group selector */}

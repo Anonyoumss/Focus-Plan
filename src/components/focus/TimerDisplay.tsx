@@ -8,6 +8,8 @@ import { JumpingClock } from './JumpingClock';
 import { MdSlider } from '../common/MdControls';
 import { formatTime, calculateProgress } from '../../lib/timerEngine';
 
+import { PhysicsClock } from './PhysicsClock';
+
 export const TimerDisplay: React.FC = () => {
   const {
     locale,
@@ -73,7 +75,8 @@ export const TimerDisplay: React.FC = () => {
   const strokeWidth = 10;
 
   return (
-    <div className="flex flex-col items-center justify-center w-full max-w-xl mx-auto px-4 py-6">
+    <div className="flex flex-col items-center justify-center w-full max-w-xl mx-auto px-4 py-6 relative">
+      <PhysicsClock />
       <div
         className="flex items-center p-1 rounded-full mb-8"
         style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}

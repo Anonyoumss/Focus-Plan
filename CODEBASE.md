@@ -26,8 +26,10 @@ src/
                           (pull/push/tombstones), cloudSync.ts (debounced
                           diff push), groups.ts (groups/wallet/awards/
                           profiles/leaderboard), emulatorHook.ts (dev only)
-  components/             focus/, plan/, tests/, progress/, friends/,
-                          store/, settings/, legal/, landing/, layout/,
+  components/             focus/ (TimerDisplay, PomoJumperMascot), plan/ (PlanView,
+                          AiPlanAssistantCard), tests/, progress/, friends/
+                          (ReferralsCard), store/, settings/ (SettingsView),
+                          game/ (PomoDefense3D), legal/, landing/, layout/,
                           auth/, onboarding/, common/
   data/tests/catalog.ts   standardized-test definitions + UserTestGoal
   design/theme.ts         M3 tonal palette sync, seed colors

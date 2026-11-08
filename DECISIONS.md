@@ -162,3 +162,30 @@ This log documents all technical, structural, and design decisions made during t
 - "Reduce animations" is an in-app override layered on the OS
   `prefers-reduced-motion` setting, implemented as a `reduce-motion`
   class on `<html>` that clamps CSS animation/transition durations.
+
+---
+
+## Decision 28: 3D Focus Arcade (Three.js), Pomo Physics Mascot, and AI Plan Assistant
+- **Decision**: 
+  - Mini-game `PomoDefense3D.tsx` uses Three.js procedural primitives (`THREE.Group`), studio PBR lighting (`RoomEnvironment`), 60fps game loop, Web Audio synthesizer, touch/keyboard controls, and awards 15 Focus Coins upon victory or gameover reward claim.
+  - Interactive mascot `PomoJumperMascot.tsx` implements parabolic arc gravity jump physics, landing dust particle canvas, Web Audio synth blips, and context-aware speech bubbles.
+  - AI Plan Assistant `AiPlanAssistantCard.tsx` provides AI study plan generation and multi-turn AI Study Coach chat drawer in `PlanView.tsx` with offline heuristic fallback.
+- **Rationale**: Meets user prompt requirements for Three.js 3D Arcade Easter Egg/Badge mini-game, jumping clock physics mascot, and AI plan coach while adhering strictly to Material 3 Expressive guidelines, client-side offline fallbacks, zero external 3D asset 404s, and privacy rules.
+
+---
+
+## Decision 29: Matter.js 2D Physics Clock, Real-Time Badge System, and 3D Arcade Marketing Tour
+- **Decision**:
+  - `PhysicsClock.tsx` uses `matter-js` 2D rigid body physics with dynamic DOM button collision bounding boxes, analogue ticking hands, drag & fling impulses, collision dust particle canvas, and Web Audio impact sound synthesis.
+  - `BadgeSystem.tsx` & `BadgeNotificationOverlay.tsx` track 7 core study achievement milestones and display real-time floating toast popups upon badge unlock.
+  - `PomoDefense3D.tsx` upgraded with exact M3 clock logo hero model, social media distraction hazards (Doomscroll Phone, TikTok/Reels, Notification Spam Bell, Binge TV), 3D Clock Tower, Web Audio Pink Noise focus soundscape, mechanical clock tick sound effects, and interactive 3D Marketing Tour Pavilions.
+- **Rationale**: Delivers authentic physical interaction with home page buttons, real-time achievement notifications, and complete marketing stunt polish for the 3D Arcade game.
+
+---
+
+## Decision 30: Settings Audio Toggles, Low-Motion Physics Clock, and 3D Focus Chess
+- **Decision**:
+  - Added new sound and physics controls in `SettingsView.tsx` and `useAppStore.ts`: `interactiveSoundEnabled`, `physicsClockEnabled`, `physicsClockLowMotion` persisted in `localStorage`.
+  - Updated `PhysicsClock.tsx` to support a Low-Motion accessibility mode that bypasses Matter.js gravity bouncing for users who prefer a stationary, non-distracting clock face.
+  - Transformed the mini-game (`PomoDefense3D.tsx`) into a 3D **Focus Chess Game** featuring App UI pieces (Master Alarm Clock King, AI Gemini Queen, Clock Tower Rook, Test Score Bishop, Wavy Ring Knight, Task Pawn) playing turn-based moves on an 8x8 3D checkered board with wild study rules!
+- **Rationale**: Provides comprehensive audio & motion accessibility controls while delivering a fun 3D Focus Chess experience.

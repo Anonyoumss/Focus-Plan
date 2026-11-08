@@ -604,6 +604,78 @@ describe('aiUsage quota docs', () => {
     await assertFails(anon.doc(`aiUsage/user_a/days/${day}`).get());
   });
 });
+
+describe('referral codes (Stage E)', () => {
+  it('owner can create referral code; anyone can read; cannot be deleted', async () => {
+    const dbA = testEnv.authenticatedContext('user_a').firestore();
+    const dbB = testEnv.authenticatedContext('user_b').firestore();
+    const anon = testEnv.unauthenticatedContext().firestore();
+
+    const referralDoc = {
+      code: 'REF12345',
+      ownerUid: 'user_a',
+      alias: 'Student A',
+      rewardCoins: 15,
+      usesCount: 0,
+      createdAt: 1700000000000,
+    };
+
+    // Owner creates code successfully
+    await assertSucceeds(dbA.doc('referralCodes/REF12345').set(referralDoc));
+
+    // Public & unauthenticated can read to show landing page
+    await assertSucceeds(anon.doc('referralCodes/REF12345').get());
+    await assertSucceeds(dbB.doc('referralCodes/REF12345').get());
+
+    // Non-owner cannot create code for another uid
+    await assertFails(
+      dbB.doc('referralCodes/REF99999').set({
+        ...referralDoc,
+        code: 'REF99999',
+        ownerUid: 'user_a',
+      }),
+    );
+
+    // Cannot delete code
+    await assertFails(dbA.doc('referralCodes/REF12345').delete());
+
+    // Incrementing usesCount is permitted
+    await assertSucceeds(
+      dbB.doc('referralCodes/REF12345').set({
+        ...referralDoc,
+        usesCount: 1,
+      }),
+    );
+
+    // Arbitrary modification or decreasing usesCount is rejected
+    await assertFails(
+      dbB.doc('referralCodes/REF12345').set({
+        ...referralDoc,
+        usesCount: 0,
+      }),
+    );
+  });
+
+  it('user referral status is owner isolated', async () => {
+    const dbA = testEnv.authenticatedContext('user_a').firestore();
+    const dbB = testEnv.authenticatedContext('user_b').firestore();
+
+    await assertSucceeds(
+      dbA.doc('users/user_a/referral/status').set({
+        redeemedCode: 'REF12345',
+        redeemedAt: 1700000000000,
+      }),
+    );
+
+    await assertSucceeds(dbA.doc('users/user_a/referral/status').get());
+    await assertFails(dbB.doc('users/user_a/referral/status').get());
+    await assertFails(
+      dbB.doc('users/user_a/referral/status').set({
+        redeemedCode: 'HACKED',
+      }),
+    );
+  });
+});
 });
 
 

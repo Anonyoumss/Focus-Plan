@@ -235,6 +235,25 @@ export interface Translations {
     deleteTemplate: string;
     tickSound: string;
     tickVolume: string;
+    alarmSound: string;
+    alarmVolume: string;
+    soundPresetChime: string;
+    soundPresetBell: string;
+    soundPresetDigital: string;
+    soundPresetWood: string;
+    soundPresetBowl: string;
+    soundCustom: string;
+    uploadCustomAudio: string;
+    customAudioHint: string;
+    customAudioLocalNote: string;
+    deleteCustomAudio: string;
+    previewSound: string;
+    tickPresetClock: string;
+    tickPresetDigital: string;
+    tickPresetWood: string;
+    tickPresetTap: string;
+    tickType: string;
+    ambientStream: string;
     account: string;
     guestMode: string;
     signInGoogle: string;
@@ -377,6 +396,30 @@ export interface Translations {
     body: string;
     codeLabel: string;
     backCta: string;
+  };
+  referrals: {
+    title: string;
+    subtitle: string;
+    yourCode: string;
+    copyLink: string;
+    linkCopied: string;
+    statsTitle: string;
+    successfulReferrals: string;
+    coinsEarned: string;
+    redeemTitle: string;
+    redeemPlaceholder: string;
+    redeemAction: string;
+    rewardNotice: string;
+    redeemSuccess: string;
+    redeemErrorSelf: string;
+    redeemErrorAlready: string;
+    redeemErrorInvalid: string;
+    guestPrompt: string;
+    landingTitle: string;
+    landingSubtitle: string;
+    invitedBy: string;
+    claimReward: string;
+    termsNotice: string;
   };
 }
 
@@ -616,6 +659,25 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       deleteTemplate: 'Delete',
       tickSound: 'Tick sound while timer runs',
       tickVolume: 'Tick volume',
+      alarmSound: 'Completion alarm sound',
+      alarmVolume: 'Alarm volume',
+      soundPresetChime: 'Zen Chime',
+      soundPresetBell: 'Temple Bell',
+      soundPresetDigital: 'Digital Beep',
+      soundPresetWood: 'Wood Block',
+      soundPresetBowl: 'Singing Bowl',
+      soundCustom: 'Custom Audio File',
+      uploadCustomAudio: 'Upload Audio (MP3, WAV, OGG, WebM, M4A up to 5MB)',
+      customAudioHint: 'Select or drop an audio file',
+      customAudioLocalNote: 'Audio files remain strictly on your local device. They are never uploaded or synced to the cloud.',
+      deleteCustomAudio: 'Remove custom audio',
+      previewSound: 'Preview sound',
+      tickPresetClock: 'Clock Tick',
+      tickPresetDigital: 'Digital Click',
+      tickPresetWood: 'Wood Metronome',
+      tickPresetTap: 'Muted Tap',
+      tickType: 'Tick sound style',
+      ambientStream: 'Gentle Stream',
       account: 'Account & Synchronization',
       guestMode: 'Guest Mode (Local Storage Only)',
       signInGoogle: 'Sign In with Google',
@@ -685,6 +747,10 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
         { heading: '5. User Accountability & Fair Play', paragraphs: [
           'Study groups are optional and available only when you sign in. Anyone holding a group\'s invite code or link can join; treat invite codes like passwords and share them only with people you want in the group. Group leaderboards and the opt-in public leaderboard rank members by self-reported focus minutes. Because award and ranking calculations run on your device, they are an honor system and are not verified or cheat-proof. You are responsible for the alias you publish and for leaving groups you no longer wish to participate in. Study data you create yourself is yours to export or delete at any time in Settings.',
         ]},
+        { heading: '6. Referral Program & Custom Audio', paragraphs: [
+          'Focus Plan M3E offers a student referral program: sharing your unique referral code or link awards 15 Focus Coins to you and your peer upon successful redemption. Self-referrals and automated abuse are prohibited. Focus Coins hold no real-world monetary value and may be redeemed only for in-app cosmetic enhancements and focus tools.',
+          'Custom alarm audio uploaded by you remains strictly on your local device and is stored using browser storage (IndexedDB). Custom audio files are never transmitted to our servers or synced to the cloud.',
+        ]},
       ],
       privacySections: [
         { heading: '1. 100% Local Device Storage (Current Release)', paragraphs: [
@@ -705,6 +771,10 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
         ]},
         { heading: '6. Right to Deletion & Data Export', paragraphs: [
           'You have full ownership of your data. You can download a complete JSON backup or CSV summary of your tasks at any moment, and purge all stored data with a single click in Settings. For cloud data, leaving a group removes your membership immediately, disabling the public leaderboard opt-in deletes your public entry, and signing out wipes synced data from the device. Deleting your Firebase account data entirely is not self-serve in this release.',
+        ]},
+        { heading: '7. Custom Audio & Referral Data Handling', paragraphs: [
+          'Custom audio files you upload for alarms are stored only on your local machine using client-side IndexedDB and localStorage. They are never sent to Firebase or any external service.',
+          'When you create or redeem a referral code, your chosen alias, referral code, and coin rewards are securely processed in Firestore. Your email, real name, and private tasks are never disclosed through referral links or codes.',
         ]},
       ],
     },
@@ -796,6 +866,30 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       body: 'Friend groups and invite links arrive with the social milestone. Nothing was shared or stored by opening this link.',
       codeLabel: 'Invite code',
       backCta: 'Back to the app',
+    },
+    referrals: {
+      title: 'Study Partner Referrals',
+      subtitle: 'Invite peers to study with Focus Plan M3E and earn 15 Focus Coins each.',
+      yourCode: 'Your Referral Code',
+      copyLink: 'Copy Referral Link',
+      linkCopied: 'Referral link copied to clipboard!',
+      statsTitle: 'Referral Stats',
+      successfulReferrals: 'Students Invited',
+      coinsEarned: 'Coins Earned',
+      redeemTitle: 'Redeem a Friend\'s Code',
+      redeemPlaceholder: 'Enter REF***** code',
+      redeemAction: 'Claim 15 Coins',
+      rewardNotice: 'Both you and your referrer receive 15 Focus Coins upon redemption.',
+      redeemSuccess: 'Success! 15 Focus Coins added to your wallet.',
+      redeemErrorSelf: 'You cannot redeem your own referral code.',
+      redeemErrorAlready: 'You have already redeemed a referral code.',
+      redeemErrorInvalid: 'Referral code not found. Please verify the code and try again.',
+      guestPrompt: 'Sign in with Google to create your permanent referral link and redeem rewards.',
+      landingTitle: 'You\'ve Been Invited to Study!',
+      landingSubtitle: 'Join Focus Plan M3E to track Pomodoro sessions, master test prep, and earn Focus Coins together.',
+      invitedBy: 'Invited by',
+      claimReward: 'Sign in to Claim 15 Focus Coins',
+      termsNotice: 'One redemption per student. Coins are strictly virtual and subject to the Terms of Service.',
     },
   },
   ar: {
@@ -1033,6 +1127,25 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       deleteTemplate: 'حذف',
       tickSound: 'صوت التكتكة أثناء عمل المؤقت',
       tickVolume: 'مستوى صوت التكتكة',
+      alarmSound: 'صوت منبه انتهاء الجلسة',
+      alarmVolume: 'مستوى صوت المنبه',
+      soundPresetChime: 'جرس هادئ (Zen Chime)',
+      soundPresetBell: 'جرس كلاسيكي (Temple Bell)',
+      soundPresetDigital: 'صفارة رقمية (Digital Beep)',
+      soundPresetWood: 'كتلة خشبية (Wood Block)',
+      soundPresetBowl: 'وعاء التبت (Singing Bowl)',
+      soundCustom: 'ملف صوتي مخصص',
+      uploadCustomAudio: 'رفع صوت مخصص (MP3, WAV, OGG, WebM, M4A حتى 5 ميجابايت)',
+      customAudioHint: 'اختر أو اسحب ملفاً صوتياً',
+      customAudioLocalNote: 'الملفات الصوتية المخصصة تبقى حصراً على جهازك المحلي ولا تُرفع أو تُزامن سحابياً أبداً.',
+      deleteCustomAudio: 'حذف الصوت المخصص',
+      previewSound: 'معاينة الصوت',
+      tickPresetClock: 'تكتكة ساعة كلاسيكية',
+      tickPresetDigital: 'نقرة رقمية خفيفة',
+      tickPresetWood: 'بندول إيقاع خشبي',
+      tickPresetTap: 'نقرة مكتومة',
+      tickType: 'نمط صوت التكتكة',
+      ambientStream: 'خرير جدول ماء',
       account: 'الحساب والمزامنة',
       guestMode: 'وضع الضيف (حفظ محلي فقط)',
       signInGoogle: 'تسجيل الدخول عبر Google',
@@ -1102,6 +1215,10 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
         { heading: '5. مساءلة المستخدم واللعب النظيف', paragraphs: [
           'مجموعات الدراسة اختيارية ومتاحة فقط عند تسجيل الدخول. يمكن لأي شخص يملك رمز دعوة المجموعة أو رابطها الانضمام؛ تعامل مع رموز الدعوة ككلمات مرور وشاركها فقط مع من تريدهم في المجموعة. لوحات الصدارة داخل المجموعات واللوحة العامة الاختيارية ترتب الأعضاء حسب دقائق التركيز المُبلّغ عنها ذاتياً. ولأن حساب الجوائز والترتيب يتم على جهازك، فهو نظام شرفي غير موثّق وغير محصّن ضد الغش. أنت مسؤول عن الاسم المستعار الذي تنشره وعن مغادرة المجموعات التي لم تعد ترغب فيها. بيانات الدراسة التي تنشئها بنفسك ملك لك ويمكنك تصديرها أو حذفها في أي وقت من الإعدادات.',
         ]},
+        { heading: '6. برنامج الإحالات والأصوات المخصصة', paragraphs: [
+          'يوفر فوكس بلان M3E برنامج إحالة للطلاب: تمنح مشاركة رمز الإحالة الفريد الخاص بك 15 عملة تركيز لك ولزميلك عند الاستخدام الناجح. الإحالات الذاتية والاستخدام التلقائي محظوران. عملات التركيز ليس لها قيمة نقدية حقيقية وتُستخدم فقط داخل التطبيق للمزايا وأدوات التركيز.',
+          'الملفات الصوتية المخصصة التي ترفعها للمنبه تبقى على جهازك المحلي وتُخزن في مساحة تخزين المتصفح (IndexedDB). لا يتم إرسالها إلى خوادمنا أو مزامنتها سحابياً إطلاقاً.',
+        ]},
       ],
       privacySections: [
         { heading: '1. تخزين محلي 100% على الجهاز (الإصدار الحالي)', paragraphs: [
@@ -1122,6 +1239,10 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
         ]},
         { heading: '٦. الحق في الحذف وتصدير البيانات', paragraphs: [
           'لديك ملكية كاملة لبياناتك. يمكنك تنزيل نسخة احتياطية JSON كاملة أو ملخص CSV لمهامك في أي وقت، ومحو جميع البيانات المخزنة بنقرة واحدة من الإعدادات. بالنسبة للبيانات السحابية، مغادرة المجموعة تزيل عضويتك فوراً، وإيقاف تفعيل لوحة الصدارة العامة يحذف إدخالك العام، وتسجيل الخروج يمحو البيانات المتزامنة من الجهاز. حذف بيانات حساب Firebase بالكامل غير متاح ذاتياً في هذا الإصدار.',
+        ]},
+        { heading: '٧. معالجة الأصوات المخصصة وبيانات الإحالات', paragraphs: [
+          'الملفات الصوتية المخصصة التي ترفعها للمنبه تُخزن حصرياً على جهازك المحلي عبر تقنيات المتصفح المحلية (IndexedDB وlocalStorage). لا تُرسل أبداً إلى فايربيس أو أي خدمة خارجية.',
+          'عند إنشاء رمز إحالة أو استخدامه، يتم تخزين اسمك المستعار ورمز الإحالة ومكافآت العملات بأمان في Firestore. بريدك الإلكتروني واسمك الحقيقي ومهامك الخاصة لا تظهر أبداً من خلال روابط أو رموز الإحالة.',
         ]},
       ],
     },
@@ -1213,6 +1334,30 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       body: 'مجموعات الأصدقاء وروابط الدعوة تصل مع مرحلة التواصل الاجتماعي. لم تتم مشاركة أو تخزين أي بيانات بفتح هذا الرابط.',
       codeLabel: 'رمز الدعوة',
       backCta: 'العودة إلى التطبيق',
+    },
+    referrals: {
+      title: 'إحالات شركاء المذاكرة',
+      subtitle: 'ادعُ زملاءك للمذاكرة مع فوكس بلان M3E واحصل كليكما على 15 عملة تركيز.',
+      yourCode: 'رمز الإحالة الخاص بك',
+      copyLink: 'نسخ رابط الإحالة',
+      linkCopied: 'تم نسخ رابط الإحالة إلى الحافظة!',
+      statsTitle: 'إحصائيات الإحالات',
+      successfulReferrals: 'الطلاب المدعوون',
+      coinsEarned: 'العملات المكتسبة',
+      redeemTitle: 'استخدام رمز صديق',
+      redeemPlaceholder: 'أدخل رمز REF*****',
+      redeemAction: 'الحصول على 15 عملة',
+      rewardNotice: 'يحصل كل منكما على 15 عملة تركيز فور تفعيل الرمز بنجاح.',
+      redeemSuccess: 'تم بنجاح! تمت إضافة 15 عملة تركيز إلى محفظتك.',
+      redeemErrorSelf: 'لا يمكنك استخدام رمز الإحالة الخاص بك.',
+      redeemErrorAlready: 'لقد قمت مسبقاً باستخدام رمز إحالة.',
+      redeemErrorInvalid: 'رمز الإحالة غير موجود. يرجى التحقق من الرمز والمحاولة مجدداً.',
+      guestPrompt: 'سجل الدخول بحساب Google للحصول على رابط إحالتك الدائم واستلام المكافآت.',
+      landingTitle: 'لقد تمت دعوتك للمذاكرة!',
+      landingSubtitle: 'انضم إلى فوكس بلان M3E لتتبع جلسات البومودورو، والاستعداد للاختبارات، وكسب عملات التركيز معاً.',
+      invitedBy: 'دعوة من',
+      claimReward: 'سجل الدخول للحصول على 15 عملة تركيز',
+      termsNotice: 'استخدام واحد لكل طالب. العملات افتراضية بالكامل وخاضعة لشروط الخدمة.',
     },
   },
 };

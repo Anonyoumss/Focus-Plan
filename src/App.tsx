@@ -76,6 +76,8 @@ function SwUpdateBanner() {
   );
 }
 
+import { BadgeNotificationOverlay } from './components/badges/BadgeNotificationOverlay';
+
 export default function App() {
   const { activeTab, setActiveTab, themeMode, seedHex, locale } = useAppStore();
   const [route, setRoute] = useState<AppRoute>(() => parseHashRoute(window.location.hash));
@@ -171,6 +173,7 @@ export default function App() {
     <Shell>
       <Suspense fallback={null}>{renderActiveView()}</Suspense>
       <SwUpdateBanner />
+      <BadgeNotificationOverlay />
       <Suspense fallback={null}>
         <OnboardingModal />
         <MigrationDialog />
