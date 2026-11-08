@@ -32,7 +32,15 @@ jobs:
         with:
           projectPath: desktop/src-tauri
           args: --bundles deb,appimage
-          releaseDraft: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+          releaseDraft: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-linux
+          path: |
+            desktop/src-tauri/target/release/bundle/deb/*
+            desktop/src-tauri/target/release/bundle/appimage/*
+          if-no-files-found: ignore
   macos:
     runs-on: macos-latest
     steps:
@@ -55,7 +63,15 @@ jobs:
         with:
           projectPath: desktop/src-tauri
           args: --bundles app,dmg
-          releaseDraft: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+          releaseDraft: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-macos
+          path: |
+            desktop/src-tauri/target/release/bundle/dmg/*
+            desktop/src-tauri/target/release/bundle/macos/*.app.tar.gz
+          if-no-files-found: ignore
 
   windows:
     runs-on: windows-latest
@@ -77,4 +93,10 @@ jobs:
         with:
           projectPath: desktop/src-tauri
           args: --bundles nsis,msi
-          releaseDraft: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+          releaseDraft: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-windows
+          path: desktop/src-tauri/target/release/bundle/nsis/*
+          if-no-files-found: ignore
