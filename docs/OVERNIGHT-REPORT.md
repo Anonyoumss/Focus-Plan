@@ -131,3 +131,12 @@ Not done (ran out of budget):
 
 Checks: tsc clean, eslint clean, 85/85 unit, build pass, Playwright 49 pass + 6 emulator-skips, emulator suite 6/6.
 Stage D status: DONE. Stage E/F remain for a future session.
+
+## Stage F — done (this session)
+
+- Note: the prompt claimed stages A-E done; Stage E (custom audio + referrals) was NOT implemented — no code exists. Flagged for owner.
+- Logo: 3 original SVGs in docs/logo/ + preview PNG; Option A adopted (matches prior brand tile). Generated favicon-32, icon-192/512, maskable-512, apple-touch-icon, og-image 1200x630; manifest + index.html updated.
+- Service worker: public/sw.js precaches shell via build-emitted precache.json (new vite plugin), network-first navigation fallback, cache-first assets, update banner. Root cause found during testing: vite preview sends `Vary: Origin` on all responses, which silently broke `caches.match(request)` — fixed with `ignoreVary`/`ignoreSearch`. Base-path agnostic.
+- Offline e2e passes (load once → offline → reload → tasks+timer work). README offline claim updated to true.
+
+Checks: tsc clean, eslint clean, 85/85 unit, build pass, Playwright 50 pass + 6 emulator-skips, emulator suite 6/6.

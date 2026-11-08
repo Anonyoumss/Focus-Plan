@@ -10,7 +10,24 @@ const __dirname = path.dirname(__filename);
 export default defineConfig(() => {
   return {
     base: '/Focus-Plan/',
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      // Emits precache.json listing every hashed build asset so public/sw.js
+      // can precache the full app shell (including lazy route chunks) at
+      // install time — required for first-visit offline reloads.
+      {
+        name: 'sw-precache-manifest',
+        generateBundle(_options, bundle) {
+          const files = Object.keys(bundle).filter((f) => f.startsWith('assets/'));
+          this.emitFile({
+            type: 'asset',
+            fileName: 'precache.json',
+            source: JSON.stringify(files),
+          });
+        },
+      },
+    ],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

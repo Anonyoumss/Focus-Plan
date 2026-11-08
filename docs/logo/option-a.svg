@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#1b4332"/>
+  <circle cx="256" cy="292" r="132" fill="#2d6a4f"/>
+  <circle cx="256" cy="292" r="104" fill="#40916c"/>
+  <!-- graduation cap -->
+  <path d="M256 84 L372 140 L256 196 L140 140 Z" fill="#d8f3dc"/>
+  <path d="M196 168 L196 224 C196 244 300 244 316 224 L316 168 L256 196 Z" fill="#74c69d"/>
+  <line x1="372" y1="140" x2="372" y2="196" stroke="#d8f3dc" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="372" cy="204" r="12" fill="#d8f3dc"/>
+  <!-- tick-mark hands -->
+  <line x1="256" y1="292" x2="256" y2="212" stroke="#d8f3dc" stroke-width="14" stroke-linecap="round"/>
+  <line x1="256" y1="292" x2="322" y2="322" stroke="#d8f3dc" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="256" cy="292" r="16" fill="#d8f3dc"/>
+</svg>

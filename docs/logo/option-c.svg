@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#2e6b52"/>
+  <!-- clock face -->
+  <circle cx="256" cy="300" r="128" fill="#e9f5ec"/>
+  <!-- graduation cap on top -->
+  <path d="M256 92 L368 146 L256 200 L144 146 Z" fill="#123c2c"/>
+  <rect x="196" y="158" width="120" height="52" rx="8" fill="#123c2c"/>
+  <line x1="368" y1="146" x2="368" y2="206" stroke="#123c2c" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="368" cy="214" r="11" fill="#123c2c"/>
+  <!-- tick-mark hands: small ticks as hands -->
+  <g stroke="#123c2c" stroke-width="13" stroke-linecap="round">
+    <line x1="256" y1="300" x2="256" y2="212"/>
+    <line x1="256" y1="300" x2="324" y2="332"/>
+  </g>
+  <circle cx="256" cy="300" r="15" fill="#123c2c"/>
+  <!-- hour ticks -->
+  <g fill="#123c2c">
+    <circle cx="256" cy="188" r="7"/><circle cx="356" cy="238" r="7"/>
+    <circle cx="340" cy="352" r="7"/><circle cx="172" cy="352" r="7"/>
+    <circle cx="156" cy="238" r="7"/>
+  </g>
+</svg>

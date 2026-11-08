@@ -47,9 +47,12 @@ Live demo: _placeholder — GitHub Pages URL after first deploy_
   quiet hours and a permission flow. No background push — scheduled
   delivery is not shipped.
 - **Bilingual**: English and Arabic, full RTL, logical CSS properties.
-- **PWA**: installable manifest, hash routing (`#/`, `#/app/*`,
-  `#/terms`, `#/privacy`, `#/invite/<code>`). Offline support (service
-  worker) is planned but not shipped yet.
+- **PWA**: installable manifest with PNG/maskable/Apple icons, service
+  worker (`public/sw.js`) that precaches the full app shell (asset list
+  emitted as `precache.json` at build time) so the app, timer and tasks
+  work offline after one online visit, plus an update-available prompt.
+  Hash routing (`#/`, `#/app/*`, `#/terms`, `#/privacy`, `#/invite/<code>`).
+  Verified by `e2e/offline.spec.ts`.
 
 ## Tech stack
 

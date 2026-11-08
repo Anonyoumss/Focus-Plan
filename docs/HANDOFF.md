@@ -175,3 +175,14 @@ Next: Stage E (custom audio library + referrals) then Stage F (logo, service
 worker/PWA offline). See docs/OVERNIGHT-QUESTIONS.md for open decisions.
 
 Caution: md-dialog has no role="dialog" — locate via page.locator('md-dialog') in specs.
+
+## Stage F — DONE
+
+Logo options + adopted icons shipped; real service worker with precache
+(precache.json emitted by vite plugin), offline-verified e2e. README
+offline claim now accurate. Gotcha recorded: `Vary: Origin` response
+header breaks `caches.match` — always pass `ignoreVary` in SW lookups.
+
+STILL NOT DONE: Stage E (custom audio library + referrals) — never
+implemented; the overnight prompt incorrectly listed it as done. Next
+session should do Stage E, then optionally Android/Capacitor.

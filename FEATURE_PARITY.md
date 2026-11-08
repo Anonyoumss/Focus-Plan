@@ -115,6 +115,13 @@ Present in source and included in the production build. Not verified by the chec
 - Plan page rebuilt as a 7-day agenda: cadence-derived study blocks, task deadlines (overdue flagged), test dates, weekly plan cards per test goal, empty state with one-tap actions (add task/test/set cadence), skeleton-first reveal, RTL. Verified in browser EN + AR (`e2e/stage-d.spec.ts`); agenda math Unit tested (`planAgenda.test.ts`, 5 tests).
 - Progress tab perf re-measured on production build with 2,000 seeded session logs: ~450 ms to first chart paint, 129 ms long-task total — earlier 7.6 s figure was a cold-load artifact, not reproducible. Verified in browser via Playwright probe.
 
+## Added in stage F (logo + offline PWA)
+
+- Original logo: three SVG options in `docs/logo/` (clock with tick-mark hands + graduation cap, flat app-palette tonal colors, no gradients) with `logo-options.png` side-by-side + 16px legibility preview. Option A adopted for all icons.
+- Real icons: `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png`, `favicon-32.png`, `og-image.png` (1200x630); manifest lists SVG+PNG+maskable entries; index.html has favicon/apple-touch/og tags. Verified via `e2e/prod-pages.spec.ts` asset checks.
+- Service worker `public/sw.js`: precaches full app shell via build-emitted `precache.json` (vite plugin in `vite.config.ts`), network-first navigations with cached-shell fallback, cache-first same-origin assets with `ignoreVary`/`ignoreSearch` (vite preview sends `Vary: Origin`, which broke naive `caches.match`), runtime fill for anything else, SKIP_WAITING message + `sw:update-available` banner in App. Base-path agnostic (`./` URLs). Registered prod-only in `main.tsx`.
+- Offline verified in browser: `e2e/offline.spec.ts` loads once, goes offline, reloads — tasks and timer controls work (`vite preview` under `/Focus-Plan/`). README offline claim now true.
+
 ## Not in this codebase
 
 - Path-based URL routes. Routing is hash-based (`#/...`); a static host serves `index.html` for any path, and deep links/refresh work through the hash parser.

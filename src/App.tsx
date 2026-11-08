@@ -26,6 +26,55 @@ const LandingPage = lazy(() => import('./components/landing/LandingPage').then((
 const InvitePage = lazy(() => import('./components/landing/InvitePage').then((m) => ({ default: m.InvitePage })));
 import { AppRoute, parseHashRoute, subscribeToHash } from './lib/router';
 
+function SwUpdateBanner() {
+  const { locale } = useAppStore();
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const onUpdate = () => setVisible(true);
+    window.addEventListener('sw:update-available', onUpdate);
+    return () => window.removeEventListener('sw:update-available', onUpdate);
+  }, []);
+  if (!visible) return null;
+  const reload = () => {
+    navigator.serviceWorker?.getRegistration().then((reg) => {
+      reg?.waiting?.postMessage('SKIP_WAITING');
+    });
+    // controllerchange fires after the new worker takes over.
+    navigator.serviceWorker?.addEventListener('controllerchange', () => window.location.reload());
+  };
+  const ar = locale === 'ar';
+  return (
+    <div
+      role="status"
+      className="fixed bottom-20 inset-x-4 sm:inset-x-auto sm:end-6 sm:bottom-6 z-[60] flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-lg"
+      style={{
+        backgroundColor: 'var(--md-sys-color-surface-container-high)',
+        borderColor: 'var(--md-sys-color-outline-variant)',
+        color: 'var(--md-sys-color-on-surface)',
+      }}
+    >
+      <span className="text-sm flex-1">
+        {ar ? 'يتوفر إصدار جديد من التطبيق.' : 'A new version of the app is available.'}
+      </span>
+      <button
+        onClick={reload}
+        className="text-sm font-semibold px-3 py-1.5 rounded-lg cursor-pointer"
+        style={{ backgroundColor: 'var(--md-sys-color-primary)', color: 'var(--md-sys-color-on-primary)' }}
+      >
+        {ar ? 'تحديث' : 'Update'}
+      </button>
+      <button
+        onClick={() => setVisible(false)}
+        aria-label={ar ? 'إغلاق' : 'Dismiss'}
+        className="p-1 rounded cursor-pointer"
+        style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+      >
+        ×
+      </button>
+    </div>
+  );
+}
+
 export default function App() {
   const { activeTab, setActiveTab, themeMode, seedHex, locale } = useAppStore();
   const [route, setRoute] = useState<AppRoute>(() => parseHashRoute(window.location.hash));
@@ -110,6 +159,7 @@ export default function App() {
   return (
     <Shell>
       <Suspense fallback={null}>{renderActiveView()}</Suspense>
+      <SwUpdateBanner />
       <Suspense fallback={null}>
         <OnboardingModal />
         <MigrationDialog />
