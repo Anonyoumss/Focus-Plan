@@ -23,7 +23,7 @@ interface ChessPiece {
 }
 
 export const PomoDefense3D: React.FC<PomoDefense3DProps> = ({ onClose }) => {
-  const { locale, coins } = useAppStore();
+  const { locale } = useAppStore();
   const ar = locale === 'ar';
 
   const [selectedPiece, setSelectedPiece] = useState<ChessPiece | null>(null);
@@ -32,7 +32,7 @@ export const PomoDefense3D: React.FC<PomoDefense3DProps> = ({ onClose }) => {
   const [captures, setCaptures] = useState(0);
   const [gameState, setGameState] = useState<'playing' | 'victory' | 'defeat'>('playing');
   const [rewardClaimed, setRewardClaimed] = useState(false);
-  const [activeRule, setActiveRule] = useState<string>(
+  const [activeRule] = useState<string>(
     ar ? 'قاعدة عشوائية: صدمة التركيز! أكل الجنديون يمنحك 5 عملات وإطلاق زمني!' : 'Random Rule: Focus Strike! Capturing pawns awards +5 coins & boost!'
   );
   const [audioMode, setAudioMode] = useState<'pinknoise' | 'ticks' | 'mute'>('pinknoise');

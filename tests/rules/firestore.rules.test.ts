@@ -684,8 +684,8 @@ describe('referrals', () => {
     code: 'REFTEST123',
     ownerUid: 'user_a',
     alias: 'Alice',
-    uses: 0,
-    maxUses: 100,
+    rewardCoins: 15,
+    usesCount: 0,
     createdAt: 1700000000000,
   };
 
@@ -697,45 +697,41 @@ describe('referrals', () => {
     await assertSucceeds(anon.doc('referralCodes/REFTEST123').get());
   });
 
-  it('non-owner cannot create a code for someone else; wrong uses rejected', async () => {
+  it('non-owner cannot create a code for someone else; wrong usesCount rejected', async () => {
     const dbB = testEnv.authenticatedContext('user_b').firestore();
     await assertFails(
       dbB.doc('referralCodes/REFOTHER99').set({ ...codeDoc, code: 'REFOTHER99', ownerUid: 'user_a' }),
     );
     await assertFails(
-      dbB.doc('referralCodes/REFUSES001').set({ ...codeDoc, code: 'REFUSES001', uses: 5 }),
+      dbB.doc('referralCodes/REFUSES001').set({ ...codeDoc, code: 'REFUSES001', usesCount: 5 }),
     );
   });
 
-  it('redeemer can increment uses by exactly one; owner cannot self-increment', async () => {
+  it('redeemer can increment usesCount by exactly one; owner cannot self-increment fields', async () => {
     const dbA = testEnv.authenticatedContext('user_a').firestore();
     const dbB = testEnv.authenticatedContext('user_b').firestore();
     await assertSucceeds(
-      dbB.doc('referralCodes/REFTEST123').update({ uses: 1 }),
+      dbB.doc('referralCodes/REFTEST123').update({ usesCount: 1 }),
     );
     await assertFails(
-      dbA.doc('referralCodes/REFTEST123').update({ uses: 2 }),
+      dbB.doc('referralCodes/REFTEST123').update({ usesCount: 5 }),
     );
     await assertFails(
-      dbB.doc('referralCodes/REFTEST123').update({ uses: 5 }),
+      dbB.doc('referralCodes/REFTEST123').update({ usesCount: 2, alias: 'hax' }),
     );
-    await assertFails(
-      dbB.doc('referralCodes/REFTEST123').update({ uses: 2, alias: 'hax' }),
-    );
+    await assertFails(dbA.doc('referralCodes/REFTEST123').delete());
   });
 
   it('user referral markers are owner-only and create-only', async () => {
     const dbA = testEnv.authenticatedContext('user_a').firestore();
     const dbB = testEnv.authenticatedContext('user_b').firestore();
     await assertSucceeds(
-      dbA.doc('users/user_a/referral/REFTEST123').set({ code: 'REFTEST123', redeemedAt: 1, bonusCoins: 15 }),
+      dbA.doc('users/user_a/referral/redemption').set({ referredByCode: 'REFTEST123', referredByUid: 'user_b', redeemedAt: 1, rewardCoins: 15 }),
     );
-    await assertFails(dbB.doc('users/user_a/referral/REFTEST123').get());
+    await assertFails(dbB.doc('users/user_a/referral/redemption').get());
     await assertFails(
-      dbA.doc('users/user_a/referral/REFTEST123').set({ code: 'X', redeemedAt: 2, bonusCoins: 15 }),
+      dbA.doc('users/user_a/referral/redemption').set({ referredByCode: 'X', redeemedAt: 2, rewardCoins: 15 }),
     );
-    await assertFails(
-      dbA.doc('users/user_a/referralCode/main').set({ code: 'REFTEST123', ownerUid: 'user_b' }),
-    );
+    await assertFails(dbA.doc('users/user_a/referral/redemption').delete());
   });
 });

@@ -3,6 +3,25 @@
 All notable changes to Focus Plan M3E. Generated from conventional commits;
 see [Releases](https://github.com/Anonyoumss/Focus-Plan/releases) for binaries.
 
+## [0.2.0] - 2026-11-08
+
+### Added
+- Custom audio library: 5 alarm presets, 4 tick styles, 5 ambient beds,
+  custom uploads stored locally (IndexedDB), device-only.
+- Referral program: `referralCodes` collection, atomic redemption,
+  15 Focus Coins reward, `#/referral/<code>` landing page.
+- Three.js easter-egg game + PomoDefense3D arcade, physics mascot clock,
+  badge system, AI plan assistant (AI Studio integration).
+- Native Android app (`android-native/`, Kotlin + Compose M3).
+- Desktop apps via Tauri 2 (`desktop/`): Linux (.deb/AppImage),
+  macOS (.app/.dmg, Intel + Apple Silicon, Liquid Glass vibrancy),
+  Windows (NSIS/MSI). Artifacts attach to `v*` releases as draft.
+
+### Fixed
+- Removed duplicate/stale Firestore referral rules that conflicted with
+  the client schema (`usesCount`/`rewardCoins`); tightened referral code
+  updates to `usesCount`-only diffs and referral markers to create-only.
+
 ## [Unreleased]
 
 ### Added

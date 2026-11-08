@@ -3,7 +3,8 @@ name: Desktop apps
 on:
   push:
     branches: [main]
-    paths: ['desktop/**', 'src/**', 'package*.json', 'vite.config.ts']
+    tags: ['v*']
+    paths: ['desktop/**', '.github/workflows/desktop.yml', 'src/**', 'package*.json', 'vite.config.ts']
   workflow_dispatch:
 
 jobs:
@@ -31,6 +32,7 @@ jobs:
         with:
           projectPath: desktop/src-tauri
           args: --bundles deb,appimage
+          releaseDraft: ${{ startsWith(github.ref, 'refs/tags/v') }}
   macos:
     runs-on: macos-latest
     steps:
@@ -53,3 +55,26 @@ jobs:
         with:
           projectPath: desktop/src-tauri
           args: --bundles app,dmg
+          releaseDraft: ${{ startsWith(github.ref, 'refs/tags/v') }}
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: desktop/src-tauri
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: desktop/src-tauri
+          args: --bundles nsis,msi
+          releaseDraft: ${{ startsWith(github.ref, 'refs/tags/v') }}
