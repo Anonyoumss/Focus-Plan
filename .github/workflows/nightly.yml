@@ -48,8 +48,7 @@ jobs:
           cp -r extension/* dist-ext/firefox/
           cp extension/manifest.firefox.json dist-ext/firefox/manifest.json
           rm -f dist-ext/*/manifest.*.json
-          cd dist-ext && zip -qr ../../focus-plan-companion-chrome.zip chrome && zip -qr ../../focus-plan-companion-firefox.zip firefox
-          cd ..
+          cd dist-ext && zip -qr "$GITHUB_WORKSPACE/focus-plan-companion-chrome.zip" chrome && zip -qr "$GITHUB_WORKSPACE/focus-plan-companion-firefox.zip" firefox
       - name: Upload nightly pre-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
