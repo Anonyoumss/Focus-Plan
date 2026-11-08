@@ -1,14 +1,54 @@
+<div align="center">
+
 # Focus Plan M3E
 
-A responsive, installable PWA that combines Pomodoro-style focus timing
-with a goal-driven study tracker for standardized tests. English and
-Arabic with full RTL. Built with React, TypeScript, Vite, and Material 3
-Expressive design tokens. Optional Firebase backend (Auth + Firestore)
-for cloud sync, groups, and leaderboards — the app works fully as a
-guest with no configuration.
+**A Pomodoro timer and goal-driven study tracker for standardized tests — English & Arabic, installable PWA, Android app, and browser extension.**
 
-Live demo: _placeholder — GitHub Pages URL after first deploy_
-Vercel preview: _placeholder — Vercel URL after first deploy_
+[![CI](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/ci.yml/badge.svg)](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/ci.yml)
+[![Android APK](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/android.yml/badge.svg)](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/android.yml)
+[![Extension](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/extension.yml/badge.svg)](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/extension.yml)
+[![Deploy](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/deploy.yml/badge.svg)](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/deploy.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Firebase](https://img.shields.io/badge/Firebase-Spark%20free-orange.svg)](https://firebase.google.com/pricing)
+
+**[Live app](https://anonyoumss.github.io/Focus-Plan/)** · **[Releases (APK + extension)](https://github.com/Anonyoumss/Focus-Plan/releases)** · **[Report a bug](https://github.com/Anonyoumss/Focus-Plan/issues/new?template=bug_report.md)**
+
+</div>
+
+---
+
+Focus Plan M3E merges Pomodoro-style focus timing with a study layer built
+around your actual goals: tasks with session targets and repeat cadences,
+a catalog of standardized tests with per-section score targets, streaks,
+coins, badges, friends and groups — all in English and Arabic with full RTL,
+Material 3 Expressive styling, and a real offline service worker.
+
+It ships three ways from one codebase:
+
+| Surface | What it is | Status |
+|---|---|---|
+| **Web / PWA** | Installable web app, offline-capable | [Live on GitHub Pages](https://anonyoumss.github.io/Focus-Plan/) |
+| **Android** | Capacitor wrapper of the same web build | [Debug APK in Releases](https://github.com/Anonyoumss/Focus-Plan/releases) |
+| **Browser extension** | Optional on/off-task tracker for focus sessions | [Chrome + Firefox zips in Releases](https://github.com/Anonyoumss/Focus-Plan/releases) |
+
+## Screenshots
+
+<div align="center">
+
+| Focus timer | Plan | Progress |
+|---|---|---|
+| ![Focus](docs/screenshots/en/light/desktop/focus.png) | ![Plan](docs/screenshots/en/light/desktop/plan.png) | ![Progress](docs/screenshots/en/light/desktop/progress.png) |
+
+| Tests | Arabic (RTL) | Settings |
+|---|---|---|
+| ![Tests](docs/screenshots/en/light/desktop/tests.png) | ![Arabic](docs/screenshots/ar/light/desktop/focus.png) | ![Settings](docs/screenshots/en/light/desktop/settings.png) |
+
+</div>
+
+The Android app renders this same UI inside a Capacitor WebView — see
+[docs/ANDROID.md](docs/ANDROID.md). The extension's options page:
+
+![Extension options](docs/screenshots/extension/options.png)
 
 ## Features (what actually exists today)
 
@@ -53,7 +93,24 @@ Vercel preview: _placeholder — Vercel URL after first deploy_
   emitted as `precache.json` at build time) so the app, timer and tasks
   work offline after one online visit, plus an update-available prompt.
   Hash routing (`#/`, `#/app/*`, `#/terms`, `#/privacy`, `#/invite/<code>`).
-  Verified by `e2e/offline.spec.ts`.
+  Verified by `e2e/prod-pages.spec.ts`.
+
+## Downloads
+
+GitHub Releases carry the installables, built by CI on every `v*` tag:
+
+- **Android**: `app-release.apk` (signed, when keystore secrets are set) or
+  `app-debug.apk`. See [docs/ANDROID.md](docs/ANDROID.md).
+- **Extension**: `focus-plan-companion-chrome.zip` and
+  `focus-plan-companion-firefox.zip`. See [docs/EXTENSION.md](docs/EXTENSION.md).
+
+## Browser extension (optional)
+
+`extension/` is a Manifest V3 companion that records **domain-level**
+on-task/off-task minutes while a focus session runs — never page content,
+URLs, or history, all stored locally on your device. The app shows a Focus
+insights card and a Settings section; everything works without it.
+Details and install steps: [docs/EXTENSION.md](docs/EXTENSION.md).
 
 ## Tech stack
 
@@ -155,7 +212,7 @@ the build runs fully as a guest.
 ## Roadmap
 
 Google Tasks API, Google Calendar API, Gemini via Firebase AI Logic,
-FCM web push reminders, Capacitor Android shell, richer reports.
+FCM web push reminders, richer reports, AI-studio custom audio/referrals (Stage E, in progress elsewhere).
 
 ## Contributing
 
