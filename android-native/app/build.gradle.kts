@@ -32,20 +32,22 @@ android {
         buildConfig = true
     }
 
-    // Public Firebase config injected from gradle properties / local.properties.
-    // Empty defaults keep the app buildable and runnable as a guest.
-    val fpProps = java.util.Properties().apply {
-        val f = rootProject.file("local.properties")
-        if (f.exists()) f.inputStream().use { load(it) }
-    }
-    fun fp(key: String) = (project.findProperty(key) as? String) ?: fpProps.getProperty(key) ?: ""
-    defaultConfig {
-        resValue("string", "firebase_api_key", fp("FP_FIREBASE_API_KEY"))
-        resValue("string", "firebase_app_id", fp("FP_FIREBASE_APP_ID"))
-        resValue("string", "firebase_project_id", fp("FP_FIREBASE_PROJECT_ID"))
-        resValue("string", "firebase_sender_id", fp("FP_FIREBASE_SENDER_ID"))
-        resValue("string", "default_web_client_id", fp("FP_WEB_CLIENT_ID"))
-    }
+}
+
+// Public Firebase config injected from gradle properties / local.properties.
+// Empty defaults keep the app buildable and runnable as a guest.
+val fpProps = java.util.Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+fun fp(key: String) = (project.findProperty(key) as? String) ?: fpProps.getProperty(key) ?: ""
+
+android.defaultConfig {
+    resValue("string", "firebase_api_key", fp("FP_FIREBASE_API_KEY"))
+    resValue("string", "firebase_app_id", fp("FP_FIREBASE_APP_ID"))
+    resValue("string", "firebase_project_id", fp("FP_FIREBASE_PROJECT_ID"))
+    resValue("string", "firebase_sender_id", fp("FP_FIREBASE_SENDER_ID"))
+    resValue("string", "default_web_client_id", fp("FP_WEB_CLIENT_ID"))
 }
 
 dependencies {
