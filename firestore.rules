@@ -356,6 +356,12 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // AI proxy daily quota (written by the Vercailess function using the
+    // caller's own ID token). Scoped to the caller's uid subtree only.
+    match /aiUsage/{uid}/days/{day} {
+      allow read, write: if isSignedIn() && request.auth.uid == uid;
+    }
+
     match /users/{uid}/memberships/{gid} {
       allow read: if isOwner(uid);
       allow create, update: if isOwner(uid)

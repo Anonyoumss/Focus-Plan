@@ -1,0 +1,36 @@
+# Changelog
+
+All notable changes to Focus Plan M3E. Generated from conventional commits;
+see [Releases](https://github.com/Anonyoumss/Focus-Plan/releases) for binaries.
+
+## [Unreleased]
+
+### Added
+- Capacitor Android app (`android/`, `com.focusplan.m3e`) with native
+  keep-awake, haptics, status bar, splash, session-end local notifications,
+  and native Google sign-in via `@capgo/capacitor-social-login`.
+- `.github/workflows/android.yml`: debug APK artifact on main pushes,
+  signed/unsigned release APK on `v*` tags.
+- MV3 browser extension (`extension/`): opt-in domain-level on/off-task
+  tracking during focus sessions, allow/block lists, gentle nudges,
+  Chrome + Firefox builds, `externally_connectable` gated by trusted origins.
+- `.github/workflows/extension.yml`: Chrome + Firefox zips on `v*` tags.
+- Focus insights card (Progress) and Browser extension settings card.
+- Gemini AI proxy shared core (`src/lib/ai/proxyCore.ts`) powering both the
+  Express dev server and Vercel serverless functions (`api/gemini/*`).
+- Firestore-backed per-user daily AI quota for serverless deploys.
+- DEPLOY_TARGET-based Vite base (`pages` / `android` / `/`).
+
+### Fixed
+- Firestore sync: recursive `undefined` stripping before writes.
+- Sign-out/account-switch: full local + IndexedDB wipe then reload.
+- Wallet ledger reuse, stale streak day-count, streak-freeze gap reset,
+  awaited IndexedDB persistence clear.
+- Service worker `Vary: Origin` cache mismatch breaking offline reload.
+
+## [0.1.0] - 2026-11-08
+
+First public release: Pomodoro timer, tasks/goals/cadences, standardized-test
+catalog with intake flow and score loop, streaks/coins/badges/store, groups +
+leaderboards + public opt-in profiles, EN/AR RTL, offline PWA, Android APK,
+browser extension, Gemini AI proxy.

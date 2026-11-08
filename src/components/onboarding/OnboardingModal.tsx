@@ -255,19 +255,10 @@ export const OnboardingModal: React.FC = () => {
                 borderColor: 'var(--md-sys-color-outline-variant)',
               }}
             >
-              <div className="text-[11px] uppercase font-semibold mb-1" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-                {locale === 'ar' ? 'رمز دائرة المذاكرة المبدئية' : 'Your Starter Circle Code'}
-              </div>
-              <div
-                className="text-2xl font-timer font-bold tracking-widest tabular-nums mb-2"
-                style={{ color: 'var(--md-sys-color-primary)' }}
-              >
-                FOCUS7
-              </div>
               <p className="text-xs" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 {locale === 'ar'
-                  ? 'شارك هذا الرمز مع أصدقائك للمنافسة على مكافآت نقاط التركيز اليومية.'
-                  : 'Share this with your study peers to compete for weekly focus bonuses.'}
+                  ? 'تتطلب المجموعات تسجيل الدخول عبر خلفية Firebase مُهيأة. ستظهر رموز الدعوة الحقيقية هنا بعد إنشاء مجموعتك.'
+                  : 'Groups require sign-in with a configured Firebase backend. Real invite codes appear here after you create a group.'}
               </p>
             </div>
           </div>

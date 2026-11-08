@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#1b4332"/>
+  <!-- small clock top-right -->
+  <circle cx="356" cy="128" r="52" fill="#2d6a4f"/>
+  <circle cx="356" cy="128" r="40" fill="#40916c"/>
+  <rect x="352" y="102" width="8" height="22" rx="4" fill="#d8f3dc"/>
+  <rect x="354" y="134" width="20" height="8" rx="4" fill="#74c69d" transform="rotate(40 364 138)"/>
+  <path d="M318 84 L356 66 L394 84 L394 96 L356 114 L318 96 Z" fill="#d8f3dc" opacity="0.0"/>
+  <!-- FP monogram -->
+  <text x="256" y="330" font-family="Roboto, Arial, sans-serif" font-weight="700" font-size="200" fill="#d8f3dc" text-anchor="middle">FP</text>
+  <rect x="120" y="392" width="272" height="10" rx="5" fill="#74c69d"/>
+</svg>

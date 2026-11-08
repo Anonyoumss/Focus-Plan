@@ -33,6 +33,7 @@ jobs:
         run: npm run build
         env:
           DEPLOY_TARGET: android
+          VITE_AI_API_URL: https://focus-plan-delta.vercel.app
           VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
           VITE_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID }}

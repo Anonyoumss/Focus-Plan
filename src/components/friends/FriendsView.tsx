@@ -40,6 +40,7 @@ export const FriendsView: React.FC = () => {
     user,
     cloudSyncEnabled,
     authStatus,
+    firebaseEnabled,
     signIn,
     focusPoints,
     streak,
@@ -326,16 +327,22 @@ export const FriendsView: React.FC = () => {
           </div>
           <div className={card} style={cardStyle}>
             <p className="text-sm mb-4" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-              {t.friends.signInRequired}
+              {firebaseEnabled
+                ? t.friends.signInRequired
+                : (ar
+                  ? 'تسجيل الدخول لتكوين المجموعات أو الانضمام إليها يتطلب خلفية مُهيأة. هذا الإصدار يعمل كضيف محلي.'
+                  : 'Creating or joining groups requires sign-in with a configured backend. This build runs as a local guest.')}
             </p>
-            <button
-              onClick={() => void signIn()}
-              className={primaryBtn}
-              style={primaryBtnStyle}
-              disabled={busy}
-            >
-              {t.friends.signInCta}
-            </button>
+            {firebaseEnabled && (
+              <button
+                onClick={() => void signIn()}
+                className={primaryBtn}
+                style={primaryBtnStyle}
+                disabled={busy}
+              >
+                {t.friends.signInCta}
+              </button>
+            )}
           </div>
         </div>
       ) : (

@@ -105,3 +105,17 @@ review + screenshot suite (`e2e/audit-screenshots.spec.ts`).
 - **Add a synced collection**: extend `SYNCED_COLLECTIONS` + merge in
   `syncMerge.ts`, pull/push in `firebase/sync.ts`, rules match + tests,
   `syncedSliceOf`/`persistState` mapping in the store.
+
+## Repo tidy notes (this pass)
+
+- `bun.lock`, root `icon.svg`, `metadata.json` removed. `public/icon.svg` is
+  the single icon source (served at `/icon.svg` in dev and copied to `dist/`
+  in builds); `package-lock.json` is the only lockfile.
+- `server.ts` stays at repo root: it is the `npm start` entry for the Express
+  dev/prod host and now delegates AI logic to `src/lib/ai/proxyCore.ts`, shared
+  with the Vercel functions in `api/gemini/`.
+- `.github/`: CODEOWNERS, PR template, issue templates (bug, feature,
+  catalog correction, security link), FUNDING.yml.
+- `docs/logo/`: six logo interpretations awaiting owner pick.
+- `docs/screenshots/extension/options-real.png`: captured from the unpacked
+  extension in Chromium via Playwright.

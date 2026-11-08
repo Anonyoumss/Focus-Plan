@@ -52,3 +52,16 @@ Format: question | choice made | why
    2000 logs; the delay is first-load chunk+font latency) + skeleton-
    first reveal on Progress. No speculative rewrite.
    WHY: no-guessing rule; the e2e perf smoke guards regressions.
+
+## This pass
+
+- **Logo pick**: six SVG options in `docs/logo/` (`logo-options-v2.png`).
+  Icons intentionally NOT replaced — waiting for the owner's number.
+- **Firebase backend**: user asked to "use Chrome and my email" to create the
+  Firebase backend. No Firebase credentials exist on this machine and creating
+  a project requires interactive Google sign-in; logged as an owner action.
+  Backend is fully configured via env vars once the project exists.
+- **Android emulator screenshots**: CI emulator runs were judged too heavy for
+  this pass; phone screenshots are labeled "Android UI (web render)" in README.
+- **Extension popup**: the extension has no popup UI (options page only), so
+  the captured screenshot is the options page from the real unpacked build.

@@ -1,17 +1,14 @@
 ## Summary
 
-<!-- What changed and why -->
-
-## Verification
-
-<!-- What you ran: npm test, lint, build, playwright specs, emulator tests -->
+<!-- What changed and why. Link issues with "Closes #N". -->
 
 ## Checklist
 
-- [ ] `npm run lint` and `npm run lint:eslint` clean
-- [ ] `npm test` passes
-- [ ] `npm run build` passes
-- [ ] Relevant Playwright specs pass (`npx playwright test`)
-- [ ] UI changes checked in English and Arabic, light and dark
-- [ ] No secrets or personal data committed
-- [ ] Docs updated if behavior changed (FEATURE_PARITY labels stay honest)
+- [ ] `npm run lint` (tsc) clean
+- [ ] `npx eslint .` clean
+- [ ] `npm test` unit tests pass
+- [ ] `npm run test:rules` rules tests pass
+- [ ] `npx playwright test` browser suite passes
+- [ ] `npm run build` succeeds
+- [ ] FEATURE_PARITY.md labels match what was actually verified
+- [ ] No secrets, no personal data, docs updated

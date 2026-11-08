@@ -1,6 +1,7 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
+import { PNG } from 'pngjs';
 
 const root = path.resolve('docs/screenshots');
 
@@ -46,6 +47,30 @@ test.beforeAll(() => {
   fs.mkdirSync(root, { recursive: true });
 });
 
+/** Wait for lazy chunks, skeletons, fonts and reveal animations to settle. */
+async function settle(page: Page) {
+  await page.evaluate(() => document.fonts.ready);
+  await expect(page.locator('[aria-busy="true"]')).toHaveCount(0, { timeout: 15000 });
+  await page.waitForTimeout(700);
+}
+
+/** Screenshot that fails if the image is (nearly) one solid color. */
+async function shot(page: Page, file: string) {
+  await settle(page);
+  const buf = await page.screenshot({ fullPage: true });
+  const png = PNG.sync.read(buf);
+  // Sample every 97th pixel; a real UI has large luminance variance.
+  let n = 0, sum = 0, sumSq = 0;
+  for (let i = 0; i < png.data.length; i += 4 * 97) {
+    const lum = 0.2126 * png.data[i] + 0.7152 * png.data[i + 1] + 0.0722 * png.data[i + 2];
+    sum += lum; sumSq += lum * lum; n++;
+  }
+  const mean = sum / n;
+  const variance = sumSq / n - mean * mean;
+  expect(variance, `${file} looks like a solid-color blank (${variance.toFixed(1)})`).toBeGreaterThan(50);
+  fs.writeFileSync(file, buf);
+}
+
 for (const locale of ['en', 'ar'] as const) {
   for (const theme of ['light', 'dark'] as const) {
     for (const viewport of viewports) {
@@ -79,9 +104,14 @@ for (const locale of ['en', 'ar'] as const) {
         if (theme === 'dark') {
           await expect(page.locator('html')).toHaveClass(/dark/);
         }
-        await page.screenshot({ path: path.join(dir, 'onboarding.png'), fullPage: true });
+        await shot(page, path.join(dir, 'onboarding.png'));
         await page.getByRole('button', { name: labels.skip }).click();
         await expect(page.getByRole('button', { name: labels.skip })).toHaveCount(0);
+        // Seed realistic demo data so charts/lists are not empty.
+        await page.evaluate(() => {
+          (window as unknown as { __appStore: { getState: () => { loadDemoData: () => void } } })
+            .__appStore.getState().loadDemoData();
+        });
 
         const navName = viewport.name === 'desktop' ? 'Main Navigation Rail' : 'Mobile Bottom Navigation';
         const nav = page.getByRole('navigation', { name: navName });
@@ -110,7 +140,7 @@ for (const locale of ['en', 'ar'] as const) {
             continue;
           }
           await button.click();
-          await page.screenshot({ path: path.join(dir, `${id}.png`), fullPage: true });
+          await shot(page, path.join(dir, `${id}.png`));
         }
 
         // Legal pages live in Settings now (in-app footer was removed)
@@ -121,16 +151,16 @@ for (const locale of ['en', 'ar'] as const) {
         }
         await settingsButton.click();
         await page.getByRole('button', { name: labels.terms }).click();
-        await page.screenshot({ path: path.join(dir, 'terms.png'), fullPage: true });
+        await shot(page, path.join(dir, 'terms.png'));
         await page.goBack(); // returns to Settings without a reload (init script would re-seed onboarding)
         await page.getByRole('button', { name: labels.privacy }).click();
-        await page.screenshot({ path: path.join(dir, 'privacy.png'), fullPage: true });
+        await shot(page, path.join(dir, 'privacy.png'));
 
         if (locale === 'en' && theme === 'light' && viewport.name === 'desktop') {
           await nav.getByRole('button', { name: labels.focus }).click();
           await page.getByRole('button', { name: labels.start }).click();
           await expect(page.getByRole('button', { name: labels.pause })).toBeVisible();
-          await page.screenshot({ path: path.join(dir, 'focus-running.png'), fullPage: true });
+          await shot(page, path.join(dir, 'focus-running.png'));
         }
 
         // Landing page and invite placeholder at the same locale/theme/viewport
@@ -138,11 +168,11 @@ for (const locale of ['en', 'ar'] as const) {
         await page.waitForTimeout(400);
         const landingScroll = await page.evaluate(() => document.documentElement.scrollWidth);
         expect(landingScroll, `landing overflow at ${viewport.width}px`).toBeLessThanOrEqual(viewport.width + 1);
-        await page.screenshot({ path: path.join(dir, 'landing.png'), fullPage: true });
+        await shot(page, path.join(dir, 'landing.png'));
 
-        await page.goto('/#/invite/DEMO-GROUP-7');
+        await page.goto('/#/invite/ZZZZZZ');
         await page.waitForTimeout(300);
-        await page.screenshot({ path: path.join(dir, 'invite.png'), fullPage: true });
+        await shot(page, path.join(dir, 'invite.png'));
       });
     }
   }

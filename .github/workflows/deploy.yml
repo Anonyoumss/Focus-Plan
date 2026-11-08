@@ -33,6 +33,7 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
           VITE_USE_EMULATORS: ${{ vars.VITE_USE_EMULATORS }}
           DEPLOY_TARGET: pages
+          VITE_AI_API_URL: https://focus-plan-delta.vercel.app
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

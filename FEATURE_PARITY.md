@@ -128,7 +128,7 @@ Present in source and included in the production build. Not verified by the chec
 - Real Firebase project wiring. Everything was verified against the Emulator Suite with demo config; no production Firebase project exists yet. App Check is a documented placeholder, not implemented.
 - Multi-device conflict resolution beyond last-write-wins per document. Offline edits made while signed in can be overwritten by a cloud pull on the next sign-in (DECISIONS.md).
 - Google Tasks, Google Calendar, FCM.
-- Gemini via Firebase AI Logic or a hosted function — the current proxy is a local `server.ts` for development; production deployment of the AI endpoints is not set up.
+- Gemini via Firebase AI Logic or a hosted function — done: `server.ts` (Express, dev) and Vercel serverless functions in `api/gemini/` share `src/lib/ai/proxyCore.ts` (auth, quota, validation, CORS). Unit tested only; Vercel deployment of functions not yet exercised end-to-end (functions code compiles via tsc; live call untested).
 - Per-topic timer lengths.
 - Group member alias editing, group rename, group deletion by non-last-owner, ownership-transfer edge cases beyond the tested leave flow.
 - Group award claiming in the browser (runs on sign-in via `adoptWalletAndClaimAwards`; exercised indirectly — the two-user spec signs in twice but does not assert award docs). Rules-tested shapes only.

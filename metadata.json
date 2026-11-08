@@ -1,8 +1,0 @@
-{
-  "name": "Focus Plan M3E",
-  "description": "Material 3 Expressive Pomodoro timer and standardized study tracker for Saudi and International exams with streak, goal, and friend leaderboards.",
-  "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
-}

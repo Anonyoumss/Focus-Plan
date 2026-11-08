@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#1b4332"/>
+  <circle cx="256" cy="310" r="134" fill="#2d6a4f"/>
+  <circle cx="256" cy="310" r="108" fill="#40916c"/>
+  <!-- graduation cap, tassel string becomes the second hand -->
+  <path d="M256 78 L364 126 L256 174 L148 126 Z" fill="#d8f3dc"/>
+  <path d="M204 142 L204 184 C204 200 308 200 320 184 L320 142 L256 168 Z" fill="#74c69d"/>
+  <line x1="256" y1="168" x2="256" y2="300" stroke="#d8f3dc" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="256" cy="306" r="10" fill="#d8f3dc"/>
+  <!-- hour tick hand -->
+  <rect x="251" y="238" width="10" height="56" rx="5" fill="#74c69d"/>
+  <circle cx="256" cy="310" r="13" fill="#d8f3dc"/>
+</svg>

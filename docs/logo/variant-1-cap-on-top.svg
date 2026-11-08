@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#1b4332"/>
+  <!-- clock face -->
+  <circle cx="256" cy="300" r="140" fill="#2d6a4f"/>
+  <circle cx="256" cy="300" r="112" fill="#40916c"/>
+  <!-- tick-mark hands: hour tick at 12, minute tick at ~4 o'clock -->
+  <rect x="249" y="216" width="14" height="72" rx="7" fill="#d8f3dc"/>
+  <rect x="252" y="330" width="66" height="14" rx="7" fill="#74c69d" transform="rotate(50 285 337)"/>
+  <circle cx="256" cy="300" r="14" fill="#d8f3dc"/>
+  <!-- graduation cap on top -->
+  <path d="M256 84 L368 136 L256 188 L144 136 Z" fill="#d8f3dc"/>
+  <path d="M200 158 L200 208 C200 226 312 226 328 208 L328 158 L256 190 Z" fill="#74c69d"/>
+  <line x1="368" y1="136" x2="368" y2="188" stroke="#d8f3dc" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="368" cy="196" r="11" fill="#d8f3dc"/>
+</svg>

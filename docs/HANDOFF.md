@@ -201,3 +201,23 @@ session should do Stage E, then optionally Android/Capacitor.
 - i18n: privacy section 5 added EN+AR. Settings/insights UI uses inline bilingual strings (existing pattern).
 - Gotcha: vitest include is `src/**` only — extension core tests live at `src/lib/extension/core.test.ts` and `createRequire`/globalThis-import `extension/src/core.js`. Playwright storage key is `focus_plan_m3e_v1` and init scripts must not overwrite on reload.
 - Untested: real browser extension runtime (tabs events, onMessageExternal, notifications, options page) — documented in docs/EXTENSION.md.
+
+## Release-polish pass (latest)
+
+- AI endpoints now run as Vercel functions too: `api/gemini/*` +
+  `src/lib/ai/vercelAdapter.ts` + shared `src/lib/ai/proxyCore.ts`.
+  Env: `GEMINI_API_KEY`, `FIREBASE_PROJECT_ID`, `AI_DAILY_LIMIT`,
+  `AI_ALLOWED_ORIGINS`, `FIREBASE_AUTH_EMULATOR_HOST` (server-only).
+  Client uses `VITE_AI_API_URL` (set to the Vercel host in Pages/Android/
+  nightly builds). Quota persists in Firestore `aiUsage/{uid}/days/{date}`
+  (rules-tested). Live Vercel call not yet exercised — deploy and smoke-test
+  `/api/gemini/status` after setting env vars.
+- Six logo options await owner pick in `docs/logo/`; icons unchanged.
+- Nightly rolling pre-release (`nightly` tag) auto-updates APK + zips on
+  every main push. `CHANGELOG.md` maintained.
+- Repo tidy: removed `bun.lock`, root `icon.svg`, `metadata.json`, root
+  binaries; added CODEOWNERS, PR template, catalog-correction issue template.
+- Screenshots regenerated non-blank with variance checks; extension options
+  captured from real unpacked build; Android shots labeled web render.
+- Pending owner: pick logo number, create Firebase project (needs Google
+  sign-in), set Vercel env vars, add keystore secrets for signed releases.

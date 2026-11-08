@@ -586,4 +586,23 @@ describe('groups and profiles', () => {
     // Opt-out deletes own entry.
     await assertSucceeds(dbI.doc('publicLeaderboard/user_i').delete());
   });
+
+describe('aiUsage quota docs', () => {
+  it('owner can read/write own day counter; others cannot', async () => {
+    const dbA = testEnv.authenticatedContext('user_a').firestore();
+    const dbB = testEnv.authenticatedContext('user_b').firestore();
+    const day = '2026-11-08';
+    await assertSucceeds(
+      dbA.doc(`aiUsage/user_a/days/${day}`).set({ count: 3 }),
+    );
+    await assertSucceeds(dbA.doc(`aiUsage/user_a/days/${day}`).get());
+    await assertFails(dbB.doc(`aiUsage/user_a/days/${day}`).get());
+    await assertFails(
+      dbB.doc(`aiUsage/user_a/days/${day}`).set({ count: 0 }),
+    );
+    const anon = testEnv.unauthenticatedContext().firestore();
+    await assertFails(anon.doc(`aiUsage/user_a/days/${day}`).get());
+  });
 });
+});
+

@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
+import { useAppStore } from './store/useAppStore';
 import './material-web';
 import './index.css';
 
@@ -42,5 +43,8 @@ if (import.meta.env.PROD && !isNativeShell && 'serviceWorker' in navigator) {
       });
   });
 }
+
+// Test/e2e hook: exposes the store for specs that need to seed demo data.
+(window as unknown as { __appStore?: typeof useAppStore }).__appStore = useAppStore;
 
 createRoot(document.getElementById('root')!).render(<App />);

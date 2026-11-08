@@ -147,10 +147,10 @@ test('in-app shell has no footer; Settings keeps a Legal entry', async ({ page }
   await expect(page.getByRole('button', { name: 'Privacy' })).toBeVisible();
 });
 
-test('guests see a Friends preview with skeleton leaderboard and sign-in', async ({ page }) => {
+test('guests see a Friends preview and a configured-backend notice', async ({ page }) => {
   await seed(page, { firebaseEnabled: false });
   await page.goto('/#/app/friends');
-  await expect(page.getByRole('button', { name: /sign in|تسجيل/i })).toBeVisible();
+  await expect(page.getByText(/configured backend|خلفية مُهيأة/i)).toBeVisible();
 });
 
 test('progress renders 2000 session logs without blank screen', async ({ page }) => {

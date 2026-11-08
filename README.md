@@ -8,8 +8,18 @@
 [![Android APK](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/android.yml/badge.svg)](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/android.yml)
 [![Extension](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/extension.yml/badge.svg)](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/extension.yml)
 [![Deploy](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/deploy.yml/badge.svg)](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/deploy.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Firebase](https://img.shields.io/badge/Firebase-Spark%20free-orange.svg)](https://firebase.google.com/pricing)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)]()
+[![Stars](https://img.shields.io/github/stars/Anonyoumss/Focus-Plan?style=flat&logo=github)](https://github.com/Anonyoumss/Focus-Plan/stargazers)
+[![Forks](https://img.shields.io/github/forks/Anonyoumss/Focus-Plan?style=flat&logo=github)](https://github.com/Anonyoumss/Focus-Plan/forks)
+[![Issues](https://img.shields.io/github/issues/Anonyoumss/Focus-Plan?style=flat&logo=github)](https://github.com/Anonyoumss/Focus-Plan/issues)
+[![Last commit](https://img.shields.io/github/last-commit/Anonyoumss/Focus-Plan?style=flat&logo=github)](https://github.com/Anonyoumss/Focus-Plan/commits/main)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev)
+[![Firebase](https://img.shields.io/badge/Firebase-Spark%20free-orange?logo=firebase&logoColor=white)](https://firebase.google.com/pricing)
+[![Android](https://img.shields.io/badge/Android-Capacitor%208-3DDC84?logo=android&logoColor=white)](docs/ANDROID.md)
+[![Chrome](https://img.shields.io/badge/Chrome%20Web%20Store-Coming%20soon-4285F4?logo=googlechrome&logoColor=white)](docs/EXTENSION.md)
+[![Firefox](https://img.shields.io/badge/Firefox-Add--on%20zip-FF7139?logo=firefoxbrowser&logoColor=white)](docs/EXTENSION.md)
 
 **[Live app](https://anonyoumss.github.io/Focus-Plan/)** · **[Releases (APK + extension)](https://github.com/Anonyoumss/Focus-Plan/releases)** · **[Report a bug](https://github.com/Anonyoumss/Focus-Plan/issues/new?template=bug_report.md)**
 
@@ -31,6 +41,25 @@ It ships three ways from one codebase:
 | **Android** | Capacitor wrapper of the same web build | [Debug APK in Releases](https://github.com/Anonyoumss/Focus-Plan/releases) |
 | **Browser extension** | Optional on/off-task tracker for focus sessions | [Chrome + Firefox zips in Releases](https://github.com/Anonyoumss/Focus-Plan/releases) |
 
+
+## Contents
+
+- [Screenshots](#screenshots)
+- [Features](#features-what-actually-exists-today)
+- [How it works](#how-it-works)
+- [Downloads](#downloads)
+- [Browser extension](#browser-extension-optional)
+- [Tech stack](#tech-stack)
+- [Local setup](#local-setup)
+- [Deploying](#deploying)
+- [FAQ](#faq)
+- [Honest limits](#honest-limits)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [Credits & licenses](#credits--licenses)
+
+---
+
 ## Screenshots
 
 <div align="center">
@@ -45,10 +74,19 @@ It ships three ways from one codebase:
 
 </div>
 
-The Android app renders this same UI inside a Capacitor WebView — see
-[docs/ANDROID.md](docs/ANDROID.md). The extension's options page:
+The Android app renders this same UI inside a Capacitor WebView — the
+phone screenshots below are a **web render at phone viewport** (the Android
+runtime has not been screenshotted on an emulator/device yet; see
+[docs/ANDROID.md](docs/ANDROID.md) for what is untested).
 
-![Extension options](docs/screenshots/extension/options.png)
+**Android UI (web render):**
+
+![Android UI (web render)](docs/screenshots/en/light/phone/focus.png)
+
+The extension's options page, captured from the real unpacked extension in
+Chromium:
+
+![Extension options](docs/screenshots/extension/options-real.png)
 
 ## Features (what actually exists today)
 
@@ -194,6 +232,60 @@ Static hosts have no AI server: with `VITE_AI_API_URL` unset the AI
 buttons show the labeled offline estimate. With `VITE_FIREBASE_*` unset
 the build runs fully as a guest.
 
+## How it works
+
+```mermaid
+flowchart LR
+    subgraph Client["One codebase"]
+        Web["React PWA<br/>(GitHub Pages / Vercel)"]
+        Droid["Capacitor Android<br/>(same web build)"]
+        Ext["MV3 extension<br/>(optional, local-only)"]
+    end
+    subgraph Backend["Firebase (optional, Spark)"]
+        Auth["Auth (Google)"]
+        FS[("Firestore + rules")]
+    end
+    subgraph AI["AI proxy"]
+        Fn["Vercel functions /api/gemini/*"]
+        G["Gemini API"]
+    end
+    Web --> Auth
+    Web --> FS
+    Web -.->|"Bearer ID token"| Fn
+    Droid --> Web
+    Ext -.->|"domain minutes only"| Web
+    Fn --> G
+```
+
+The web app is the single source of truth: the Android app loads the same
+`dist/` build in a WebView, and the extension only *observes* domains during
+a running session — it cannot write to the app or any server.
+
+## FAQ
+
+**Does it work without an account?**
+Yes — everything runs locally as a guest. Sign-in only enables sync, groups
+and leaderboards.
+
+**Does the extension track my browsing?**
+No. It records the domain name of the active tab only while a focus session
+is running, stores it in `chrome.storage.local`, and never sends it anywhere
+unless you connect the app (which pulls aggregates locally, not to a server).
+See the [Privacy Policy](https://anonyoumss.github.io/Focus-Plan/#/privacy).
+
+**Is my data safe in the cloud?**
+Firestore Security Rules scope every collection to the owner's uid; wallet
+and award writes are rule-bounded. It is an honor system, not cheat-proof —
+see [Honest limits](#honest-limits).
+
+**Can I self-host or use my own Firebase project?**
+Yes — all `VITE_FIREBASE_*` values are env-driven; see
+[Environment variables](#environment-variables).
+
+**Where do I report bugs or request catalog corrections?**
+Use the [issue templates](https://github.com/Anonyoumss/Focus-Plan/issues/new/choose)
+— there is a dedicated catalog-correction template for test data.
+
 ## Honest limits
 
 - Group leaderboards, wallet deltas, and award claims are written by
@@ -229,5 +321,5 @@ Built with: React, TypeScript, Vite, Tailwind CSS, `@material/web`
 `motion` (MIT), `anime.js` (MIT), Firebase JS SDK (Apache-2.0),
 Vitest (MIT), Playwright (Apache-2.0). Fonts: Roboto Flex, Plus Jakarta
 Sans, Readex Pro (SIL Open Font License); icons: Material Symbols
-Rounded (Apache-2.0). This project is MIT licensed — see [LICENSE](LICENSE).
+Rounded (Apache-2.0). This project is MIT licensed (LICENSE file was removed upstream; license text available on request).
 No code, assets, or copy from Pomofocus or Tomato was used.

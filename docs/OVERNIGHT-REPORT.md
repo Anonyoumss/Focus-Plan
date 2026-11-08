@@ -173,3 +173,36 @@ Checks: tsc clean, eslint clean, 85/85 unit, build pass, Playwright 50 pass + 6 
 - `.github/workflows/extension.yml` builds Chrome+Firefox zips, attaches to Releases on tags.
 - Checks: tsc clean, eslint clean, 101→ unit tests incl. 12 new extension-core tests, i18n parity pass, Playwright extension.spec 3/3. Full suite results below in final commit note.
 - Untested: real extension runtime in a browser profile (no browser automation for extensions); stated in docs/EXTENSION.md.
+
+## Release-polish pass (this session)
+
+1. Screenshots: `audit-screenshots.spec.ts` now waits for lazy chunks,
+   skeletons, `document.fonts.ready`, animation settle; seeds demo data;
+   pixel-variance check fails on near-solid images. All 8 locale/theme/
+   viewport combos regenerated non-blank.
+2. Demo codes: `FOCUS7` gone from onboarding; invite spec uses nonexistent
+   `ZZZZZZ` (renders the real invalid-invite state). No fake group/referral
+   codes remain; Friends gates on `uid && cloudSyncEnabled`.
+3. Gemini on static hosts: `src/lib/ai/proxyCore.ts` shared by Express
+   (`server.ts`, `npm run dev:server`) and Vercel functions `api/gemini/*`
+   (status, intake-consult, study-plan, post-test-analysis). Firestore
+   `aiUsage/{uid}/days/{date}` quota (rules-tested) survives serverless
+   restarts. CORS allowlist: Pages host, Vercel host, localhost:3000.
+   `VITE_AI_API_URL` set in Pages/Android/nightly builds. Proxy unit tests
+   7/7 with mocked fetch. Live Vercel function call: untested.
+4. Logo: six interpretations in `docs/logo/` + `logo-options-v2.png` +
+   README index. Icons NOT replaced pending owner pick.
+5. README: TOC, badges (stars/forks/issues/last-commit/stack/Android/
+   Chrome/Firefox), mermaid how-it-works, FAQ, roadmap checklist with real
+   status (Stage E, Calendar/Tasks, FCM unchecked).
+6. Releases: `nightly` rolling pre-release workflow (APK + both zips,
+   `--clobber`) on every main push; `CHANGELOG.md` added; `v0.1.0` verified
+   with all three assets; root APK/zips removed; `bun.lock`, root
+   `icon.svg`, `metadata.json` removed.
+7. Tidy: CODEOWNERS, PR template, catalog-correction + existing issue
+   templates, FUNDING.yml kept.
+8. Screenshots: extension options captured from real unpacked extension
+   (`options-real.png`); Android labeled "web render" (no emulator).
+
+Checks this pass: tsc/eslint/unit/rules/Playwright/emulator/build — see
+commit message.

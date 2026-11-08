@@ -1,0 +1,8 @@
+# Default owner for everything
+* @Anonyoumss
+
+# Sensitive paths
+/firestore.rules @Anonyoumss
+/.github/workflows/ @Anonyoumss
+/android/ @Anonyoumss
+/extension/ @Anonyoumss

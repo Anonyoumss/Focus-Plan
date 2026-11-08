@@ -1,0 +1,57 @@
+name: Nightly build
+
+# Rolling pre-release updated on every push to main with the latest debug
+# APK and both extension zips, so there is always a downloadable build.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - name: Build web app (android base)
+        run: npm run build
+        env:
+          DEPLOY_TARGET: android
+          VITE_AI_API_URL: https://focus-plan-delta.vercel.app
+      - run: npx cap sync android
+      - name: Debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+      - name: Package extension zips
+        run: |
+          mkdir -p dist-ext/chrome dist-ext/firefox
+          cp -r extension/* dist-ext/chrome/
+          cp extension/manifest.chrome.json dist-ext/chrome/manifest.json
+          cp -r extension/* dist-ext/firefox/
+          cp extension/manifest.firefox.json dist-ext/firefox/manifest.json
+          rm -f dist-ext/*/manifest.*.json
+          cd dist-ext && zip -qr ../../focus-plan-companion-chrome.zip chrome && zip -qr ../../focus-plan-companion-firefox.zip firefox
+          cd ..
+      - name: Upload nightly pre-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=nightly
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --prerelease --title "Nightly build" \
+              --notes "Automated nightly build from main. Updated on every push. Debug-signed APK; not for production use."
+          fi
+          gh release upload "$TAG" android/app/build/outputs/apk/debug/app-debug.apk \
+            focus-plan-companion-chrome.zip focus-plan-companion-firefox.zip --clobber
