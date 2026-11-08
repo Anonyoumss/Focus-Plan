@@ -73,6 +73,36 @@ jobs:
             desktop/src-tauri/target/release/bundle/macos/*.app.tar.gz
           if-no-files-found: ignore
 
+  macos-intel:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: desktop/src-tauri
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: desktop/src-tauri
+          args: --bundles app,dmg
+          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+          releaseDraft: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-macos-intel
+          path: |
+            desktop/src-tauri/target/release/bundle/dmg/*
+            desktop/src-tauri/target/release/bundle/macos/*.app.tar.gz
+          if-no-files-found: ignore
+
   windows:
     runs-on: windows-latest
     steps:
