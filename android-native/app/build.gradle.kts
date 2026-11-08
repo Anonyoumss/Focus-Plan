@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.focusplan.native"
+    namespace = "com.focusplan.app"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.focusplan.native"
+        applicationId = "com.focusplan.app"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

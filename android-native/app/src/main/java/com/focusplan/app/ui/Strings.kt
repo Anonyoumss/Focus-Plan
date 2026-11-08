@@ -1,10 +1,10 @@
-package com.focusplan.native.ui
+package com.focusplan.app.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import com.focusplan.native.data.Store
+import com.focusplan.app.data.Store
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 

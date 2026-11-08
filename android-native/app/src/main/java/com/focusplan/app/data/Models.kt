@@ -1,4 +1,4 @@
-package com.focusplan.native.data
+package com.focusplan.app.data
 
 import kotlinx.serialization.Serializable
 

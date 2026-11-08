@@ -1,4 +1,4 @@
-package com.focusplan.native.auth
+package com.focusplan.app.auth
 
 import android.content.Context
 import androidx.credentials.CredentialManager
@@ -50,7 +50,7 @@ class AuthManager(private val context: Context) {
 
     suspend fun signInWithGoogle(): Result<Unit> = runCatching {
         check(firebaseReady) { "Firebase is not configured" }
-        val serverClientId = context.getString(com.focusplan.native.R.string.default_web_client_id)
+        val serverClientId = context.getString(com.focusplan.app.R.string.default_web_client_id)
         val option = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
             .setServerClientId(serverClientId)
@@ -68,8 +68,8 @@ class AuthManager(private val context: Context) {
     }
 
     /** Merge local docs into Firestore under users/{uid}; called after sign-in. */
-    suspend fun pushUserData(uid: String, tasks: List<com.focusplan.native.data.TaskItem>,
-                             sessions: List<com.focusplan.native.data.SessionLog>) {
+    suspend fun pushUserData(uid: String, tasks: List<com.focusplan.app.data.TaskItem>,
+                             sessions: List<com.focusplan.app.data.SessionLog>) {
         val db = firestore ?: return
         runCatching {
             db.collection("users").document(uid).collection("tasks")

@@ -1,9 +1,9 @@
-package com.focusplan.native.timer
+package com.focusplan.app.timer
 
-import com.focusplan.native.data.SessionLog
-import com.focusplan.native.data.Store
-import com.focusplan.native.data.TaskItem
-import com.focusplan.native.data.TimerSnapshot
+import com.focusplan.app.data.SessionLog
+import com.focusplan.app.data.Store
+import com.focusplan.app.data.TaskItem
+import com.focusplan.app.data.TimerSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

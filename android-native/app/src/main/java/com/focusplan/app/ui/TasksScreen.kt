@@ -1,4 +1,4 @@
-package com.focusplan.native.ui
+package com.focusplan.app.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -74,7 +74,7 @@ fun TasksScreen(state: AppState) {
 }
 
 @Composable
-fun TaskRow(task: com.focusplan.native.data.TaskItem, onToggle: () -> Unit, onDelete: () -> Unit) {
+fun TaskRow(task: com.focusplan.app.data.TaskItem, onToggle: () -> Unit, onDelete: () -> Unit) {
     val done = task.completedSessions >= task.maxSessions
     Card(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Row(

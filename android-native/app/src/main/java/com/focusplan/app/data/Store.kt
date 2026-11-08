@@ -1,4 +1,4 @@
-package com.focusplan.native.data
+package com.focusplan.app.data
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit

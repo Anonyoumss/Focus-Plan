@@ -1,4 +1,4 @@
-package com.focusplan.native.ui
+package com.focusplan.app.ui
 
 import android.content.Context
 import androidx.compose.foundation.layout.padding
@@ -19,12 +19,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.focusplan.native.MainActivity
-import com.focusplan.native.auth.AuthManager
-import com.focusplan.native.data.Store
-import com.focusplan.native.data.TaskItem
-import com.focusplan.native.data.TimerSnapshot
-import com.focusplan.native.timer.TimerEngine
+import com.focusplan.app.MainActivity
+import com.focusplan.app.auth.AuthManager
+import com.focusplan.app.data.Store
+import com.focusplan.app.data.TaskItem
+import com.focusplan.app.data.TimerSnapshot
+import com.focusplan.app.timer.TimerEngine
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -41,10 +41,10 @@ class AppState(context: Context) {
     init {
         val res = context.resources
         auth.init(
-            res.getString(com.focusplan.native.R.string.firebase_api_key),
-            res.getString(com.focusplan.native.R.string.firebase_app_id),
-            res.getString(com.focusplan.native.R.string.firebase_project_id),
-            res.getString(com.focusplan.native.R.string.firebase_sender_id),
+            res.getString(com.focusplan.app.R.string.firebase_api_key),
+            res.getString(com.focusplan.app.R.string.firebase_app_id),
+            res.getString(com.focusplan.app.R.string.firebase_project_id),
+            res.getString(com.focusplan.app.R.string.firebase_sender_id),
         )
         scope.launch { engine.restore() }
     }
