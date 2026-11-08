@@ -5,6 +5,7 @@ import { THEME_PRESETS, ThemeMode } from '../../design/theme';
 import { MaterialIcon } from '../common/MaterialIcon';
 import { MdSwitch } from '../common/MdControls';
 import { navigateToAppTab } from '../../lib/router';
+import ExtensionSettingsCard from './ExtensionSettingsCard';
 
 export const SettingsView: React.FC = () => {
   const {
@@ -969,6 +970,9 @@ export const SettingsView: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Browser extension (optional, local-first) */}
+        <ExtensionSettingsCard />
 
         {/* Legal */}
         <div

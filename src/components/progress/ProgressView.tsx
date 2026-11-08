@@ -5,6 +5,7 @@ import { MaterialIcon } from '../common/MaterialIcon';
 import { calculateGoalPercent, evaluateBadges } from '../../lib/streakCalculator';
 import { SkeletonLoader } from '../common/SkeletonLoader';
 import { TelemetryCharts } from './TelemetryCharts';
+import FocusInsightsCard from './FocusInsightsCard';
 import { ProgressStatCards } from './ProgressStatCards';
 import { WeeklyReportModal } from './WeeklyReportModal';
 
@@ -123,6 +124,8 @@ export const ProgressView: React.FC = () => {
           <div className="mb-8">
             <ProgressStatCards />
           </div>
+
+          <FocusInsightsCard />
 
           {/* Weekly Consistency Visualizer */}
           <div

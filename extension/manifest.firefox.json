@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "Focus Plan Companion",
+  "version": "0.1.0",
+  "description": "Opt-in focus tracking: records which kind of site (study vs distraction) you visit during a Focus Plan session. Domain names only, stored locally on this device.",
+  "permissions": [
+    "tabs",
+    "storage",
+    "alarms",
+    "notifications"
+  ],
+  "background": {
+    "scripts": [
+      "src/core.js",
+      "background.js"
+    ]
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "externally_connectable": {
+    "matches": [
+      "*://*/*"
+    ]
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "focusplan@companion.local",
+      "strict_min_version": "109.0"
+    }
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  }
+}

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Focus Plan Companion — settings</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 560px; margin: 24px auto; padding: 0 16px; color: #1b2b22; }
+  h1 { font-size: 20px; } h2 { font-size: 15px; margin-top: 24px; }
+  label { display: block; font-size: 13px; margin: 10px 0 4px; }
+  textarea { width: 100%; box-sizing: border-box; min-height: 72px; font-family: ui-monospace, monospace; font-size: 12px; }
+  button { margin-top: 8px; padding: 8px 14px; border: 0; border-radius: 8px; background: #2e6b52; color: #fff; cursor: pointer; }
+  button.secondary { background: #e4ebe6; color: #1b2b22; }
+  #status { font-size: 13px; color: #2e6b52; min-height: 18px; }
+  .hint { font-size: 12px; color: #5a6b60; }
+  code { background: #eef3ef; padding: 1px 4px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<h1>Focus Plan Companion</h1>
+<p class="hint">Opt-in focus tracking. Records only the <b>domain</b> of the site you are on during a running Focus Plan session — never page content, URLs, or history. Everything stays in this browser's storage unless you export it.</p>
+
+<label><input type="checkbox" id="enabled"> Enabled</label>
+
+<h2>Study sites (allowlist)</h2>
+<p class="hint">One domain per line, e.g. <code>khanacademy.org</code>. Subdomains count (e.g. <code>docs.google.com</code> matches <code>google.com</code> only if listed — list the specific domain you want).</p>
+<textarea id="allow" placeholder="khanacademy.org&#10;brilliant.org"></textarea>
+
+<h2>Distraction sites (blocklist)</h2>
+<p class="hint">Time on these during a session counts as off-task and can trigger a gentle nudge. Never blocks sites.</p>
+<textarea id="block" placeholder="youtube.com&#10;tiktok.com"></textarea>
+
+<button id="saveLists">Save lists</button>
+
+<h2>Data</h2>
+<button id="exportBtn" class="secondary">Export data (JSON)</button>
+<button id="importBtn" class="secondary">Import data…</button>
+<input type="file" id="importFile" accept="application/json" hidden>
+<button id="deleteBtn" class="secondary">Delete all recorded data</button>
+<div id="status"></div>
+
+<h2>Connect the web app</h2>
+<p class="hint">The Focus Plan web app talks to this extension only from origins listed below. Add your app's origin (e.g. <code>https://you.github.io</code>) if you use the hosted version; localhost is pre-approved for development.</p>
+<textarea id="origins" placeholder="https://you.github.io"></textarea>
+<button id="saveOrigins" class="secondary">Save trusted origins</button>
+
+<script src="options.js"></script>
+</body>
+</html>

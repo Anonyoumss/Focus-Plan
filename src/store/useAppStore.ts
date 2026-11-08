@@ -19,6 +19,7 @@ import {
   nativeKeepAwake,
   scheduleSessionEndNotification,
 } from '../lib/native/capacitor';
+import type { ExtensionSnapshot } from '../lib/extension/client';
 import { soundEngine } from '../lib/soundEngine';
 import {
   StreakState,
@@ -128,6 +129,13 @@ export interface AppState {
   /** In-app "reduce animations" override on top of the OS setting. */
   reduceAnimations: boolean;
   setReduceAnimations: (on: boolean) => void;
+  /** Last snapshot pulled from the Focus Plan Companion extension (null = none). */
+  extensionData: ExtensionSnapshot | null;
+  extensionConnected: boolean;
+  extensionLists: { allow: string[]; block: string[] };
+  setExtensionSnapshot: (snap: ExtensionSnapshot | null) => void;
+  setExtensionConnected: (on: boolean) => void;
+  setExtensionLists: (lists: { allow: string[]; block: string[] }) => void;
   timerConfig: TimerConfig;
 
   // Tasks & Goals
@@ -288,6 +296,9 @@ function persistState(state: AppState) {
     reminderSettings: state.reminderSettings,
     spotlightMode: state.spotlightMode,
     reduceAnimations: state.reduceAnimations,
+    extensionData: state.extensionData,
+    extensionConnected: state.extensionConnected,
+    extensionLists: state.extensionLists,
     tickSoundEnabled: state.tickSoundEnabled,
     tickVolume: state.tickVolume,
   };
@@ -421,6 +432,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   spotlightMode: initialPersisted.spotlightMode ?? true,
   spotlightDismissed: false,
   reduceAnimations: initialPersisted.reduceAnimations ?? false,
+  extensionData: initialPersisted.extensionData ?? null,
+  extensionConnected: initialPersisted.extensionConnected ?? false,
+  extensionLists: initialPersisted.extensionLists ?? { allow: [], block: [] },
   timerConfig: initialPersisted.timerConfig || DEFAULT_TIMER_CONFIG,
 
   tasks: initialPersisted.tasks || [],
@@ -499,6 +513,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     soundEngine.stopAmbient();
     void nativeKeepAwake(false);
     void cancelSessionEndNotification();
+    void import('../lib/extension/client').then((m) => m.notifyExtensionSession('ended'));
     persistState(get());
   },
 
@@ -521,6 +536,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       `${endLabel} complete`,
       get().locale === 'ar' ? 'انتهى الوقت - عد إلى التطبيق' : 'Time is up - head back to the app',
     );
+    void import('../lib/extension/client').then((m) => m.notifyExtensionSession('running'));
     if (ambientSound !== 'none') {
       soundEngine.setAmbient(ambientSound, ambientVolume);
     }
@@ -542,6 +558,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     soundEngine.stopAmbient();
     void nativeKeepAwake(false);
     void cancelSessionEndNotification();
+    void import('../lib/extension/client').then((m) => m.notifyExtensionSession('paused'));
     persistState(get());
   },
 
@@ -745,6 +762,19 @@ export const useAppStore = create<AppState>((set, get) => ({
   setReduceAnimations: (reduceAnimations) => {
     set({ reduceAnimations });
     applyMotionPreference(reduceAnimations || prefersReducedMotionOS());
+    persistState(get());
+  },
+
+  setExtensionSnapshot: (extensionData) => {
+    set({ extensionData });
+    persistState(get());
+  },
+  setExtensionConnected: (extensionConnected) => {
+    set({ extensionConnected });
+    persistState(get());
+  },
+  setExtensionLists: (extensionLists) => {
+    set({ extensionLists });
     persistState(get());
   },
 

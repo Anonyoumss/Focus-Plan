@@ -165,3 +165,11 @@ Checks: tsc clean, eslint clean, 85/85 unit, build pass, Playwright 50 pass + 6 
 6. Android: Firebase Console > add Android app `com.focusplan.m3e`, download `google-services.json` to `android/app/` locally (never commit), add SHA-1 fingerprints.
 7. Optional release signing: create keystore (`keytool -genkeypair ...`, see docs/ANDROID.md), add `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` secrets.
 8. Release: `git tag v0.1.0 && git push origin v0.1.0` — android.yml attaches the APK to the GitHub Release.
+
+## Part 2 — done (this commit)
+
+- MV3 extension `/extension` (Chrome + Firefox manifests, pinned key/ID, options page, JSON export/import). Domain-only attribution, allow/block lists, throttled nudge, local storage only.
+- App integration: messaging client, persisted local snapshot, Focus insights card, Settings connect/lists/delete, timer lifecycle mirroring. Privacy Policy EN+AR updated. No Firestore/rules changes needed.
+- `.github/workflows/extension.yml` builds Chrome+Firefox zips, attaches to Releases on tags.
+- Checks: tsc clean, eslint clean, 101→ unit tests incl. 12 new extension-core tests, i18n parity pass, Playwright extension.spec 3/3. Full suite results below in final commit note.
+- Untested: real extension runtime in a browser profile (no browser automation for extensions); stated in docs/EXTENSION.md.

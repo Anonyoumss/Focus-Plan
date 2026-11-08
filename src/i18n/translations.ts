@@ -666,7 +666,10 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
         { heading: '4. Optional AI Features', paragraphs: [
           'If you use the optional AI assistant, the app sends a minimal payload to our server, which forwards it to Google Gemini: test and section names, scores, targets, and planning numbers. It never includes your name, email, tasks, notes, or session history. Requests require you to be signed in and are rate-limited per account per day. Google processes this data under the Gemini API terms; on the current free tier Google may use submitted content to improve its products. When the AI service is off or unreachable, nothing is sent and a local estimate is shown instead.',
         ]},
-        { heading: '5. Right to Deletion & Data Export', paragraphs: [
+        { heading: '5. Optional Browser Extension', paragraphs: [
+          'Focus Plan offers an optional companion browser extension. It is strictly opt-in and local-first: during a running focus session it records only the domain name of the site you are viewing (for example "khanacademy.org"), classified against study and distraction lists you control. It never reads page content, never records full URLs or browsing history, and never sends anything to a server. All tracking data stays in the extension\'s local storage on your device. If you connect the web app, it receives only aggregated on-task/off-task minutes and domain names over a local messaging channel; nothing is added to your cloud account unless your existing sync is enabled. You can delete all extension data at any time from the extension options or the app Settings.',
+        ]},
+        { heading: '6. Right to Deletion & Data Export', paragraphs: [
           'You have full ownership of your data. You can download a complete JSON backup or CSV summary of your tasks at any moment, and purge all stored data with a single click in Settings. For cloud data, leaving a group removes your membership immediately, disabling the public leaderboard opt-in deletes your public entry, and signing out wipes synced data from the device. Deleting your Firebase account data entirely is not self-serve in this release.',
         ]},
       ],
@@ -1063,7 +1066,10 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
         { heading: '4. ميزات الذكاء الاصطناعي الاختيارية', paragraphs: [
           'إذا استخدمت مساعد الذكاء الاصطناعي الاختياري، يرسل التطبيق حمولة دنيا إلى خادمنا الذي يمررها إلى Google Gemini: أسماء الاختبارات والأقسام والدرجات والأهداف وأرقام التخطيط. لا تتضمن أبداً اسمك أو بريدك أو مهامك أو ملاحظاتك أو سجل جلساتك. تتطلب الطلبات تسجيل الدخول وتُحدَّد بعدد طلبات لكل حساب يومياً. تعالج Google هذه البيانات بموجب شروط Gemini API؛ وفي الخطة المجانية الحالية قد تستخدم Google المحتوى المُرسَل لتحسين منتجاتها. عند إيقاف خدمة الذكاء الاصطناعي أو تعذر الوصول إليها، لا يُرسَل شيء ويُعرض تقدير محلي بدلاً من ذلك.',
         ]},
-        { heading: '5. الحق في الحذف وتصدير البيانات', paragraphs: [
+        { heading: '٥. إضافة المتصفح الاختيارية', paragraphs: [
+          'يوفر Focus Plan إضافة متصفح اختيارية. هي opt-in بالكامل وتعتمد على الجهاز أولاً: أثناء جلسة التركيز الجارية تسجّل اسم نطاق الموقع الذي تعرضه فقط (مثل "khanacademy.org")، مصنّفاً وفق قوائم مواقع الدراسة والمشتتات التي تتحكم بها. لا تقرأ محتوى الصفحات أبداً، ولا تسجّل الروابط الكاملة أو سجل التصفح، ولا ترسل أي شيء إلى خادم. تبقى جميع بيانات التتبع في التخزين المحلي للإضافة على جهازك. إذا وصلت تطبيق الويب، يستقبل دقائق مجمّعة داخل/خارج المهام وأسماء النطاقات فقط عبر قناة مراسلة محلية؛ ولا يُضاف شيء إلى حسابك السحابي ما لم تكن المزامنة الحالية مفعّلة. يمكنك حذف جميع بيانات الإضافة في أي وقت من خيارات الإضافة أو إعدادات التطبيق.',
+        ]},
+        { heading: '٦. الحق في الحذف وتصدير البيانات', paragraphs: [
           'لديك ملكية كاملة لبياناتك. يمكنك تنزيل نسخة احتياطية JSON كاملة أو ملخص CSV لمهامك في أي وقت، ومحو جميع البيانات المخزنة بنقرة واحدة من الإعدادات. بالنسبة للبيانات السحابية، مغادرة المجموعة تزيل عضويتك فوراً، وإيقاف تفعيل لوحة الصدارة العامة يحذف إدخالك العام، وتسجيل الخروج يمحو البيانات المتزامنة من الجهاز. حذف بيانات حساب Firebase بالكامل غير متاح ذاتياً في هذا الإصدار.',
         ]},
       ],

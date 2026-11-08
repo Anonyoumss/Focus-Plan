@@ -193,3 +193,11 @@ session should do Stage E, then optionally Android/Capacitor.
 - Part 1: Capacitor 8 Android app. Native bridge `src/lib/native/capacitor.ts` — all dynamic imports, no-ops off-native, unit-tested. Timer recovery relies on persisted `targetEndTime` + scheduled local notification. Native Google sign-in via `@capgo/capacitor-social-login` (ID token → Firebase credential); popup kept for web. `android/app/google-services.json` optional & gitignored. Workflow `.github/workflows/android.yml`: Node 22, Temurin 21, setup-android, debug APK artifact always, release APK on `v*` tags. Launcher icons + splash generated from `public/icon.svg`; notification icon `ic_stat_notify`.
 - Gotchas: eslint needed ignores for `android/**`, `extension/**`, `public/sw.js`; Playwright browsers live in `.playwright-browsers` (set `PLAYWRIGHT_BROWSERS_PATH`); Java for emulators is `~/tools/jdk-21.0.13+9-jre` (export JAVA_HOME+PATH).
 - **Android runtime untested** — no emulator/device; CI builds the APK. Part 2 (browser extension) NOT started — see docs/NEXT.md.
+
+## Part 2 (browser extension) — done
+
+- `extension/`: MV3, classic-script core (`src/core.js`, pure reducer) shared by Chrome service worker (`importScripts`) and Firefox event page (manifest `background.scripts`). Pinned `key` → stable ID `hppldplcookimjhlkmanllinfjnbnjff`. `externally_connectable` gated by extension-side `trustedOrigins`.
+- App: `src/lib/extension/client.ts` (sendMessage wrapper, session mirroring), store fields `extensionData/Connected/Lists` (persisted locally, NOT synced to Firestore), `FocusInsightsCard` on Progress, `ExtensionSettingsCard` in Settings, timer hooks in startTimer/pauseTimer/setTimerMode.
+- i18n: privacy section 5 added EN+AR. Settings/insights UI uses inline bilingual strings (existing pattern).
+- Gotcha: vitest include is `src/**` only — extension core tests live at `src/lib/extension/core.test.ts` and `createRequire`/globalThis-import `extension/src/core.js`. Playwright storage key is `focus_plan_m3e_v1` and init scripts must not overwrite on reload.
+- Untested: real browser extension runtime (tabs events, onMessageExternal, notifications, options page) — documented in docs/EXTENSION.md.
