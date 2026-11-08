@@ -24,7 +24,15 @@
 - First emulator run downloads `cloud-firestore-emulator-v1.22.0.jar` into `~/.cache/firebase/emulators`.
 - Emulator ports (firebase.json): Auth 9099, Firestore 8080, UI 4000. Demo project IDs: `demo-focus-plan-test` (rules tests), `demo-focus-plan-m3e` (app e2e).
 
-## Firebase console setup (only needed for a REAL project — everything above works without it)
+## Firebase console setup — DONE for `focus-plan-m3e` (project exists)
+
+The real project `focus-plan-m3e` is configured: GitHub repo variables carry
+the public web config (deploy.yml injects them into the Pages build), and
+`.firebaserc` default points at it. Emulator/test scripts keep their
+demo project ids. Still manual: `firebase login` + rules deploy
+(`firebase deploy --only firestore:rules`), Firestore DB creation if
+missing, Vercel env vars (see docs/VERCEL-SETUP.md), authorized domains,
+GEMINI_API_KEY. Historical steps kept below for reference.
 
 1. console.firebase.google.com → Add project → name it (e.g. `focus-plan`), Spark plan (free). No need to enable Analytics.
 2. Project settings → Your apps → `</>` Web → register app (any nickname). Copy the config values.
@@ -219,5 +227,7 @@ session should do Stage E, then optionally Android/Capacitor.
   binaries; added CODEOWNERS, PR template, catalog-correction issue template.
 - Screenshots regenerated non-blank with variance checks; extension options
   captured from real unpacked build; Android shots labeled web render.
-- Pending owner: pick logo number, create Firebase project (needs Google
-  sign-in), set Vercel env vars, add keystore secrets for signed releases.
+- Pending owner: pick logo number, run `firebase login` + deploy rules,
+  set Vercel env vars (docs/VERCEL-SETUP.md), add GEMINI_API_KEY on Vercel,
+  add authorized domains, Google sign-in test with two accounts, keystore
+  secrets for signed releases.

@@ -8,7 +8,7 @@
 [![Android APK](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/android.yml/badge.svg)](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/android.yml)
 [![Extension](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/extension.yml/badge.svg)](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/extension.yml)
 [![Deploy](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/deploy.yml/badge.svg)](https://github.com/Anonyoumss/Focus-Plan/actions/workflows/deploy.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/Anonyoumss/Focus-Plan?style=flat&logo=github)](https://github.com/Anonyoumss/Focus-Plan/stargazers)
 [![Forks](https://img.shields.io/github/forks/Anonyoumss/Focus-Plan?style=flat&logo=github)](https://github.com/Anonyoumss/Focus-Plan/forks)
 [![Issues](https://img.shields.io/github/issues/Anonyoumss/Focus-Plan?style=flat&logo=github)](https://github.com/Anonyoumss/Focus-Plan/issues)
@@ -298,8 +298,10 @@ Use the [issue templates](https://github.com/Anonyoumss/Focus-Plan/issues/new/ch
 - Test catalog defaults for unverified exams are plausible placeholders
   labeled "verify on official site" — corrections welcome via the
   catalog issue template with an official source URL.
-- Everything cloud-related is verified on emulators only; no production
-  Firebase project is wired yet.
+- Cloud features run against the real `focus-plan-m3e` Firebase project on
+  the deployed builds (configured via repository variables); sync/groups
+  were verified on emulators, and a live Google sign-in round-trip is still
+  pending (see docs/HANDOFF.md).
 
 ## Roadmap
 
@@ -321,5 +323,5 @@ Built with: React, TypeScript, Vite, Tailwind CSS, `@material/web`
 `motion` (MIT), `anime.js` (MIT), Firebase JS SDK (Apache-2.0),
 Vitest (MIT), Playwright (Apache-2.0). Fonts: Roboto Flex, Plus Jakarta
 Sans, Readex Pro (SIL Open Font License); icons: Material Symbols
-Rounded (Apache-2.0). This project is MIT licensed (LICENSE file was removed upstream; license text available on request).
+Rounded (Apache-2.0). This project is MIT licensed — see [LICENSE](LICENSE).
 No code, assets, or copy from Pomofocus or Tomato was used.
