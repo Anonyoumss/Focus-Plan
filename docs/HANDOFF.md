@@ -192,9 +192,9 @@ session should do Stage E, then optionally Android/Capacitor.
 - Part 0 committed earlier (`cb9764e`): DEPLOY_TARGET bases, dual-base prod e2e, README hosting/env/AI-assistance note, secret scan clean, no vercel.json (hash routes need no rewrites).
 - Part 1: Capacitor 8 Android app. Native bridge `src/lib/native/capacitor.ts` — all dynamic imports, no-ops off-native, unit-tested. Timer recovery relies on persisted `targetEndTime` + scheduled local notification. Native Google sign-in via `@capgo/capacitor-social-login` (ID token → Firebase credential); popup kept for web. `android/app/google-services.json` optional & gitignored. Workflow `.github/workflows/android.yml`: Node 22, Temurin 21, setup-android, debug APK artifact always, release APK on `v*` tags. Launcher icons + splash generated from `public/icon.svg`; notification icon `ic_stat_notify`.
 - Gotchas: eslint needed ignores for `android/**`, `extension/**`, `public/sw.js`; Playwright browsers live in `.playwright-browsers` (set `PLAYWRIGHT_BROWSERS_PATH`); Java for emulators is `~/tools/jdk-21.0.13+9-jre` (export JAVA_HOME+PATH).
-- **Android runtime untested** — no emulator/device; CI builds the APK. Part 2 (browser extension) NOT started — see docs/NEXT.md.
+- **Android runtime untested** — no emulator/device; CI builds the APK. Part 2 (browser extension) completed afterwards — see the Part 2 section below.
 
-## Part 2 (browser extension) — done
+## Part 2 (browser extension) — done (final part; nothing remains)
 
 - `extension/`: MV3, classic-script core (`src/core.js`, pure reducer) shared by Chrome service worker (`importScripts`) and Firefox event page (manifest `background.scripts`). Pinned `key` → stable ID `hppldplcookimjhlkmanllinfjnbnjff`. `externally_connectable` gated by extension-side `trustedOrigins`.
 - App: `src/lib/extension/client.ts` (sendMessage wrapper, session mirroring), store fields `extensionData/Connected/Lists` (persisted locally, NOT synced to Firestore), `FocusInsightsCard` on Progress, `ExtensionSettingsCard` in Settings, timer hooks in startTimer/pauseTimer/setTimerMode.
