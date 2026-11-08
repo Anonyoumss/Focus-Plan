@@ -7,6 +7,7 @@ name: Native Android app
 on:
   push:
     branches: [main]
+    tags: ['v*']
     paths: ['android-native/**', '.github/workflows/android-native.yml']
   pull_request:
     paths: ['android-native/**']
@@ -40,3 +41,8 @@ jobs:
           name: focus-plan-native-debug-apk
           path: android-native/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14
+      - name: Attach APK to release on tags
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" android-native/app/build/outputs/apk/debug/app-debug.apk#focus-plan-native-${{ github.ref_name }}-debug.apk --clobber
