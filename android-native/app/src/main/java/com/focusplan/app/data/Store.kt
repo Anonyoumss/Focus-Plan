@@ -7,6 +7,8 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -24,17 +26,17 @@ class Store(private val context: Context) {
     }
 
     val tasks: Flow<List<TaskItem>> = context.dataStore.data.map { p ->
-        p[Keys.TASKS]?.let { runCatching { json.decodeFromString(it) }.getOrNull() } ?: emptyList()
+        p[Keys.TASKS]?.let { runCatching { json.decodeFromString<List<TaskItem>>(it) }.getOrNull() } ?: emptyList()
     }
     val sessions: Flow<List<SessionLog>> = context.dataStore.data.map { p ->
-        p[Keys.SESSIONS]?.let { runCatching { json.decodeFromString(it) }.getOrNull() } ?: emptyList()
+        p[Keys.SESSIONS]?.let { runCatching { json.decodeFromString<List<SessionLog>>(it) }.getOrNull() } ?: emptyList()
     }
     val timer: Flow<TimerSnapshot> = context.dataStore.data.map { p ->
-        p[Keys.TIMER]?.let { runCatching { json.decodeFromString(it) }.getOrNull() }
+        p[Keys.TIMER]?.let { runCatching { json.decodeFromString<TimerSnapshot>(it) }.getOrNull() }
             ?: TimerSnapshot()
     }
     val profile: Flow<UserProfile> = context.dataStore.data.map { p ->
-        p[Keys.PROFILE]?.let { runCatching { json.decodeFromString(it) }.getOrNull() } ?: UserProfile()
+        p[Keys.PROFILE]?.let { runCatching { json.decodeFromString<UserProfile>(it) }.getOrNull() } ?: UserProfile()
     }
     val locale: Flow<String> = context.dataStore.data.map { it[Keys.LOCALE] ?: "" }
 

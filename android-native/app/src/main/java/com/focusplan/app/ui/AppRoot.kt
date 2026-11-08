@@ -25,6 +25,7 @@ import com.focusplan.app.data.Store
 import com.focusplan.app.data.TaskItem
 import com.focusplan.app.data.TimerSnapshot
 import com.focusplan.app.timer.TimerEngine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.UUID
 
