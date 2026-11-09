@@ -22,6 +22,18 @@ see [Releases](https://github.com/Anonyoumss/Focus-Plan/releases) for binaries.
   the client schema (`usesCount`/`rewardCoins`); tightened referral code
   updates to `usesCount`-only diffs and referral markers to create-only.
 
+## [0.3.0] - 2026-11-09
+
+### Added
+- From-scratch native apps (no webview): macOS SwiftUI with Liquid Glass
+  materials, Linux GTK4/libadwaita, alongside the Kotlin Compose Android
+  app. All offline-first with local JSON persistence, EN/AR + RTL.
+- Native apps now include session history, stats tab (today/7d/total/
+  streak), task categories, active-task association, and completion
+  sounds.
+- Windows desktop via Tauri (NSIS/MSI), Linux/macOS via Tauri too —
+  the `native/` apps are the true-native alternatives.
+
 ## [Unreleased]
 
 ### Added
