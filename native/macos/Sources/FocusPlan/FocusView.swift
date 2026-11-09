@@ -84,5 +84,7 @@ struct FocusView: View {
         }
         .padding(40)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .liquidGlass(in: RoundedRectangle(cornerRadius: 36), interactive: true)
+        .padding(24)
     }
 }

@@ -99,6 +99,7 @@ class TimerEngine(
 
     private suspend fun complete() {
         ticker?.cancel()
+        playCompletionSound()
         val s = _snapshot.value
         val minutes = modeMinutes[s.mode] ?: 25
         val log = SessionLog(
@@ -113,5 +114,18 @@ class TimerEngine(
         // Auto-advance: focus -> short break, breaks -> focus (Pomofocus style)
         val nextMode = if (s.mode == "focus") "short" else "focus"
         reset(nextMode)
+    }
+
+    private fun playCompletionSound() {
+        try {
+            val tg = android.media.ToneGenerator(android.media.AudioManager.STREAM_ALARM, 80)
+            tg.startTone(android.media.ToneGenerator.TONE_PROP_ACK, 400)
+            scope.launch {
+                delay(600)
+                try { tg.release() } catch (_: Throwable) {}
+            }
+        } catch (_: Throwable) {
+            // audio may be unavailable; session completion must not crash
+        }
     }
 }

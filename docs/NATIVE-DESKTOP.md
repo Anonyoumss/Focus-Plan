@@ -7,8 +7,9 @@
   native materials. EN/AR with RTL layout direction, light/dark/system
   theme, end-timestamp timer that survives process restart, local JSON
   persistence in Application Support.
-- `native/linux/` — GTK4 + libadwaita C app. Adwaita styling (closest
-  native Linux equivalent of Material), EN/AR + RTL via
+- ~~`native/linux/`~~ — REMOVED (owner decision): the GTK4/libadwaita app
+  worked but was feature-limited; Linux ships via the Tauri desktop build
+  (offline-capable) instead.
   `gtk_widget_set_direction`, local JSON state in
   `~/.local/share/focus-plan/state.json`.
 - `android-native/` — Kotlin + Jetpack Compose M3 (already native).
@@ -25,12 +26,12 @@ platform (Firebase iOS SDK for macOS, firebase-cpp-sdk or REST for GTK).
 ## CI
 
 `.github/workflows/native-desktop.yml` builds both on push to main and
-on `v*` tags (attaching `focus-plan-linux-x86_64.tar.gz` and
+on `v*` tags (attaching `focus-plan-macos-arm64.tar.gz` and
 `focus-plan-macos-arm64.tar.gz` to the GitHub Release).
 
 ## Honest status
 
-- Compiled in CI only; never launched on a real Mac or Linux desktop.
+- Compiled in CI only; never launched on a real Mac.
 - Feature scope is intentionally minimal (timer, tasks, streak, settings)
   versus the full web app (tests catalog, groups, store, audio, AI).
 
@@ -47,13 +48,13 @@ repo secret `MACOS_GOOGLE_SERVICE_INFO`, and set the OAuth client ID via
 `defaults write com.focusplan.app GoogleClientID -string <id>` or
 `FOCUSPLAN_GOOGLE_CLIENT_ID`. Without it the app runs guest — nothing breaks.
 
-Linux GTK sync is still pending (planned via Firestore REST).
+Linux ships the Tauri shell (full web feature set, offline-capable); no separate GTK app.
 
 ## Status matrix (honest)
 
 | Platform | App | Firebase | Installable |
 |---|---|---|---|
 | macOS | SwiftUI native | Auth+Firestore wired (needs GoogleService-Info.plist secret) | .app tarball |
-| Linux | GTK4/libadwaita native | NOT yet (Firestore REST planned) | tarball + .desktop |
+| Linux | Tauri desktop shell (web bundle) | via web app | .deb/AppImage/NSIS |
 | Android | Kotlin/Compose native | Auth+Firestore already wired | debug APK |
 | Windows | Tauri shell (not native) | via web bundle | NSIS setup.exe |
