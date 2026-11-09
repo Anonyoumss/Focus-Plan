@@ -1,0 +1,76 @@
+name: Native desktop apps
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+    paths: ['native/**', '.github/workflows/native-desktop.yml']
+  workflow_dispatch:
+
+jobs:
+  linux-gtk:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install GTK4/libadwaita toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libgtk-4-dev libadwaita-1-dev
+      - name: Build
+        run: |
+          gcc -O2 -o focus-plan native/linux/main.c $(pkg-config --cflags --libs gtk4 libadwaita-1)
+      - name: Bundle tarball
+        run: |
+          mkdir -p dist-native-linux/usr/bin dist-native-linux/usr/share/applications
+          cp focus-plan dist-native-linux/usr/bin/focus-plan
+          printf '[Desktop Entry]\nType=Application\nName=Focus Plan\nExec=focus-plan\nIcon=utilities-terminal\nCategories=Office;\n' > dist-native-linux/usr/share/applications/focus-plan.desktop
+          tar -czf focus-plan-linux-x86_64.tar.gz -C dist-native-linux .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: focus-plan-linux-native
+          path: focus-plan-linux-x86_64.tar.gz
+      - name: Attach to release on tags
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" focus-plan-linux-x86_64.tar.gz --clobber
+
+  macos-swiftui:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build SwiftUI app
+        run: |
+          cd native/macos
+          swift build -c release
+      - name: Bundle .app
+        run: |
+          APP="Focus Plan.app"
+          mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+          cp native/macos/.build/release/FocusPlan "$APP/Contents/MacOS/FocusPlan"
+          cat > "$APP/Contents/Info.plist" <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>CFBundleName</key><string>Focus Plan</string>
+            <key>CFBundleDisplayName</key><string>Focus Plan</string>
+            <key>CFBundleIdentifier</key><string>com.focusplan.app</string>
+            <key>CFBundleVersion</key><string>0.1.0</string>
+            <key>CFBundleShortVersionString</key><string>0.1.0</string>
+            <key>CFBundleExecutable</key><string>FocusPlan</string>
+            <key>LSMinimumSystemVersion</key><string>13.0</string>
+            <key>NSHighResolutionCapable</key><true/>
+          </dict></plist>
+          PLIST
+          # ad-hoc sign so Gatekeeper lets it run locally
+          codesign --force --deep --sign - "$APP"
+          tar -czf focus-plan-macos-arm64.tar.gz "$APP"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: focus-plan-macos-native
+          path: focus-plan-macos-arm64.tar.gz
+      - name: Attach to release on tags
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" focus-plan-macos-arm64.tar.gz --clobber
