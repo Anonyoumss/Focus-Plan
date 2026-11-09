@@ -7,9 +7,11 @@ final class AppState: ObservableObject {
     @Published var state: PersistedState
     @Published var selectedTab = 0
     let engine = TimerEngine()
+    let firebase = FirebaseService()
 
     init() {
         state = Store.load()
+        firebase.configure()
         engine.configure(durations: [
             .focus: state.settings.focusMinutes * 60,
             .shortBreak: state.settings.shortBreakMinutes * 60,
@@ -26,7 +28,21 @@ final class AppState: ObservableObject {
 
     var ar: Bool { state.settings.language == "ar" }
 
-    func persist() { Store.save(state) }
+    func persist() {
+        Store.save(state)
+        scheduleSync()
+    }
+
+    private var syncTask: Task<Void, Never>?
+    /// Debounced cloud sync — no-op when signed out / unconfigured.
+    private func scheduleSync() {
+        syncTask?.cancel()
+        syncTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            guard !Task.isCancelled, let self else { return }
+            await self.firebase.sync(state: self.state)
+        }
+    }
 
     private func todayKey() -> String {
         let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; return f.string(from: Date())

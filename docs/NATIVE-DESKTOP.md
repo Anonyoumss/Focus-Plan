@@ -33,3 +33,18 @@ on `v*` tags (attaching `focus-plan-linux-x86_64.tar.gz` and
 - Compiled in CI only; never launched on a real Mac or Linux desktop.
 - Feature scope is intentionally minimal (timer, tasks, streak, settings)
   versus the full web app (tests catalog, groups, store, audio, AI).
+
+## Firebase (macOS)
+
+`native/macos` now links Firebase iOS SDK (Auth + Firestore). Sign-in uses
+`ASWebAuthenticationSession` Google OAuth; the id_token becomes a Firebase
+credential. Sync pushes tasks + last 500 sessions to
+`users/{uid}/tasks|sessions` with `updatedAt` merge fields.
+
+To enable: create an iOS/macOS OAuth client in Google Cloud (project
+`focus-plan-m3e`), download `GoogleService-Info.plist`, base64 it into the
+repo secret `MACOS_GOOGLE_SERVICE_INFO`, and set the OAuth client ID via
+`defaults write com.focusplan.app GoogleClientID -string <id>` or
+`FOCUSPLAN_GOOGLE_CLIENT_ID`. Without it the app runs guest — nothing breaks.
+
+Linux GTK sync is still pending (planned via Firestore REST).

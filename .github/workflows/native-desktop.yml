@@ -43,6 +43,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build SwiftUI app
+        env:
+          MACOS_GOOGLE_SERVICE_INFO: ${{ secrets.MACOS_GOOGLE_SERVICE_INFO }}
         run: |
           cd native/macos
           swift build -c release
@@ -51,6 +53,12 @@ jobs:
           APP="Focus Plan.app"
           mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
           cp native/macos/.build/release/FocusPlan "$APP/Contents/MacOS/FocusPlan"
+          # Optional Firebase config: set repo secret MACOS_GOOGLE_SERVICE_INFO
+          # to the base64 of GoogleService-Info.plist for an iOS/macOS OAuth
+          # client in project focus-plan-m3e. Without it the app runs guest.
+          if [ -n "$MACOS_GOOGLE_SERVICE_INFO" ]; then
+            echo "$MACOS_GOOGLE_SERVICE_INFO" | base64 -d > "$APP/Contents/Resources/GoogleService-Info.plist"
+          fi
           cat > "$APP/Contents/Info.plist" <<'PLIST'
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

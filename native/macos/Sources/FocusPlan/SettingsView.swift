@@ -27,6 +27,30 @@ struct SettingsView: View {
                 }
                 .pickerStyle(.segmented)
             }
+            Section(ar ? "الحساب" : "Account") {
+                if app.firebase.isConfigured {
+                    if let u = app.firebase.user {
+                        LabeledContent(ar ? "مسجّل الدخول" : "Signed in", value: u.email ?? u.displayName ?? "")
+                        Button(ar ? "تسجيل الخروج" : "Sign out") { app.firebase.signOut() }
+                    } else {
+                        Button(ar ? "تسجيل الدخول عبر Google" : "Sign in with Google") {
+                            Task { await app.firebase.signInWithGoogle() }
+                        }
+                    }
+                    if app.firebase.isSyncing {
+                        ProgressView(ar ? "جارٍ المزامنة…" : "Syncing…")
+                    } else if let t = app.firebase.lastSync {
+                        Text(ar ? "آخر مزامنة: \(t.formatted(date: .omitted, time: .shortened))" : "Last sync: \(t.formatted(date: .omitted, time: .shortened))")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    if let e = app.firebase.syncError {
+                        Text(e).font(.caption).foregroundStyle(.red)
+                    }
+                } else {
+                    Text(ar ? "الوضع الضيف — بدون مزامنة سحابية" : "Guest mode — no cloud sync")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
             Section(L.tr("sound", ar)) {
                 Toggle(L.tr("sound", ar), isOn: Binding(
                     get: { app.state.settings.soundEnabled },
