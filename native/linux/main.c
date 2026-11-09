@@ -33,6 +33,7 @@ typedef struct {
     SessRec sessions[2000];
     int session_count;
     int total_focus_seconds;
+    char active_task[128];
 } State;
 
 typedef struct {
@@ -46,10 +47,71 @@ typedef struct {
     GtkWidget *time_label, *mode_label, *start_btn, *stats_label;
     GtkWidget *task_list, *task_entry, *tasks_empty;
     GtkWidget *tab_btns[3];
-    char active_task[128];
+    GtkWidget *progress, *active_btn, *cat_btns[4];
+    int cat_sel;
 } App;
 
 static App app;
+
+static const char *APP_CSS =
+    "/* Focus Plan — Material 3 inspired GTK4/libadwaita theme (embedded).\n"
+    " * Uses Adwaita named colors so light/dark follow the system style manager. */\n"
+    ".time-digits {\n"
+    "  font-size: 76px;\n"
+    "  font-weight: 300;\n"
+    "  font-variant-numeric: tabular-nums;\n"
+    "  letter-spacing: 0.5px;\n"
+    "}\n"
+    ".time-digits.flash {\n"
+    "  color: @destructive_bg_color;\n"
+    "}\n"
+    ".pill.check, .pill {\n"
+    "  border-radius: 999px;\n"
+    "  padding: 6px 22px;\n"
+    "}\n"
+    ".pill.check {\n"
+    "  background-color: @accent_bg_color;\n"
+    "  color: @accent_fg_color;\n"
+    "}\n"
+    "button.suggested-action {\n"
+    "  border-radius: 999px;\n"
+    "  padding: 8px 32px;\n"
+    "  font-weight: 500;\n"
+    "}\n"
+    ".dim-label {\n"
+    "  opacity: 0.55;\n"
+    "}\n"
+    "progressbar.timer-progress {\n"
+    "  min-height: 6px;\n"
+    "  border-radius: 3px;\n"
+    "  margin-top: 8px;\n"
+    "  margin-bottom: 8px;\n"
+    "}\n"
+    ".cat-chip {\n"
+    "  border-radius: 999px;\n"
+    "  padding: 4px 14px;\n"
+    "  font-size: 0.85em;\n"
+    "}\n"
+    ".cat-chip:checked {\n"
+    "  background-color: @accent_bg_color;\n"
+    "  color: @accent_fg_color;\n"
+    "}\n"
+;
+
+static void load_css(void) {
+    GtkCssProvider *p = gtk_css_provider_new();
+    gtk_css_provider_load_from_string(p, APP_CSS);
+    gtk_style_context_add_provider_for_display(gdk_display_get_default(),
+        GTK_STYLE_PROVIDER(p), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    g_object_unref(p);
+}
+
+static gboolean unflash_cb(gpointer data) {
+    App *a = data;
+    gtk_widget_remove_css_class(a->time_label, "flash");
+    return G_SOURCE_REMOVE;
+}
+
 
 /* forward declarations */
 static void check_toggled(GtkCheckButton *c, gpointer d);
@@ -86,8 +148,9 @@ static void save_state(State *st) {
             st->s.focus_min, st->s.short_min, st->s.long_min, st->s.until_long, st->s.lang, st->s.sound);
     fprintf(f, "\"tasks\":[");
     for (int i = 0; i < st->task_count; i++) {
-        char esc[600]; json_escape(st->tasks[i].title, esc, sizeof esc);
-        fprintf(f, "%s{\"title\":\"%s\",\"done\":%d}", i ? "," : "", esc, st->tasks[i].done);
+        char esc[600], cesc[80]; json_escape(st->tasks[i].title, esc, sizeof esc);
+        json_escape(st->tasks[i].category, cesc, sizeof cesc);
+        fprintf(f, "%s{\"title\":\"%s\",\"done\":%d,\"category\":\"%s\"}", i ? "," : "", esc, st->tasks[i].done, cesc);
     }
     fprintf(f, "],\"sessions\":[");
     for (int i = 0; i < st->session_count && i < 2000; i++) {
@@ -95,8 +158,9 @@ static void save_state(State *st) {
         fprintf(f, "%s{\"date\":\"%s\",\"mode\":%d,\"seconds\":%d,\"task\":\"%s\"}",
                 i ? "," : "", st->sessions[i].date, st->sessions[i].mode, st->sessions[i].seconds, tt);
     }
-    fprintf(f, "],\"sessions_today\":%d,\"last_date\":\"%s\",\"streak\":%d,\"last_streak_date\":\"%s\",\"total_focus_seconds\":%d}\n",
-            st->sessions_today, st->last_date, st->streak, st->last_streak_date, st->total_focus_seconds);
+    char aesc[300]; json_escape(st->active_task, aesc, sizeof aesc);
+    fprintf(f, "],\"active_task\":\"%s\",\"sessions_today\":%d,\"last_date\":\"%s\",\"streak\":%d,\"last_streak_date\":\"%s\",\"total_focus_seconds\":%d}\n",
+            aesc, st->sessions_today, st->last_date, st->streak, st->last_streak_date, st->total_focus_seconds);
     fclose(f);
 }
 
@@ -138,11 +202,25 @@ static void load_state(State *st) {
             memcpy(st->tasks[st->task_count].title, t, len);
             st->tasks[st->task_count].title[len] = 0;
             st->tasks[st->task_count].done = atoi(end + 8);
+            char *cp = strstr(end, ",\"category\":\"");
+            if (cp && cp - end < 600) {
+        cp += 13;
+        char *ce = strchr(cp, '"');
+        if (ce) { size_t cl = ce - cp; if (cl > 31) cl = 31;
+            memcpy(st->tasks[st->task_count].category, cp, cl);
+            st->tasks[st->task_count].category[cl] = 0; }
+            }
             st->task_count++;
             t = end + 8;
         }
     }
     char *q;
+    if ((q = strstr(buf, "\"active_task\":\""))) {
+        q += 15;
+        char *ae = strchr(q, '"');
+        if (ae) { size_t al = ae - q; if (al > 127) al = 127;
+            memcpy(st->active_task, q, al); st->active_task[al] = 0; }
+    }
     if ((q = strstr(buf, "\"sessions_today\":"))) st->sessions_today = atoi(q + 16);
     if ((q = strstr(buf, "\"streak\":"))) st->streak = atoi(q + 9);
     if ((q = strstr(buf, "\"last_date\":\""))) { q += 13; sscanf(q, "%10[^\"]", st->last_date); }
@@ -182,7 +260,7 @@ static const char *tr(const char *key) {
         {"empty","No tasks yet"},{"lang","Language"},{"mins","min"},
         {"focusLen","Focus length"},{"breakLen","Break length"},{"longLen","Long break"},
         {"untilLong","Sessions until long break"},{"sound","Sound"},
-        {"done","Session complete!"},{"stats","Stats"},{"today","Today"},{"week","7 days"},{"total","Total"},{"history","History"},{"activeTask","Active task"},{NULL,NULL}
+        {"done","Session complete!"},{"stats","Stats"},{"today","Today"},{"week","7 days"},{"total","Total"},{"history","History"},{"activeTask","Active task"},{"noTask","No task"},{"study","Study"},{"work","Work"},{"personal","Personal"},{"other","Other"},{NULL,NULL}
     };
     static const char *ar[][2] = {
         {"focus","تركيز"},{"short","استراحة قصيرة"},{"long","استراحة طويلة"},
@@ -192,7 +270,7 @@ static const char *tr(const char *key) {
         {"empty","لا مهام بعد"},{"lang","اللغة"},{"mins","دقيقة"},
         {"focusLen","مدة التركيز"},{"breakLen","مدة الاستراحة"},{"longLen","الاستراحة الطويلة"},
         {"untilLong","جلسات قبل الاستراحة الطويلة"},{"sound","الصوت"},
-        {"done","اكتملت الجلسة!"},{"stats","الإحصائيات"},{"today","اليوم"},{"week","7 أيام"},{"total","الإجمالي"},{"history","السجل"},{"activeTask","المهمة النشطة"},{NULL,NULL}
+        {"done","اكتملت الجلسة!"},{"stats","الإحصائيات"},{"today","اليوم"},{"week","7 أيام"},{"total","الإجمالي"},{"history","السجل"},{"activeTask","المهمة النشطة"},{"noTask","بدون مهمة"},{"study","دراسة"},{"work","عمل"},{"personal","شخصي"},{"other","أخرى"},{NULL,NULL}
     };
     const char *(*tbl)[2] = !strcmp(app.st.s.lang, "ar") ? ar : en;
     for (int i = 0; tbl[i][0]; i++) if (!strcmp(tbl[i][0], key)) return tbl[i][1];
@@ -212,6 +290,12 @@ static void refresh_time_label(App *a) {
     char buf[16];
     snprintf(buf, sizeof buf, "%02d:%02d", a->remaining / 60, a->remaining % 60);
     gtk_label_set_text(GTK_LABEL(a->time_label), buf);
+    if (a->progress) {
+        int total = mode_seconds(a);
+        double frac = total > 0 ? 1.0 - (double)a->remaining / total : 0.0;
+        if (frac < 0) frac = 0; if (frac > 1) frac = 1;
+        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(a->progress), frac);
+    }
 }
 
 static void refresh_stats(App *a) {
@@ -246,7 +330,7 @@ static void complete_session(App *a) {
             today_str(r->date, sizeof r->date);
             r->mode = 0; r->seconds = mode_seconds(a);
             /* attach active task title if set via entry */
-            snprintf(r->task, sizeof r->task, "%s", a->active_task);
+            snprintf(r->task, sizeof r->task, "%s", a->st.active_task);
             a->st.total_focus_seconds += r->seconds;
         }
         a->sessions_in_cycle++;
@@ -258,6 +342,8 @@ static void complete_session(App *a) {
     gtk_label_set_text(GTK_LABEL(a->mode_label), tr(names[a->mode]));
     a->remaining = mode_seconds(a);
     refresh_time_label(a);
+    gtk_widget_add_css_class(a->time_label, "flash");
+    g_timeout_add(1600, unflash_cb, a);
     if (a->st.s.sound) gdk_display_beep(gdk_display_get_default());
 }
 
@@ -313,7 +399,12 @@ static void refresh_tasks(App *a) {
         gtk_box_remove(GTK_BOX(a->task_list), child);
     for (int i = 0; i < a->st.task_count; i++) {
         GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
-        GtkWidget *check = gtk_check_button_new_with_label(a->st.tasks[i].title);
+        char lbl[300];
+        if (a->st.tasks[i].category[0])
+            snprintf(lbl, sizeof lbl, "%s  ·  %s", a->st.tasks[i].title, a->st.tasks[i].category);
+        else
+            snprintf(lbl, sizeof lbl, "%s", a->st.tasks[i].title);
+        GtkWidget *check = gtk_check_button_new_with_label(lbl);
         gtk_check_button_set_active(GTK_CHECK_BUTTON(check), a->st.tasks[i].done);
         gtk_widget_set_hexpand(check, TRUE);
         g_object_set_data(G_OBJECT(check), "idx", GINT_TO_POINTER(i));
@@ -327,6 +418,7 @@ static void refresh_tasks(App *a) {
         gtk_box_append(GTK_BOX(a->task_list), row);
     }
     gtk_widget_set_visible(a->tasks_empty, a->st.task_count == 0);
+    sync_active_btn(a);
 }
 
 static void check_toggled(GtkCheckButton *c, gpointer d) {
@@ -352,8 +444,8 @@ static void on_add_task(GtkButton *b, gpointer d) {
     if (!t || !*t || a->st.task_count >= MAX_TASKS) return;
     g_strlcpy(a->st.tasks[a->st.task_count].title, t, sizeof a->st.tasks[0].title);
     a->st.tasks[a->st.task_count].done = 0;
-    a->st.tasks[a->st.task_count].category[0] = 0;
-    g_strlcpy(a->active_task, a->st.tasks[a->st.task_count].title, sizeof a->active_task);
+    g_strlcpy(a->st.tasks[a->st.task_count].category, CATS[a->cat_sel], 32);
+    g_strlcpy(a->st.active_task, a->st.tasks[a->st.task_count].title, sizeof a->st.active_task);
     a->st.task_count++;
     save_state(&a->st);
     gtk_editable_set_text(GTK_EDITABLE(a->task_entry), "");
@@ -381,6 +473,40 @@ static void step_changed(GtkButton *b, gpointer d) {
         /* update live durations when not running */
         if (!a->running) { a->remaining = mode_seconds(a); refresh_time_label(a); }
     }
+}
+
+static const char *CATS[] = {"study", "work", "personal", "other"};
+
+static void cat_toggled(GtkCheckButton *c, gpointer d) {
+    App *a = d;
+    if (!gtk_check_button_get_active(c)) return;
+    for (int i = 0; i < 4; i++) {
+        if (a->cat_btns[i] != GTK_WIDGET(c))
+            gtk_check_button_set_active(GTK_CHECK_BUTTON(a->cat_btns[i]), FALSE);
+    }
+    for (int i = 0; i < 4; i++)
+        if (a->cat_btns[i] == GTK_WIDGET(c)) { a->cat_sel = i; break; }
+    save_state(&a->st);
+}
+
+static void active_task_cycle(GtkButton *b, gpointer d) {
+    App *a = d; (void)b;
+    /* cycle: none -> task0 -> task1 ... -> none */
+    int idx = -1;
+    for (int i = 0; i < a->st.task_count; i++)
+        if (!strcmp(a->st.tasks[i].title, a->st.active_task)) { idx = i; break; }
+    idx++;
+    if (idx >= a->st.task_count) idx = -1;
+    if (idx < 0) a->st.active_task[0] = 0;
+    else g_strlcpy(a->st.active_task, a->st.tasks[idx].title, sizeof a->st.active_task);
+    gtk_button_set_label(GTK_BUTTON(a->active_btn),
+        a->st.active_task[0] ? a->st.active_task : tr("noTask"));
+}
+
+static void sync_active_btn(App *a) {
+    if (a->active_btn)
+        gtk_button_set_label(GTK_BUTTON(a->active_btn),
+            a->st.active_task[0] ? a->st.active_task : tr("noTask"));
 }
 
 static void on_lang_toggled(GtkCheckButton *c, gpointer d) {
@@ -420,6 +546,11 @@ static GtkWidget *build_focus_page(App *a) {
     gtk_widget_add_css_class(a->time_label, "time-digits");
     gtk_box_append(GTK_BOX(box), a->time_label);
 
+    a->progress = gtk_progress_bar_new();
+    gtk_widget_add_css_class(a->progress, "timer-progress");
+    gtk_widget_set_size_request(a->progress, 320, -1);
+    gtk_box_append(GTK_BOX(box), a->progress);
+
     GtkWidget *controls = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
     gtk_widget_set_halign(controls, GTK_ALIGN_CENTER);
     GtkWidget *reset = gtk_button_new_with_label(tr("reset"));
@@ -433,6 +564,12 @@ static GtkWidget *build_focus_page(App *a) {
     gtk_box_append(GTK_BOX(controls), a->start_btn);
     gtk_box_append(GTK_BOX(controls), skip);
     gtk_box_append(GTK_BOX(box), controls);
+
+    a->active_btn = gtk_button_new_with_label(tr("noTask"));
+    gtk_widget_add_css_class(a->active_btn, "flat");
+    g_signal_connect(a->active_btn, "clicked", G_CALLBACK(active_task_cycle), a);
+    gtk_box_append(GTK_BOX(box), a->active_btn);
+    sync_active_btn(a);
 
     a->stats_label = gtk_label_new("");
     gtk_widget_add_css_class(a->stats_label, "caption");
@@ -459,6 +596,19 @@ static GtkWidget *build_tasks_page(App *a) {
     gtk_box_append(GTK_BOX(row), a->task_entry);
     gtk_box_append(GTK_BOX(row), add);
     gtk_box_append(GTK_BOX(box), row);
+
+    GtkWidget *catrow = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+    gtk_widget_set_halign(catrow, GTK_ALIGN_START);
+    for (int i = 0; i < 4; i++) {
+        GtkWidget *ch = gtk_check_button_new_with_label(tr(CATS[i]));
+        gtk_widget_add_css_class(ch, "cat-chip");
+        gtk_widget_set_name(ch, "cat");
+        if (i == a->cat_sel) gtk_check_button_set_active(GTK_CHECK_BUTTON(ch), TRUE);
+        g_signal_connect(ch, "toggled", G_CALLBACK(cat_toggled), a);
+        a->cat_btns[i] = ch;
+        gtk_box_append(GTK_BOX(catrow), ch);
+    }
+    gtk_box_append(GTK_BOX(box), catrow);
 
     GtkWidget *scroll = gtk_scrolled_window_new();
     gtk_widget_set_vexpand(scroll, TRUE);
@@ -560,6 +710,8 @@ static void rebuild_ui(App *a) {
         gtk_stack_add_named(GTK_STACK(a->stack), pages[i], id);
     }
     gtk_widget_set_vexpand(a->stack, TRUE);
+    gtk_stack_set_transition_type(GTK_STACK(a->stack), GTK_STACK_TRANSITION_TYPE_CROSSFADE);
+    gtk_stack_set_transition_duration(GTK_STACK(a->stack), 180);
     for (int i = 0; i < 4; i++) {
         GtkWidget *btn = gtk_toggle_button_new();
         GtkWidget *img = gtk_image_new_from_icon_name(tab_icons[i]);
@@ -649,6 +801,7 @@ int main(int argc, char **argv) {
     load_state(&app.st);
     app.remaining = mode_seconds(&app);
 
+    load_css();
     GtkApplication *gapp = gtk_application_new("com.focusplan.app", G_APPLICATION_FLAGS_NONE);
     g_signal_connect(gapp, "activate", G_CALLBACK(on_activate), &app);
     g_timeout_add_seconds(1, tick_cb, &app);
