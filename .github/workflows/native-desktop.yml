@@ -54,7 +54,7 @@ jobs:
           name: focus-plan-linux-native
           path: |
             focus-plan-linux-x86_64.tar.gz
-            focus-plan-*_amd64.deb
+            focus-plan_*_amd64.deb
             focus-plan-*-x86_64.AppImage
       - name: Attach to release on tags
         if: startsWith(github.ref, 'refs/tags/v')
@@ -62,7 +62,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload "${{ github.ref_name }}" focus-plan-linux-x86_64.tar.gz --clobber
-          gh release upload "${{ github.ref_name }}" focus-plan-*_amd64.deb --clobber
+          gh release upload "${{ github.ref_name }}" focus-plan_*_amd64.deb --clobber
           gh release upload "${{ github.ref_name }}" focus-plan-*-x86_64.AppImage --clobber
 
   macos-swiftui:
