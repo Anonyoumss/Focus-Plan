@@ -1,5 +1,8 @@
 name: Native desktop apps
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [main]

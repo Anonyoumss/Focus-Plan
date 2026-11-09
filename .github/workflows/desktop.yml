@@ -1,5 +1,8 @@
 name: Desktop apps
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [main]

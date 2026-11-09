@@ -4,6 +4,9 @@ name: Native Android app
 # google-services.json is optional: without it the app builds and runs as a
 # guest; Firebase config can also come from FP_* gradle properties.
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [main]
