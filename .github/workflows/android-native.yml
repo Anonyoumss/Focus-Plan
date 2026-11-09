@@ -1,8 +1,8 @@
 name: Native Android app
 
-# Builds the pure-Kotlin/Compose app in android-native/ (no Capacitor).
-# google-services.json is optional: without it the app builds and runs as a
-# guest; Firebase config can also come from FP_* gradle properties.
+# Builds the Kotlin Multiplatform app in native-app/ (forked from Tomato,
+# GPL-3.0 — see native-app/LICENSE). androidApp + shared Compose UI.
+# Flavor: foss (no billing). Package: com.focusplan.app.debug (debug suffix).
 
 permissions:
   contents: write
@@ -11,9 +11,9 @@ on:
   push:
     branches: [main]
     tags: ['v*']
-    paths: ['android-native/**', '.github/workflows/android-native.yml']
+    paths: ['native-app/**', '.github/workflows/android-native.yml']
   pull_request:
-    paths: ['android-native/**']
+    paths: ['native-app/**']
   workflow_dispatch:
 
 jobs:
@@ -25,29 +25,28 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Install Gradle 8.14.3 (AGP 8.13 is incompatible with Gradle 9.x)
+      - name: Install Android SDK platform + build-tools
         run: |
-          curl -fsSL --retry 5 --retry-delay 15             https://services.gradle.org/distributions/gradle-8.14.3-bin.zip -o /tmp/gradle.zip
-          unzip -q /tmp/gradle.zip -d /tmp
-          echo "/tmp/gradle-8.14.3/bin" >> "$GITHUB_PATH"
-      - name: Build debug APK
-        working-directory: android-native
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37" "build-tools;36.0.0"
+      - name: Build foss debug APK
+        working-directory: native-app
         run: |
           ok=0
           for i in 1 2 3 4 5; do
-            gradle assembleDebug --no-daemon && { ok=1; break; }
+            ./gradlew :androidApp:assembleFossDebug --no-daemon --console=plain && { ok=1; break; }
             sleep 30
           done
           [ "$ok" = "1" ]
       - uses: actions/upload-artifact@v4
         with:
           name: focus-plan-native-debug-apk
-          path: android-native/app/build/outputs/apk/debug/app-debug.apk
+          path: native-app/androidApp/build/outputs/apk/foss/debug/androidApp-foss-debug.apk
           retention-days: 14
       - name: Attach APK to release on tags
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cp android-native/app/build/outputs/apk/debug/app-debug.apk "focus-plan-native-${{ github.ref_name }}-debug.apk"
+          cp native-app/androidApp/build/outputs/apk/foss/debug/androidApp-foss-debug.apk "focus-plan-native-${{ github.ref_name }}-debug.apk"
           gh release upload "${{ github.ref_name }}" "focus-plan-native-${{ github.ref_name }}-debug.apk" --clobber

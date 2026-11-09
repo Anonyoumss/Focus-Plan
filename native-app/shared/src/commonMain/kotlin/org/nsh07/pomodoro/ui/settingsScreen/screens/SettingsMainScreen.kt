@@ -1,0 +1,257 @@
+/*
+ * Copyright (c) 2026 Nishant Mishra
+ *
+ * This file is part of Tomato - a minimalist pomodoro timer for Android.
+ *
+ * Tomato is free software: you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Tomato is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Tomato.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package org.nsh07.pomodoro.ui.settingsScreen.screens
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedListItem
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import org.nsh07.pomodoro.BuildKonfig
+import org.nsh07.pomodoro.settingsScreens
+import org.nsh07.pomodoro.ui.Screen
+import org.nsh07.pomodoro.ui.SettingsNavItem
+import org.nsh07.pomodoro.ui.mergePaddingValues
+import org.nsh07.pomodoro.ui.settingsScreen.ResetDataDialog
+import org.nsh07.pomodoro.ui.settingsScreen.components.PlusPromo
+import org.nsh07.pomodoro.ui.settingsScreen.viewModel.SettingsAction
+import org.nsh07.pomodoro.ui.settingsScreen.viewModel.SettingsState
+import org.nsh07.pomodoro.ui.theme.CustomColors.listItemColors
+import org.nsh07.pomodoro.ui.theme.CustomColors.topBarColors
+import org.nsh07.pomodoro.ui.theme.LocalAppFonts
+import org.nsh07.pomodoro.ui.theme.TomatoShapeDefaults.segmentedListItemShapes
+import org.nsh07.pomodoro.ui.theme.TomatoTheme
+import org.nsh07.pomodoro.ui.topBarWindowInsets
+import tomato.shared.generated.resources.Res
+import tomato.shared.generated.resources.about
+import tomato.shared.generated.resources.app_name
+import tomato.shared.generated.resources.arrow_forward_big
+import tomato.shared.generated.resources.backup
+import tomato.shared.generated.resources.backup_and_restore
+import tomato.shared.generated.resources.info
+import tomato.shared.generated.resources.reset_data
+import tomato.shared.generated.resources.restore
+import tomato.shared.generated.resources.settings
+
+@Composable
+fun SettingsMainScreen(
+    settingsState: SettingsState,
+    contentPadding: PaddingValues,
+    currentScreen: Screen.Settings,
+    onAction: (SettingsAction) -> Unit,
+    onNavigate: (Screen.Settings) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    val widthExpanded = currentWindowAdaptiveInfoV2()
+        .windowSizeClass
+        .isWidthAtLeastBreakpoint(WIDTH_DP_EXPANDED_LOWER_BOUND)
+
+    if (settingsState.isShowingEraseDataDialog) {
+        ResetDataDialog(
+            resetData = { onAction(SettingsAction.EraseData) },
+            onDismiss = { onAction(SettingsAction.CancelEraseData) }
+        )
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                windowInsets = topBarWindowInsets(),
+                title = {
+                    Text(
+                        stringResource(Res.string.settings),
+                        style = LocalTextStyle.current.copy(
+                            fontFamily = LocalAppFonts.current.topBarTitle,
+                            fontSize = 32.sp,
+                            lineHeight = 32.sp
+                        )
+                    )
+                },
+                subtitle = {},
+                colors = topBarColors,
+                titleHorizontalAlignment = Alignment.CenterHorizontally,
+                scrollBehavior = scrollBehavior
+            )
+        },
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+    ) { innerPadding ->
+        val insets = mergePaddingValues(innerPadding, contentPadding)
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+            contentPadding = insets,
+            modifier = Modifier
+                .background(topBarColors.containerColor)
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+        ) {
+            item { Spacer(Modifier.height(14.dp)) }
+
+            item {
+                PlusPromo()
+            }
+
+            item { Spacer(Modifier.height(12.dp)) }
+
+            itemsIndexed(settingsScreens) { index, item ->
+                SegmentedListItem(
+                    leadingContent = {
+                        Icon(painterResource(item.icon), null)
+                    },
+                    supportingContent = item.innerSettings?.let { innerSettings ->
+                        {
+                            val innerStrings = innerSettings.map { stringResource(it) }
+                            val joinedText =
+                                remember(innerStrings) { innerStrings.joinToString(", ") }
+                            Text(
+                                joinedText,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    },
+                    trailingContent = if (!widthExpanded) {
+                        { Icon(painterResource(Res.drawable.arrow_forward_big), null) }
+                    } else null,
+                    shapes = segmentedListItemShapes(index, settingsScreens.size),
+                    colors = listItemColors,
+                    selected = currentScreen == item.route,
+                    onClick = { onNavigate(item.route) }
+                ) { Text(stringResource(item.label)) }
+            }
+
+            item { Spacer(Modifier.height(12.dp)) }
+
+            item {
+                val item = remember {
+                    SettingsNavItem(
+                        Screen.Settings.Backup,
+                        Res.drawable.backup,
+                        Res.string.backup_and_restore,
+                        listOf(Res.string.backup, Res.string.restore)
+                    )
+                }
+                SegmentedListItem(
+                    leadingContent = {
+                        Icon(painterResource(item.icon), null)
+                    },
+                    supportingContent = item.innerSettings?.let { innerSettings ->
+                        {
+                            val innerStrings = innerSettings.map { stringResource(it) }
+                            val joinedText =
+                                remember(innerStrings) { innerStrings.joinToString(", ") }
+                            Text(
+                                joinedText,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    },
+                    trailingContent = if (!widthExpanded) {
+                        { Icon(painterResource(Res.drawable.arrow_forward_big), null) }
+                    } else null,
+                    selected = currentScreen == Screen.Settings.Backup,
+                    shapes = segmentedListItemShapes(0, 2),
+                    colors = listItemColors,
+                    onClick = { onNavigate(item.route) }
+                ) { Text(stringResource(item.label)) }
+            }
+            item {
+                SegmentedListItem(
+                    leadingContent = {
+                        Icon(painterResource(Res.drawable.info), null)
+                    },
+                    supportingContent = {
+                        Text(stringResource(Res.string.app_name) + " ${BuildKonfig.VERSION_NAME}")
+                    },
+                    trailingContent = if (!widthExpanded) {
+                        { Icon(painterResource(Res.drawable.arrow_forward_big), null) }
+                    } else null,
+                    selected = currentScreen == Screen.Settings.About,
+                    shapes = segmentedListItemShapes(1, 2),
+                    colors = listItemColors,
+                    onClick = { onNavigate(Screen.Settings.About) }
+                ) { Text(stringResource(Res.string.about)) }
+            }
+
+            item { Spacer(Modifier.height(12.dp)) }
+
+            item {
+                PlatformSettings()
+            }
+
+            item { Spacer(Modifier.height(12.dp)) }
+
+            item {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    TextButton(
+                        onClick = { onAction(SettingsAction.AskEraseData) },
+                    ) {
+                        Text(stringResource(Res.string.reset_data))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun SettingsMainScreenPreview() {
+    TomatoTheme {
+        SettingsMainScreen(
+            settingsState = SettingsState(),
+            contentPadding = PaddingValues(),
+            currentScreen = Screen.Settings.Main,
+            onAction = {},
+            onNavigate = {}
+        )
+    }
+}

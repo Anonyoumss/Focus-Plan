@@ -1,0 +1,202 @@
+/*
+ * Copyright (c) 2025-2026 Nishant Mishra
+ *
+ * This file is part of Tomato - a minimalist pomodoro timer for Android.
+ *
+ * Tomato is free software: you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Tomato is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Tomato.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package org.nsh07.pomodoro.ui.settingsScreen
+
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
+import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy.Companion.detailPane
+import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy.Companion.listPane
+import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.ui.NavDisplay
+import org.koin.compose.viewmodel.koinViewModel
+import org.nsh07.pomodoro.ui.Screen
+import org.nsh07.pomodoro.ui.calculatePaneScaffoldDirective
+import org.nsh07.pomodoro.ui.settingsScreen.screens.AboutScreen
+import org.nsh07.pomodoro.ui.settingsScreen.screens.AlarmSettings
+import org.nsh07.pomodoro.ui.settingsScreen.screens.AppearanceSettings
+import org.nsh07.pomodoro.ui.settingsScreen.screens.SettingsMainScreen
+import org.nsh07.pomodoro.ui.settingsScreen.screens.TimerSettings
+import org.nsh07.pomodoro.ui.settingsScreen.screens.TopicsSettings
+import org.nsh07.pomodoro.ui.settingsScreen.screens.backupRestore.BackupRestoreScreen
+import org.nsh07.pomodoro.ui.settingsScreen.viewModel.SettingsViewModel
+import org.nsh07.pomodoro.ui.theme.CustomColors.topBarColors
+import org.nsh07.pomodoro.utils.onBack
+import org.nsh07.pomodoro.utils.onTopLevelNavigate
+import tomato.shared.generated.resources.Res
+import tomato.shared.generated.resources.settings_filled
+
+
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+@Composable
+fun SettingsScreenRoot(
+    contentPadding: PaddingValues,
+    modifier: Modifier = Modifier,
+    viewModel: SettingsViewModel = koinViewModel()
+) {
+    val backStack = viewModel.backStack
+
+    DisposableEffect(Unit) {
+        onDispose { viewModel.onSettingsClosed() }
+    }
+
+    val minuteInputs = viewModel.minuteInputs
+
+    val sessionActive by viewModel.sessionActive.collectAsStateWithLifecycle()
+    val currentTopicId by viewModel.currentTopicId.collectAsStateWithLifecycle()
+
+    val settingsState by viewModel.settingsState.collectAsStateWithLifecycle()
+
+    val sessionsSliderState = viewModel.sessionsSliderState
+
+    val directionMultiplier = if (LocalLayoutDirection.current == LayoutDirection.Ltr) 1 else -1
+
+    NavDisplay(
+        backStack = backStack,
+        onBack = backStack::onBack,
+        transitionSpec = {
+            (slideInHorizontally(initialOffsetX = { directionMultiplier * it }))
+                .togetherWith(slideOutHorizontally(targetOffsetX = { directionMultiplier * -it / 4 }) + fadeOut())
+        },
+        popTransitionSpec = {
+            (slideInHorizontally(initialOffsetX = { directionMultiplier * -it / 4 }) + fadeIn())
+                .togetherWith(slideOutHorizontally(targetOffsetX = { directionMultiplier * it }))
+        },
+        predictivePopTransitionSpec = {
+            (slideInHorizontally(initialOffsetX = { directionMultiplier * -it / 4 }) + fadeIn())
+                .togetherWith(slideOutHorizontally(targetOffsetX = { directionMultiplier * it }))
+        },
+        sceneStrategies = listOf(
+            rememberListDetailSceneStrategy(
+                directive = calculatePaneScaffoldDirective(currentWindowAdaptiveInfoV2())
+            )
+        ),
+        entryProvider = entryProvider {
+            entry<Screen.Settings.Main>(
+                metadata = listPane(detailPlaceholder = { DetailPlaceholder(Res.drawable.settings_filled) })
+            ) {
+                SettingsMainScreen(
+                    settingsState = settingsState,
+                    contentPadding = contentPadding,
+                    currentScreen = backStack.last(),
+                    onAction = viewModel::onAction,
+                    onNavigate = backStack::onTopLevelNavigate,
+                    modifier = modifier,
+                )
+            }
+
+            entry<Screen.Settings.About>(
+                metadata = detailPane()
+            ) {
+                AboutScreen(
+                    contentPadding = contentPadding,
+                    onBack = backStack::onBack
+                )
+            }
+
+            entry<Screen.Settings.Alarm>(
+                metadata = detailPane()
+            ) {
+                AlarmSettings(
+                    settingsState = settingsState,
+                    contentPadding = contentPadding,
+                    onAction = viewModel::onAction,
+                    onBack = backStack::onBack,
+                    modifier = modifier
+                )
+            }
+
+            entry<Screen.Settings.Appearance>(
+                metadata = detailPane()
+            ) {
+                AppearanceSettings(
+                    settingsState = settingsState,
+                    contentPadding = contentPadding,
+                    onAction = viewModel::onAction,
+                    onBack = backStack::onBack,
+                    modifier = modifier,
+                )
+            }
+
+            entry<Screen.Settings.Backup>(
+                metadata = detailPane()
+            ) {
+                BackupRestoreScreen(
+                    contentPadding = contentPadding,
+                    onBack = backStack::onBack,
+                    modifier = modifier,
+                )
+            }
+
+            entry<Screen.Settings.Timer>(
+                metadata = detailPane()
+            ) {
+                val topics by viewModel.allTopics.collectAsStateWithLifecycle()
+                val editingTopic by viewModel.editingTopic.collectAsStateWithLifecycle()
+
+                TimerSettings(
+                    sessionActive = sessionActive,
+                    currentTopicId = currentTopicId,
+                    settingsState = settingsState,
+                    contentPadding = contentPadding,
+                    minuteInputs = minuteInputs,
+                    sessionsSliderState = sessionsSliderState,
+                    topics = topics,
+                    editingTopic = editingTopic,
+                    onAction = viewModel::onAction,
+                    onBack = backStack::onBack,
+                    modifier = modifier,
+                )
+            }
+
+            entry<Screen.Settings.Topics>(
+                metadata = detailPane()
+            ) {
+                val topics by viewModel.allTopics.collectAsStateWithLifecycle()
+                val editingTopic by viewModel.editingTopic.collectAsStateWithLifecycle()
+
+                TopicsSettings(
+                    topics = topics,
+                    editingTopic = editingTopic,
+                    sessionActive = sessionActive,
+                    currentTopicId = currentTopicId,
+                    minuteInputs = minuteInputs,
+                    sessionsSliderState = sessionsSliderState,
+                    contentPadding = contentPadding,
+                    onBack = backStack::onBack,
+                    onAction = viewModel::onAction
+                )
+            }
+        },
+        modifier = Modifier.background(topBarColors.containerColor)
+    )
+}

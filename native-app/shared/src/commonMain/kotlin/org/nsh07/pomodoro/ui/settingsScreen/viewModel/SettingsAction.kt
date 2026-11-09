@@ -1,0 +1,56 @@
+/*
+ * Copyright (c) 2025-2026 Nishant Mishra
+ *
+ * This file is part of Tomato - a minimalist pomodoro timer for Android.
+ *
+ * Tomato is free software: you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Tomato is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Tomato.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package org.nsh07.pomodoro.ui.settingsScreen.viewModel
+
+import androidx.compose.ui.graphics.Color
+import org.nsh07.pomodoro.data.Topic
+import org.nsh07.pomodoro.data.TopicShape
+import org.nsh07.pomodoro.ui.settingsScreen.components.MinuteInputs
+
+sealed interface SettingsAction {
+    data class SaveAlarmEnabled(val enabled: Boolean) : SettingsAction
+    data class SaveVibrateEnabled(val enabled: Boolean) : SettingsAction
+    data class SaveBlackTheme(val enabled: Boolean) : SettingsAction
+    data class SaveAodEnabled(val enabled: Boolean) : SettingsAction
+    data class SaveDndEnabled(val enabled: Boolean) : SettingsAction
+    data class SaveMediaVolumeForAlarm(val enabled: Boolean) : SettingsAction
+    data class SaveSingleProgressBar(val enabled: Boolean) : SettingsAction
+    data class SaveAutostartNextSession(val enabled: Boolean) : SettingsAction
+    data class SaveSecureAod(val enabled: Boolean) : SettingsAction
+    data class SaveAlarmSound(val uri: String?) : SettingsAction
+    data class SaveTheme(val theme: String) : SettingsAction
+    data class SaveColorScheme(val color: Color) : SettingsAction
+
+    data class SaveFocusGoal(val goal: Long) : SettingsAction
+
+    data class SaveVibrationOnDuration(val duration: Long) : SettingsAction
+    data class SaveVibrationOffDuration(val duration: Long) : SettingsAction
+    data class SaveVibrationAmplitude(val amplitude: Int) : SettingsAction
+
+    data class CreateTopic(val topic: Topic, val setAsCurrent: Boolean = false) : SettingsAction
+    data class DeleteTopic(val topic: Topic, val deleteStats: Boolean) : SettingsAction
+    data class SetEditingTopic(val topic: Topic) : SettingsAction
+    data class SetEditingTopicName(val name: String) : SettingsAction
+    data class SetEditingTopicMinutes(val minutes: MinuteInputs) : SettingsAction
+    data class SetEditingTopicColor(val color: Color) : SettingsAction
+    data class SetEditingTopicShape(val shape: TopicShape) : SettingsAction
+
+    data object AskEraseData : SettingsAction
+    data object CancelEraseData : SettingsAction
+    data object EraseData : SettingsAction
+}

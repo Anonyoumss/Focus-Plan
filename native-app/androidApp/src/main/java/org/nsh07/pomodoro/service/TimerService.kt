@@ -1,0 +1,558 @@
+/*
+ * Copyright (c) 2025-2026 Nishant Mishra
+ *
+ * This file is part of Tomato - a minimalist pomodoro timer for Android.
+ *
+ * Tomato is free software: you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Tomato is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Tomato.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package org.nsh07.pomodoro.service
+
+import android.annotation.SuppressLint
+import android.app.NotificationManager
+import android.app.Service
+import android.content.ComponentName
+import android.content.Intent
+import android.media.AudioAttributes
+import android.media.MediaPlayer
+import android.os.Build
+import android.os.IBinder
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.service.quicksettings.TileService
+import android.util.Log
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.net.toUri
+import androidx.glance.appwidget.updateAll
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.koin.android.ext.android.inject
+import org.koin.core.component.KoinComponent
+import org.nsh07.pomodoro.R
+import org.nsh07.pomodoro.data.StateRepository
+import org.nsh07.pomodoro.di.ActivityCallbacks
+import org.nsh07.pomodoro.qsTile.TomatoQSTileService
+import org.nsh07.pomodoro.ui.timerScreen.viewModel.TimerMode
+import org.nsh07.pomodoro.utils.millisecondsToStr
+import org.nsh07.pomodoro.widget.TimerAppWidget
+import kotlin.text.Typography.middleDot
+import kotlin.time.Duration.Companion.milliseconds
+
+class TimerService : Service(), KoinComponent {
+
+    private val timerManager: TimerManager by inject()
+
+    private val stateRepository: StateRepository by inject()
+    private val notificationManager: NotificationManagerCompat by inject()
+    private val notificationManagerService: NotificationManager by inject()
+    private val notificationBuilder: NotificationCompat.Builder by inject()
+    private val activityCallbacks: ActivityCallbacks by inject()
+    private val _timerState by lazy { stateRepository.timerState }
+    private val _settingsState by lazy { stateRepository.settingsState }
+
+    private val widget by lazy { TimerAppWidget() }
+
+    private var job = SupervisorJob()
+    private val timerScope = CoroutineScope(Dispatchers.IO + job)
+    private val skipScope = CoroutineScope(Dispatchers.IO + job)
+
+    private var autoAlarmStopScope: Job? = null
+
+    private var alarm: MediaPlayer? = null
+    private val vibrator by lazy {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager = getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            vibratorManager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION") getSystemService(VIBRATOR_SERVICE) as Vibrator
+        }
+    }
+
+    private val cs by lazy { stateRepository.colorScheme }
+
+    private lateinit var notificationStyle: NotificationCompat.ProgressStyle
+
+    private var foreground = false
+
+    override fun onBind(intent: Intent?): IBinder? {
+        return null
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        updateProgressSegments()
+        isRunning = true
+        alarm = initializeMediaPlayer()
+    }
+
+    override fun onDestroy() {
+        isRunning = false
+        updateQSTile()
+        job.cancel()
+        runBlocking(Dispatchers.IO) { timerManager.saveTimeToDb() }
+        setDoNotDisturb(false)
+        notificationManager.cancel(1)
+        try {
+            alarm?.release()
+        } catch (e: Exception) {
+            Log.e("TimerService", "Error releasing alarm", e)
+        }
+        alarm = null
+        super.onDestroy()
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent == null) {
+            stopForegroundService()
+            return START_NOT_STICKY
+        }
+
+        val action = intent.action
+        // Noted before promoting, to tell a service that was already showing something apart from
+        // one that exists only to carry this action
+        val wasForeground = foreground
+
+        // RESUME arrives through plain startService(), and promotes only if a session needs it
+        if (action != Actions.RESUME.toString() && action != Actions.UPDATE_ALARM_TONE.toString())
+            startForegroundService()
+
+        // Every action below changes the timer, so none may run before the stored session is back
+        when (action) {
+            Actions.TOGGLE.toString() -> skipScope.launch {
+                timerManager.awaitRestore()
+                toggleTimer()
+            }
+
+            Actions.RESET.toString() -> skipScope.launch {
+                timerManager.awaitRestore()
+                timerManager.resetTimer(::updateProgressSegments)
+                stopForegroundService()
+            }
+
+            Actions.UNDO_RESET.toString() -> skipScope.launch {
+                timerManager.awaitRestore()
+                timerManager.undoReset()
+            }
+
+            Actions.SKIP.toString() -> skipScope.launch {
+                timerManager.awaitRestore()
+                timerManager.skipTimer(
+                    onStart = { showTimerNotification(0, paused = true, complete = false) },
+                    onCompletion = ::onIntervalAdvanced,
+                    setDoNotDisturb = ::setDoNotDisturb
+                )
+            }
+
+            Actions.EXPIRE.toString() -> skipScope.launch {
+                timerManager.awaitRestore()
+                val expired = timerManager.expireIntervalIfDue(
+                    onTimerExpired = {
+                        startForegroundService()
+                        showTimerNotification(0, paused = true, complete = true)
+                    },
+                    onSkipComplete = ::onIntervalAdvanced,
+                    setDoNotDisturb = ::setDoNotDisturb
+                )
+                if (expired) updateQSTile()
+                // An alarm that fired early still leaves a session that needs ticking, while a
+                // stale one leaves nothing this service was not already showing
+                else if (!resumeRestoredTimer() && !wasForeground) stopForegroundService()
+            }
+
+            Actions.RESUME.toString() -> skipScope.launch {
+                timerManager.awaitRestore()
+                // A service that was never promoted only exists to carry this action
+                if (!resumeRestoredTimer() && !wasForeground) stopSelf()
+            }
+
+            Actions.STOP_ALARM.toString() -> stopAlarm()
+
+            Actions.UPDATE_ALARM_TONE.toString() -> updateAlarmTone()
+        }
+        return START_NOT_STICKY
+    }
+
+    /** Takes over a restored session, returning whether there was a running one to take over. */
+    private fun resumeRestoredTimer(): Boolean {
+        if (!_timerState.value.timerRunning) return false
+
+        startForegroundService()
+        updateProgressSegments()
+        notificationBuilder.clearActions().addTimerActions(this, getString(R.string.stop))
+        timerManager.startLoopIfRunning(
+            scope = timerScope,
+            onTick = ::onTimerTick,
+            onTimerExpired = { showTimerNotification(0, paused = true, complete = true) },
+            onSkipComplete = ::onIntervalAdvanced,
+            setDoNotDisturb = ::setDoNotDisturb
+        )
+        updateQSTile()
+
+        return true
+    }
+
+    private suspend fun onTimerTick(
+        remainingTime: Long,
+        updateNotification: Boolean,
+        updateWidget: Boolean
+    ) {
+        if (updateNotification) showTimerNotification(remainingTime.toInt())
+        if (updateWidget) updateWidget()
+    }
+
+    private suspend fun onIntervalAdvanced() {
+        updateProgressSegments()
+        updateWidget()
+    }
+
+    private fun toggleTimer() {
+        updateProgressSegments()
+        timerManager.toggleTimer(
+            scope = timerScope,
+            onPause = { remainingTime ->
+                notificationBuilder.clearActions().addTimerActions(
+                    this, getString(R.string.start)
+                )
+                showTimerNotification(remainingTime.toInt(), paused = true)
+            },
+            onStart = {
+                notificationBuilder.clearActions().addTimerActions(
+                    this, getString(R.string.stop)
+                )
+            },
+            onTick = ::onTimerTick,
+            onTimerExpired = { showTimerNotification(0, paused = true, complete = true) },
+            onSkipComplete = ::onIntervalAdvanced,
+            setDoNotDisturb = ::setDoNotDisturb,
+            onStateChanged = ::updateQSTile
+        )
+    }
+
+    @SuppressLint(
+        "MissingPermission",
+        "StringFormatInvalid"
+    ) // We check for the permission when pressing the Play button in the UI
+    fun showTimerNotification(
+        remainingTime: Int, paused: Boolean = false, complete: Boolean = false
+    ) {
+        val settingsState = _settingsState.value
+        val currentTopic = stateRepository.currentTopic.value
+        val timerState = _timerState.value
+
+        if (complete) notificationBuilder.clearActions().addStopAlarmAction(this)
+
+        val totalTime = when (timerState.timerMode) {
+            TimerMode.FOCUS -> currentTopic.focusTime.toInt()
+            TimerMode.SHORT_BREAK -> currentTopic.shortBreakTime.toInt()
+            else -> currentTopic.longBreakTime.toInt()
+        }
+
+        val currentTimer = when (timerState.timerMode) {
+            TimerMode.FOCUS -> getString(R.string.focus)
+            TimerMode.SHORT_BREAK -> getString(R.string.short_break)
+            else -> getString(R.string.long_break)
+        }
+
+        val nextTimer = when (timerState.nextTimerMode) {
+            TimerMode.FOCUS -> getString(R.string.focus)
+            TimerMode.SHORT_BREAK -> getString(R.string.short_break)
+            else -> getString(R.string.long_break)
+        }
+
+        val remainingTimeString = if ((remainingTime.toFloat() / 60000f) < 1.0f) "< 1"
+        else (remainingTime.toFloat() / 60000f).toInt()
+
+        notificationManager.notify(
+            1,
+            notificationBuilder
+                .setContentTitle(
+                    if (!complete) {
+                        "$currentTimer  $middleDot  ${
+                            if (timerState.timerMode == TimerMode.FOCUS && timerState.infiniteFocus)
+                                getString(R.string.infinite)
+                            else
+                                getString(R.string.min_remaining_notification, remainingTimeString)
+                        }" + if (paused) "  $middleDot  ${getString(R.string.paused)}" else ""
+                    } else "$currentTimer $middleDot ${getString(R.string.completed)}"
+                )
+                .setContentText(
+                    getString(
+                        R.string.up_next_notification,
+                        nextTimer,
+                        _timerState.value.nextTimeStr
+                    )
+                )
+                .setStyle(
+                    notificationStyle
+                        .setProgress( // Set the current progress by filling the previous intervals and part of the current interval
+                            if (timerState.infiniteFocus) {
+                                if (timerState.timerMode == TimerMode.FOCUS) (Long.MAX_VALUE - remainingTime).toInt()
+                                else (totalTime - remainingTime)
+                            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA && !settingsState.singleProgressBar) {
+                                (totalTime - remainingTime) + ((timerManager.cycles + 1) / 2) * currentTopic.focusTime.toInt() + (timerManager.cycles / 2) * currentTopic.shortBreakTime.toInt()
+                            } else (totalTime - remainingTime)
+                        )
+                )
+                .setWhen(System.currentTimeMillis() + remainingTime) // Sets the Live Activity/Now Bar chip time
+                .setShortCriticalText(
+                    if (timerState.timerMode == TimerMode.FOCUS && timerState.infiniteFocus)
+                        millisecondsToStr(
+                            (Long.MAX_VALUE - stateRepository.time.value).coerceAtLeast(0)
+                        )
+                    else millisecondsToStr(stateRepository.time.value.coerceAtLeast(0))
+                )
+                .build()
+        )
+
+        if (complete) {
+            startAlarm()
+            _timerState.update { currentState ->
+                currentState.copy(alarmRinging = true)
+            }
+        }
+    }
+
+    /**
+     * Updates all instance of [TimerAppWidget] widget to make them show the correct time as long as
+     * the timer runs
+     */
+    private suspend fun updateWidget() = widget.updateAll(this)
+
+    private fun updateProgressSegments() {
+        val settingsState = _settingsState.value
+        val currentTopic = stateRepository.currentTopic.value
+        notificationStyle = NotificationCompat.ProgressStyle()
+            .also {
+                // Add all the Focus, Short break and long break intervals in order
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA && !settingsState.singleProgressBar && !_timerState.value.infiniteFocus) {
+                    // Android 16 and later supports live updates
+                    // Set progress bar sections if on Baklava or later
+                    for (i in 0..<currentTopic.sessionLength * 2) {
+                        if (i % 2 == 0) it.addProgressSegment(
+                            NotificationCompat.ProgressStyle.Segment(
+                                currentTopic.focusTime.toInt()
+                            )
+                                .setColor(cs.primary.toArgb())
+                        )
+                        else if (i != (currentTopic.sessionLength * 2 - 1)) it.addProgressSegment(
+                            NotificationCompat.ProgressStyle.Segment(
+                                currentTopic.shortBreakTime.toInt()
+                            ).setColor(cs.tertiary.toArgb())
+                        )
+                        else it.addProgressSegment(
+                            NotificationCompat.ProgressStyle.Segment(
+                                currentTopic.longBreakTime.toInt()
+                            ).setColor(cs.tertiary.toArgb())
+                        )
+                    }
+                } else {
+                    it.addProgressSegment(
+                        NotificationCompat.ProgressStyle.Segment(
+                            when (_timerState.value.timerMode) {
+                                TimerMode.FOCUS -> currentTopic.focusTime.toInt()
+                                TimerMode.SHORT_BREAK -> currentTopic.shortBreakTime.toInt()
+                                else -> currentTopic.longBreakTime.toInt()
+                            }
+                        )
+                    )
+                }
+            }
+    }
+
+    fun startAlarm() {
+        val settingsState = _settingsState.value
+        if (settingsState.alarmEnabled) {
+            try {
+                alarm?.start()
+            } catch (e: Exception) {
+                Log.e("TimerService", "Error starting alarm", e)
+            }
+        }
+
+        activityCallbacks.activityTurnScreenOn(true)
+
+        autoAlarmStopScope = CoroutineScope(Dispatchers.IO).launch {
+            delay((1 * 60 * 1000).milliseconds)
+            stopAlarm(fromAutoStop = true)
+        }
+
+        if (settingsState.vibrateEnabled) {
+            if (!vibrator.hasVibrator()) {
+                return
+            }
+            val timings = longArrayOf(
+                0,
+                settingsState.vibrationOnDuration,
+                settingsState.vibrationOffDuration,
+                settingsState.vibrationOnDuration
+            )
+            val amplitudes = intArrayOf(
+                0,
+                settingsState.vibrationAmplitude,
+                0,
+                settingsState.vibrationAmplitude
+            )
+            val repeat = 2
+            val effect = VibrationEffect.createWaveform(timings, amplitudes, repeat)
+            vibrator.vibrate(effect)
+        }
+    }
+
+    /**
+     * Stops ringing the alarm and vibration, and performs related necessary actions
+     *
+     * @param fromAutoStop Whether the function was triggered automatically by the program instead of
+     * intentionally by the user
+     */
+    fun stopAlarm(fromAutoStop: Boolean = false) {
+        updateProgressSegments() // Make sure notification style is initialized
+
+        val settingsState = _settingsState.value
+        val currentTopic = stateRepository.currentTopic.value
+        autoAlarmStopScope?.cancel()
+
+        if (settingsState.alarmEnabled) {
+            alarm?.let { player ->
+                try {
+                    if (player.isPlaying) player.pause()
+                    player.seekTo(0)
+                } catch (e: Exception) {
+                    Log.e("TimerService", "Error stopping alarm", e)
+                }
+            }
+        }
+
+        if (settingsState.vibrateEnabled) {
+            vibrator.cancel()
+        }
+
+        activityCallbacks.activityTurnScreenOn(false)
+
+        _timerState.update { currentState ->
+            currentState.copy(alarmRinging = false)
+        }
+        notificationBuilder.clearActions().addTimerActions(
+            this,
+            getString(R.string.start_next)
+        )
+        showTimerNotification(
+            when (_timerState.value.timerMode) {
+                TimerMode.FOCUS -> currentTopic.focusTime.toInt()
+                TimerMode.SHORT_BREAK -> currentTopic.shortBreakTime.toInt()
+                else -> currentTopic.longBreakTime.toInt()
+            }, paused = true, complete = false
+        )
+
+        // Off the main thread like every other action, since starting writes the session out
+        if (currentTopic.autostartNextSession && !fromAutoStop)  // auto start next session
+            skipScope.launch { toggleTimer() }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            updateWidget()
+        }
+    }
+
+    private fun initializeMediaPlayer(): MediaPlayer? {
+        val settingsState = _settingsState.value
+        return try {
+            MediaPlayer().apply {
+                setOnErrorListener { mp, what, extra ->
+                    try {
+                        mp.reset()
+                    } catch (e: Exception) {
+                        Log.e("TimerService", "Error resetting MediaPlayer", e)
+                    }
+                    Log.e("TimerService", "MediaPlayer error: $what, $extra")
+                    true
+                }
+
+                isLooping = true
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .setUsage(
+                            if (settingsState.mediaVolumeForAlarm) AudioAttributes.USAGE_MEDIA
+                            else AudioAttributes.USAGE_ALARM
+                        )
+                        .build()
+                )
+
+                settingsState.alarmSoundUri?.let {
+                    setDataSource(applicationContext, it.toUri())
+                    prepare()
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("TimerService", "Error initializing MediaPlayer", e)
+            e.printStackTrace()
+            null
+        }
+    }
+
+    private fun setDoNotDisturb(doNotDisturb: Boolean) {
+        if (stateRepository.currentTopic.value.dndEnabled && notificationManagerService.isNotificationPolicyAccessGranted()) {
+            if (doNotDisturb) {
+                notificationManagerService.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
+            } else notificationManagerService.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
+        }
+    }
+
+    private fun updateAlarmTone() {
+        try {
+            alarm?.release()
+        } catch (e: Exception) {
+            Log.e("TimerService", "Error releasing alarm", e)
+        }
+        alarm = initializeMediaPlayer()
+    }
+
+    private fun startForegroundService() {
+        try {
+            startForeground(1, notificationBuilder.build())
+            foreground = true
+        } catch (e: Exception) {
+            Log.e("TimerService", "Cannot start service in foreground: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    private fun stopForegroundService() {
+        foreground = false
+        notificationManager.cancel(1)
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
+    }
+
+    private fun updateQSTile() {
+        val componentName = ComponentName(this, TomatoQSTileService::class.java)
+        TileService.requestListeningState(this, componentName)
+    }
+
+    enum class Actions {
+        TOGGLE, SKIP, RESET, UNDO_RESET, EXPIRE, RESUME, STOP_ALARM, UPDATE_ALARM_TONE
+    }
+
+    companion object {
+        /** Whether a service is up to tick the timer */
+        var isRunning = false
+            private set
+    }
+}

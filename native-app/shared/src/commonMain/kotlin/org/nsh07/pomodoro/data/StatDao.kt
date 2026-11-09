@@ -1,0 +1,194 @@
+/*
+ * Copyright (c) 2025-2026 Nishant Mishra
+ *
+ * This file is part of Tomato - a minimalist pomodoro timer for Android.
+ *
+ * Tomato is free software: you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Tomato is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Tomato.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package org.nsh07.pomodoro.data
+
+import androidx.annotation.RequiresApi
+import androidx.room3.Dao
+import androidx.room3.Insert
+import androidx.room3.OnConflictStrategy.Companion.IGNORE
+import androidx.room3.OnConflictStrategy.Companion.REPLACE
+import androidx.room3.Query
+import androidx.room3.Transaction
+import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
+
+@Dao
+interface StatDao {
+    /**
+     * Insert and ignore on conflict
+     */
+    @Insert(onConflict = IGNORE)
+    suspend fun insertStat(stat: Stat)
+
+    /**
+     * Insert and replace on conflict
+     */
+    @Insert(onConflict = REPLACE)
+    suspend fun replaceStat(stat: Stat)
+
+    /**
+     * Adds the given times to the row for [date] and [topicId], creating it if it does not exist
+     */
+    @RequiresApi(30)
+    @Query(
+        """
+        INSERT INTO stat (date, topicId, focusTimeQ1, focusTimeQ2, focusTimeQ3, focusTimeQ4, breakTime)
+        VALUES (:date, :topicId, :focusTimeQ1, :focusTimeQ2, :focusTimeQ3, :focusTimeQ4, :breakTime)
+        ON CONFLICT(date, topicId) DO UPDATE SET
+            focusTimeQ1 = focusTimeQ1 + :focusTimeQ1,
+            focusTimeQ2 = focusTimeQ2 + :focusTimeQ2,
+            focusTimeQ3 = focusTimeQ3 + :focusTimeQ3,
+            focusTimeQ4 = focusTimeQ4 + :focusTimeQ4,
+            breakTime = breakTime + :breakTime
+        """
+    )
+    suspend fun addStatTimes(
+        date: LocalDate,
+        topicId: Long,
+        focusTimeQ1: Long,
+        focusTimeQ2: Long,
+        focusTimeQ3: Long,
+        focusTimeQ4: Long,
+        breakTime: Long
+    )
+
+    /**
+     * Adds the given times to the row for [date] and [topicId], creating it if it does not exist.
+     * Fallback for Android versions prior to API 30 (Android 11) which do not support SQLite UPSERT syntax.
+     */
+    @Transaction
+    suspend fun addStatTimesLegacy(
+        date: LocalDate,
+        topicId: Long,
+        focusTimeQ1: Long,
+        focusTimeQ2: Long,
+        focusTimeQ3: Long,
+        focusTimeQ4: Long,
+        breakTime: Long
+    ) {
+        insertDefaultStatTimes(date, topicId)
+        updateStatTimes(
+            date,
+            topicId,
+            focusTimeQ1,
+            focusTimeQ2,
+            focusTimeQ3,
+            focusTimeQ4,
+            breakTime
+        )
+    }
+
+    @Query(
+        """
+        INSERT OR IGNORE INTO stat (date, topicId, focusTimeQ1, focusTimeQ2, focusTimeQ3, focusTimeQ4, breakTime)
+        VALUES (:date, :topicId, 0, 0, 0, 0, 0)
+        """
+    )
+    suspend fun insertDefaultStatTimes(date: LocalDate, topicId: Long)
+
+    @Query(
+        """
+        UPDATE stat SET
+            focusTimeQ1 = focusTimeQ1 + :focusTimeQ1,
+            focusTimeQ2 = focusTimeQ2 + :focusTimeQ2,
+            focusTimeQ3 = focusTimeQ3 + :focusTimeQ3,
+            focusTimeQ4 = focusTimeQ4 + :focusTimeQ4,
+            breakTime = breakTime + :breakTime
+        WHERE date = :date AND topicId = :topicId
+        """
+    )
+    suspend fun updateStatTimes(
+        date: LocalDate,
+        topicId: Long,
+        focusTimeQ1: Long,
+        focusTimeQ2: Long,
+        focusTimeQ3: Long,
+        focusTimeQ4: Long,
+        breakTime: Long
+    )
+
+    @Query(
+        """
+        SELECT
+            date,
+            -1 as topicId,
+            SUM(focusTimeQ1) as focusTimeQ1,
+            SUM(focusTimeQ2) as focusTimeQ2,
+            SUM(focusTimeQ3) as focusTimeQ3,
+            SUM(focusTimeQ4) as focusTimeQ4,
+            SUM(breakTime) as breakTime
+        FROM stat WHERE date = :date
+        GROUP BY date
+        """
+    )
+    fun getStat(date: LocalDate): Flow<Stat?>
+
+    @Query("SELECT * FROM stat WHERE date = :date")
+    fun getStatsByDate(date: LocalDate): Flow<List<Stat>>
+
+    @Query(
+        """
+        SELECT
+            date,
+            -1 as topicId,
+            SUM(focusTimeQ1) as focusTimeQ1,
+            SUM(focusTimeQ2) as focusTimeQ2,
+            SUM(focusTimeQ3) as focusTimeQ3,
+            SUM(focusTimeQ4) as focusTimeQ4,
+            SUM(breakTime) as breakTime
+        FROM stat
+        GROUP BY date
+        ORDER BY date DESC
+        LIMIT :n
+        """
+    )
+    fun getLastNDaysStats(n: Int): Flow<List<Stat>>
+
+    @Query(
+        "SELECT " +
+                "    CAST(AVG(focusTimeQ1) AS INTEGER) AS focusTimeQ1," +
+                "    CAST(AVG(focusTimeQ2) AS INTEGER) AS focusTimeQ2," +
+                "    CAST(AVG(focusTimeQ3) AS INTEGER) AS focusTimeQ3," +
+                "    CAST(AVG(focusTimeQ4) AS INTEGER) AS focusTimeQ4," +
+                "    CAST(AVG(breakTime) AS INTEGER) AS breakTime " +
+                "FROM (" +
+                "    SELECT " +
+                "        date, " +
+                "        SUM(focusTimeQ1) as focusTimeQ1, " +
+                "        SUM(focusTimeQ2) as focusTimeQ2, " +
+                "        SUM(focusTimeQ3) as focusTimeQ3, " +
+                "        SUM(focusTimeQ4) as focusTimeQ4, " +
+                "        SUM(breakTime) as breakTime " +
+                "    FROM stat " +
+                "    GROUP BY date " +
+                "    ORDER BY date DESC " +
+                "    LIMIT :n" +
+                ") " +
+                "WHERE focusTimeQ1 > 0 OR focusTimeQ2 > 0 OR focusTimeQ3 > 0 OR focusTimeQ4 > 0"
+    )
+    fun getLastNDaysAvgStats(n: Int): Flow<StatTime?>
+
+    @Query("SELECT date FROM stat ORDER BY date DESC LIMIT 1")
+    suspend fun getLastDate(): LocalDate?
+
+    @Query("SELECT SUM(focusTimeQ1 + focusTimeQ2 + focusTimeQ3 + focusTimeQ4) FROM stat")
+    fun getAllTimeTotalFocusTime(): Flow<Long?>
+
+    @Query("DELETE FROM stat")
+    suspend fun clearAll()
+}

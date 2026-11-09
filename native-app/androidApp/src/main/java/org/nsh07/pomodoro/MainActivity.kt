@@ -1,0 +1,121 @@
+/*
+ * Copyright (c) 2025 Nishant Mishra
+ *
+ * This file is part of Tomato - a minimalist pomodoro timer for Android.
+ *
+ * Tomato is free software: you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Tomato is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Tomato.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package org.nsh07.pomodoro
+
+import android.content.Intent
+import android.os.Build
+import android.os.Bundle
+import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
+import org.nsh07.pomodoro.data.StateRepository
+import org.nsh07.pomodoro.di.ActivityCallbacks
+import org.nsh07.pomodoro.service.TimerManager
+import org.nsh07.pomodoro.service.TimerService
+import org.nsh07.pomodoro.ui.AppScreen
+import org.nsh07.pomodoro.ui.settingsScreen.viewModel.SettingsViewModel
+import org.nsh07.pomodoro.ui.theme.TomatoTheme
+
+class MainActivity : ComponentActivity() {
+
+    private val settingsViewModel: SettingsViewModel by inject()
+    private val stateRepository: StateRepository by inject()
+    private val activityCallbacks: ActivityCallbacks by inject()
+
+    private val timerManager: TimerManager by inject()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        activityCallbacks.activityTurnScreenOn = {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                setShowWhenLocked(it)
+                setTurnScreenOn(it)
+            }
+        }
+
+        setContent {
+            val settingsState by settingsViewModel.settingsState.collectAsStateWithLifecycle()
+
+            val darkTheme = when (settingsState.theme) {
+                "dark" -> true
+                "light" -> false
+                else -> isSystemInDarkTheme()
+            }
+
+            val seed = settingsState.colorScheme
+
+
+            TomatoTheme(
+                darkTheme = darkTheme,
+                seedColor = seed,
+                blackTheme = settingsState.blackTheme
+            ) {
+                val colorScheme = colorScheme
+                LaunchedEffect(colorScheme) {
+                    stateRepository.colorScheme = colorScheme
+                }
+
+                AppScreen(
+                    isAODEnabled = settingsState.aodEnabled,
+                    setTimerFrequency = {
+                        stateRepository.screenTimerFrequency = it
+                    }
+                )
+            }
+        }
+    }
+
+
+    override fun onStop() {
+        super.onStop()
+        stateRepository.foreground = false
+    }
+
+    override fun onStart() {
+        super.onStart()
+        stateRepository.foreground = true
+        resumeStoredTimer()
+    }
+
+    /** Restores the stored session, and hands it to [TimerService] if it is still running */
+    private fun resumeStoredTimer() = lifecycleScope.launch {
+        timerManager.awaitRestore()
+
+        if (!stateRepository.timerState.value.timerRunning || TimerService.isRunning) return@launch
+
+        try {
+            startService(
+                Intent(this@MainActivity, TimerService::class.java)
+                    .setAction(TimerService.Actions.RESUME.toString())
+            )
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Cannot resume the stored timer: ${e.message}")
+        }
+    }
+}
