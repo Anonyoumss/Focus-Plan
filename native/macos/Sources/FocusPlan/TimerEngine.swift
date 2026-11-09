@@ -12,7 +12,7 @@ final class TimerEngine: ObservableObject {
     private var durations: [TimerMode: Int] = [:]
     private var ticker: Timer?
     private var sessionCount = 0
-    var onSessionComplete: ((TimerMode) -> Void)?
+    var onSessionComplete: ((TimerMode, Int) -> Void)?
 
     func configure(durations: [TimerMode: Int]) {
         self.durations = durations
@@ -77,8 +77,9 @@ final class TimerEngine: ObservableObject {
         ticker?.invalidate(); ticker = nil
         targetEnd = nil
         remainingSeconds = duration(for: mode)
+        let done = duration(for: mode)
         if mode == .focus { sessionCount += 1 }
-        onSessionComplete?(mode)
+        onSessionComplete?(mode, done)
         // Auto-advance: focus -> short/long break, break -> focus
         let next: TimerMode = (mode == .focus)
             ? (sessionCount % 4 == 0 ? .longBreak : .shortBreak)

@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import AppKit
 
 @MainActor
 final class AppState: ObservableObject {
@@ -14,9 +15,10 @@ final class AppState: ObservableObject {
             .shortBreak: state.settings.shortBreakMinutes * 60,
             .longBreak: state.settings.longBreakMinutes * 60,
         ])
-        engine.onSessionComplete = { [weak self] mode in
+        engine.onSessionComplete = { [weak self] mode, secs in
             guard let self, mode == .focus else { return }
-            self.recordSession()
+            self.recordSession(seconds: secs)
+            NSSound.beep()
         }
         // Recover timer if the app was killed mid-session
         DispatchQueue.main.async { self.engine.resumeIfNeeded() }
@@ -30,7 +32,7 @@ final class AppState: ObservableObject {
         let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; return f.string(from: Date())
     }
 
-    private func recordSession() {
+    private func recordSession(seconds: Int) {
         let today = todayKey()
         if state.lastSessionDate != today {
             // Streak: consecutive days with >=1 session
@@ -42,6 +44,11 @@ final class AppState: ObservableObject {
             state.lastSessionDate = today
         }
         state.sessionsToday += 1
+        let taskTitle = state.activeTaskId.flatMap { id in state.tasks.first { $0.id == id }?.title }
+        state.sessions.append(SessionRecord(date: Date(), mode: .focus, durationSeconds: seconds, taskTitle: taskTitle))
+        state.totalFocusSeconds += seconds
+        // cap history at 5000 records
+        if state.sessions.count > 5000 { state.sessions.removeFirst(state.sessions.count - 5000) }
         persist()
     }
 

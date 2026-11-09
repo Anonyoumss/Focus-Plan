@@ -54,6 +54,21 @@ struct FocusView: View {
                 .keyboardShortcut(.rightArrow, modifiers: .command)
             }
 
+            // Active task picker
+            if !app.state.tasks.filter({ !$0.isCompleted }).isEmpty {
+                Picker("", selection: Binding(
+                    get: { app.state.activeTaskId },
+                    set: { app.state.activeTaskId = $0; app.persist() }
+                )) {
+                    Text(app.ar ? "بدون مهمة" : "No task").tag(UUID?.none)
+                    ForEach(app.state.tasks.filter { !$0.isCompleted }) { t in
+                        Text(t.title).tag(UUID?.some(t.id))
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(maxWidth: 420)
+            }
+
             // Stats strip
             HStack(spacing: 32) {
                 Label("\(app.state.sessionsToday)", systemImage: "flame.fill")

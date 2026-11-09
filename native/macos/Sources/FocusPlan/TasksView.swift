@@ -36,6 +36,13 @@ struct TasksView: View {
                             Text(task.title)
                                 .strikethrough(task.isCompleted)
                                 .foregroundStyle(task.isCompleted ? .secondary : .primary)
+                            if task.category != "general" {
+                                Text(task.category)
+                                    .font(.caption2)
+                                    .padding(.horizontal, 8).padding(.vertical, 2)
+                                    .background(.quaternary, in: Capsule())
+                                    .foregroundStyle(.secondary)
+                            }
                             Spacer()
                             Button { app.deleteTask(task.id) } label: {
                                 Image(systemName: "trash").foregroundStyle(.red.opacity(0.7))

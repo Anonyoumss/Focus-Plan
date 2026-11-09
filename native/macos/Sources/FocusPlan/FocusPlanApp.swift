@@ -31,9 +31,12 @@ struct RootView: View {
             TasksView().tabItem {
                 Label(L.tr("tasks", app.ar), systemImage: "checklist")
             }.tag(1)
+            HistoryView().tabItem {
+                Label(app.ar ? "الإحصائيات" : "Stats", systemImage: "chart.bar")
+            }.tag(3)
             SettingsView().tabItem {
                 Label(L.tr("settings", app.ar), systemImage: "gearshape")
-            }.tag(2)
+            }.tag(4)
         }
         // Liquid Glass: native window material behind the translucent sidebar
         .background(.ultraThinMaterial)

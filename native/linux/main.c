@@ -18,7 +18,9 @@ typedef struct {
     int sound;
 } Settings;
 
-typedef struct { char title[256]; int done; } Task;
+typedef struct { char title[256]; int done; char category[32]; } Task;
+
+typedef struct { char date[11]; int mode; int seconds; char task[128]; } SessRec;
 
 typedef struct {
     Settings s;
@@ -28,6 +30,9 @@ typedef struct {
     char last_date[11];
     int streak;
     char last_streak_date[11];
+    SessRec sessions[2000];
+    int session_count;
+    int total_focus_seconds;
 } State;
 
 typedef struct {
@@ -41,6 +46,7 @@ typedef struct {
     GtkWidget *time_label, *mode_label, *start_btn, *stats_label;
     GtkWidget *task_list, *task_entry, *tasks_empty;
     GtkWidget *tab_btns[3];
+    char active_task[128];
 } App;
 
 static App app;
@@ -82,8 +88,14 @@ static void save_state(State *st) {
         char esc[600]; json_escape(st->tasks[i].title, esc, sizeof esc);
         fprintf(f, "%s{\"title\":\"%s\",\"done\":%d}", i ? "," : "", esc, st->tasks[i].done);
     }
-    fprintf(f, "],\"sessions_today\":%d,\"last_date\":\"%s\",\"streak\":%d,\"last_streak_date\":\"%s\"}\n",
-            st->sessions_today, st->last_date, st->streak, st->last_streak_date);
+    fprintf(f, "],\"sessions\":[");
+    for (int i = 0; i < st->session_count && i < 2000; i++) {
+        char tt[300]; json_escape(st->sessions[i].task, tt, sizeof tt);
+        fprintf(f, "%s{\"date\":\"%s\",\"mode\":%d,\"seconds\":%d,\"task\":\"%s\"}",
+                i ? "," : "", st->sessions[i].date, st->sessions[i].mode, st->sessions[i].seconds, tt);
+    }
+    fprintf(f, "],\"sessions_today\":%d,\"last_date\":\"%s\",\"streak\":%d,\"last_streak_date\":\"%s\",\"total_focus_seconds\":%d}\n",
+            st->sessions_today, st->last_date, st->streak, st->last_streak_date, st->total_focus_seconds);
     fclose(f);
 }
 
@@ -134,6 +146,28 @@ static void load_state(State *st) {
     if ((q = strstr(buf, "\"streak\":"))) st->streak = atoi(q + 9);
     if ((q = strstr(buf, "\"last_date\":\""))) { q += 13; sscanf(q, "%10[^\"]", st->last_date); }
     if ((q = strstr(buf, "\"last_streak_date\":\""))) { q += 19; sscanf(q, "%10[^\"]", st->last_streak_date); }
+    if ((q = strstr(buf, "\"total_focus_seconds\":"))) st->total_focus_seconds = atoi(q + 21);
+    char *ts = strstr(buf, "\"sessions\":[");
+    if (ts) {
+        ts += 11;
+        while (st->session_count < 2000 && (ts = strstr(ts, "{\"date\":\""))) {
+            ts += 9;
+            SessRec *r = &st->sessions[st->session_count];
+            char *e1 = strchr(ts, '"'); if (!e1) break;
+            size_t dl = e1 - ts; if (dl > 10) dl = 10;
+            memcpy(r->date, ts, dl); r->date[dl] = 0;
+            char *m = strstr(e1, "\"mode\":"); if (!m) break;
+            r->mode = atoi(m + 7);
+            char *se = strstr(m, "\"seconds\":"); if (!se) break;
+            r->seconds = atoi(se + 10);
+            char *tk = strstr(se, "\"task\":\""); if (!tk) break;
+            tk += 8;
+            char *te = strchr(tk, '"');
+            if (te) { size_t tl = te - tk; if (tl > 127) tl = 127; memcpy(r->task, tk, tl); r->task[tl] = 0; }
+            st->session_count++;
+            ts = te ? te : se;
+        }
+    }
     g_free(buf);
 }
 
@@ -147,7 +181,7 @@ static const char *tr(const char *key) {
         {"empty","No tasks yet"},{"lang","Language"},{"mins","min"},
         {"focusLen","Focus length"},{"breakLen","Break length"},{"longLen","Long break"},
         {"untilLong","Sessions until long break"},{"sound","Sound"},
-        {"done","Session complete!"},{NULL,NULL}
+        {"done","Session complete!"},{"stats","Stats"},{"today","Today"},{"week","7 days"},{"total","Total"},{"history","History"},{"activeTask","Active task"},{NULL,NULL}
     };
     static const char *ar[][2] = {
         {"focus","تركيز"},{"short","استراحة قصيرة"},{"long","استراحة طويلة"},
@@ -157,7 +191,7 @@ static const char *tr(const char *key) {
         {"empty","لا مهام بعد"},{"lang","اللغة"},{"mins","دقيقة"},
         {"focusLen","مدة التركيز"},{"breakLen","مدة الاستراحة"},{"longLen","الاستراحة الطويلة"},
         {"untilLong","جلسات قبل الاستراحة الطويلة"},{"sound","الصوت"},
-        {"done","اكتملت الجلسة!"},{NULL,NULL}
+        {"done","اكتملت الجلسة!"},{"stats","الإحصائيات"},{"today","اليوم"},{"week","7 أيام"},{"total","الإجمالي"},{"history","السجل"},{"activeTask","المهمة النشطة"},{NULL,NULL}
     };
     const char *(*tbl)[2] = !strcmp(app.st.s.lang, "ar") ? ar : en;
     for (int i = 0; tbl[i][0]; i++) if (!strcmp(tbl[i][0], key)) return tbl[i][1];
@@ -206,6 +240,14 @@ static void complete_session(App *a) {
     gtk_button_set_label(GTK_BUTTON(a->start_btn), tr("start"));
     if (a->mode == 0) {
         record_session(a);
+        if (a->st.session_count < 2000) {
+            SessRec *r = &a->st.sessions[a->st.session_count++];
+            today_str(r->date, sizeof r->date);
+            r->mode = 0; r->seconds = mode_seconds(a);
+            /* attach active task title if set via entry */
+            snprintf(r->task, sizeof r->task, "%s", a->active_task);
+            a->st.total_focus_seconds += r->seconds;
+        }
         a->sessions_in_cycle++;
         a->mode = (a->sessions_in_cycle % (a->st.s.until_long > 0 ? a->st.s.until_long : 4) == 0) ? 2 : 1;
     } else {
@@ -309,6 +351,8 @@ static void on_add_task(GtkButton *b, gpointer d) {
     if (!t || !*t || a->st.task_count >= MAX_TASKS) return;
     g_strlcpy(a->st.tasks[a->st.task_count].title, t, sizeof a->st.tasks[0].title);
     a->st.tasks[a->st.task_count].done = 0;
+    a->st.tasks[a->st.task_count].category[0] = 0;
+    g_strlcpy(a->active_task, a->st.tasks[a->st.task_count].title, sizeof a->active_task);
     a->st.task_count++;
     save_state(&a->st);
     gtk_editable_set_text(GTK_EDITABLE(a->task_entry), "");
@@ -505,17 +549,17 @@ static void rebuild_ui(App *a) {
 
     GtkWidget *outer = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     AdwHeaderBar *header = ADW_HEADER_BAR(adw_header_bar_new());
-    static const char *tab_keys[] = {"focus", "tasks", "settings"};
-    static const char *tab_icons[] = {"media-playback-start-symbolic", "view-list-symbolic", "open-menu-symbolic"};
+    static const char *tab_keys[] = {"focus", "tasks", "stats", "settings"};
+    static const char *tab_icons[] = {"media-playback-start-symbolic", "view-list-symbolic", "view-chart-symbolic", "open-menu-symbolic"};
     a->stack = gtk_stack_new();
-    GtkWidget *pages[3];
-    for (int i = 0; i < 3; i++) {
-        pages[i] = i == 0 ? build_focus_page(a) : i == 1 ? build_tasks_page(a) : build_settings_page(a);
+    GtkWidget *pages[4];
+    for (int i = 0; i < 4; i++) {
+        pages[i] = i == 0 ? build_focus_page(a) : i == 1 ? build_tasks_page(a) : i == 2 ? build_stats_page(a) : build_settings_page(a);
         char id[8]; snprintf(id, sizeof id, "p%d", i);
         gtk_stack_add_named(GTK_STACK(a->stack), pages[i], id);
     }
     gtk_widget_set_vexpand(a->stack, TRUE);
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
         GtkWidget *btn = gtk_toggle_button_new();
         GtkWidget *img = gtk_image_new_from_icon_name(tab_icons[i]);
         GtkWidget *lbl = gtk_label_new(tr(tab_keys[i]));
@@ -523,7 +567,7 @@ static void rebuild_ui(App *a) {
         gtk_box_append(GTK_BOX(h), img);
         gtk_box_append(GTK_BOX(h), lbl);
         gtk_button_set_child(GTK_BUTTON(btn), h);
-        gtk_widget_set_name(btn, i == 0 ? "t0" : i == 1 ? "t1" : "t2");
+        gtk_widget_set_name(btn, i == 0 ? "t0" : i == 1 ? "t1" : i == 2 ? "t2" : "t3");
         g_signal_connect_swapped(btn, "toggled", G_CALLBACK(on_tab_toggled), a);
         if (i == 0) gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(btn), TRUE);
         adw_header_bar_pack_start(header, btn);
@@ -536,12 +580,56 @@ static void rebuild_ui(App *a) {
     gtk_stack_set_visible_child_name(GTK_STACK(a->stack), "p0");
 }
 
+static GtkWidget *build_stats_page(App *a) {
+    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 16);
+    gtk_widget_set_margin_start(box, 24); gtk_widget_set_margin_end(box, 24);
+    gtk_widget_set_margin_top(box, 24);
+
+    int today_s = 0, week_s = 0;
+    char today[11]; today_str(today, sizeof today);
+    char week_ago[11];
+    { time_t t = time(NULL) - 7*86400; strftime(week_ago, sizeof week_ago, "%Y-%m-%d", localtime(&t)); }
+    for (int i = 0; i < a->st.session_count; i++) {
+        SessRec *r = &a->st.sessions[i];
+        if (r->mode != 0) continue;
+        if (!strcmp(r->date, today)) today_s += r->seconds;
+        if (strcmp(r->date, week_ago) >= 0) week_s += r->seconds;
+    }
+    char b1[64], b2[64], b3[64];
+    snprintf(b1, sizeof b1, "%s: %d:%02d", tr("today"), today_s/60, today_s%60);
+    snprintf(b2, sizeof b2, "%s: %d:%02d", tr("week"), week_s/60, week_s%60);
+    snprintf(b3, sizeof b3, "%s: %d:%02d   |   %s: %d", tr("total"), a->st.total_focus_seconds/3600, (a->st.total_focus_seconds%3600)/60, tr("streak"), a->st.streak);
+    GtkWidget *l1 = gtk_label_new(b1); gtk_widget_add_css_class(l1, "title-3");
+    GtkWidget *l2 = gtk_label_new(b2); gtk_widget_add_css_class(l2, "title-3");
+    GtkWidget *l3 = gtk_label_new(b3); gtk_widget_add_css_class(l3, "caption");
+    gtk_box_append(GTK_BOX(box), l1); gtk_box_append(GTK_BOX(box), l2); gtk_box_append(GTK_BOX(box), l3);
+
+    GtkWidget *lbl = gtk_label_new(tr("history"));
+    gtk_widget_set_halign(lbl, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(box), lbl);
+
+    GtkWidget *scroll = gtk_scrolled_window_new();
+    gtk_widget_set_vexpand(scroll, TRUE);
+    GtkWidget *list = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroll), list);
+    for (int i = a->st.session_count - 1; i >= 0 && i > a->st.session_count - 200; i--) {
+        SessRec *r = &a->st.sessions[i];
+        char line[400];
+        snprintf(line, sizeof line, "%s  %s  %d:%02d  %s", r->date, r->mode==0?"focus":"break", r->seconds/60, r->seconds%60, r->task);
+        GtkWidget *l = gtk_label_new(line);
+        gtk_widget_set_halign(l, GTK_ALIGN_START);
+        gtk_box_append(GTK_BOX(list), l);
+    }
+    gtk_box_append(GTK_BOX(box), scroll);
+    return box;
+}
+
 static void on_tab_toggled(GtkToggleButton *b, gpointer d) {
     App *a = d;
     if (!gtk_toggle_button_get_active(b)) return;
     const char *n = gtk_widget_get_name(GTK_WIDGET(b));
     gtk_stack_set_visible_child_name(GTK_STACK(a->stack),
-        !strcmp(n, "t0") ? "p0" : !strcmp(n, "t1") ? "p1" : "p2");
+        !strcmp(n, "t0") ? "p0" : !strcmp(n, "t1") ? "p1" : !strcmp(n, "t2") ? "p2" : "p3");
 }
 
 static void on_activate(GtkApplication *adw, gpointer d) {

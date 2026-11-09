@@ -19,6 +19,16 @@ struct TaskItem: Identifiable, Codable, Equatable {
     var title: String
     var isCompleted: Bool = false
     var createdAt: Date = Date()
+    var category: String = "general"   // general | study | work | personal | custom
+    var estimatedMinutes: Int = 25
+}
+
+struct SessionRecord: Identifiable, Codable, Equatable {
+    var id: UUID = UUID()
+    var date: Date
+    var mode: TimerMode
+    var durationSeconds: Int
+    var taskTitle: String?
 }
 
 struct AppSettings: Codable {
@@ -38,6 +48,9 @@ struct PersistedState: Codable {
     var lastSessionDate: String = ""
     var streakDays: Int = 0
     var lastStreakDate: String = ""
+    var sessions: [SessionRecord] = []
+    var totalFocusSeconds: Int = 0
+    var activeTaskId: UUID?
 }
 
 // MARK: - Persistence (100% local, JSON in Application Support)
