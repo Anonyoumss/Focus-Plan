@@ -323,8 +323,8 @@ static StepRow step_rows[3];
 
 static void step_changed(GtkButton *b, gpointer d) {
     App *a = d; (void)b;
-    int idx = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(gtk_widget_get_parent(b)), "ridx"));
-    int delta = !strcmp(gtk_widget_get_name(b), "plus") ? 1 : -1;
+    int idx = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(GTK_WIDGET(gtk_widget_get_parent(GTK_WIDGET(b)))), "ridx"));
+    int delta = !strcmp(gtk_widget_get_name(GTK_WIDGET(b)), "plus") ? 1 : -1;
     int *f = step_rows[idx].field;
     *f += delta;
     if (*f < step_rows[idx].lo) *f = step_rows[idx].lo;
@@ -514,7 +514,7 @@ static void rebuild_ui(App *a) {
         char id[8]; snprintf(id, sizeof id, "p%d", i);
         gtk_stack_add_named(GTK_STACK(a->stack), pages[i], id);
     }
-    gtk_stack_set_vexpand(a->stack, TRUE);
+    gtk_widget_set_vexpand(a->stack, TRUE);
     for (int i = 0; i < 3; i++) {
         GtkWidget *btn = gtk_toggle_button_new();
         GtkWidget *img = gtk_image_new_from_icon_name(tab_icons[i]);
@@ -560,7 +560,7 @@ int main(int argc, char **argv) {
     load_state(&app.st);
     app.remaining = mode_seconds(&app);
 
-    GtkApplication *gapp = gtk_application_new("com.focusplan.app", G_APPLICATION_DEFAULT_FLAGS);
+    GtkApplication *gapp = gtk_application_new("com.focusplan.app", G_APPLICATION_FLAGS_NONE);
     g_signal_connect(gapp, "activate", G_CALLBACK(on_activate), &app);
     g_timeout_add_seconds(1, tick_cb, &app);
     return g_application_run(G_APPLICATION(gapp), argc, argv);
