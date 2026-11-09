@@ -48,3 +48,12 @@ repo secret `MACOS_GOOGLE_SERVICE_INFO`, and set the OAuth client ID via
 `FOCUSPLAN_GOOGLE_CLIENT_ID`. Without it the app runs guest — nothing breaks.
 
 Linux GTK sync is still pending (planned via Firestore REST).
+
+## Status matrix (honest)
+
+| Platform | App | Firebase | Installable |
+|---|---|---|---|
+| macOS | SwiftUI native | Auth+Firestore wired (needs GoogleService-Info.plist secret) | .app tarball |
+| Linux | GTK4/libadwaita native | NOT yet (Firestore REST planned) | tarball + .desktop |
+| Android | Kotlin/Compose native | Auth+Firestore already wired | debug APK |
+| Windows | Tauri shell (not native) | via web bundle | NSIS setup.exe |

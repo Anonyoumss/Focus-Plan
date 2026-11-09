@@ -24,9 +24,10 @@ jobs:
           gcc -O2 -o focus-plan native/linux/main.c $(pkg-config --cflags --libs gtk4 libadwaita-1)
       - name: Bundle tarball
         run: |
-          mkdir -p dist-native-linux/usr/bin dist-native-linux/usr/share/applications
+          mkdir -p dist-native-linux/usr/bin dist-native-linux/usr/share/applications dist-native-linux/usr/share/icons/hicolor/256x256/apps
           cp focus-plan dist-native-linux/usr/bin/focus-plan
-          printf '[Desktop Entry]\nType=Application\nName=Focus Plan\nExec=focus-plan\nIcon=utilities-terminal\nCategories=Office;\n' > dist-native-linux/usr/share/applications/focus-plan.desktop
+          cp public/icon-512.png dist-native-linux/usr/share/icons/hicolor/256x256/apps/focus-plan.png
+          printf '[Desktop Entry]\nType=Application\nName=Focus Plan\nComment=Pomodoro focus timer with study goals\nExec=focus-plan\nIcon=focus-plan\nTerminal=false\nCategories=Office;Productivity;\nKeywords=pomodoro;focus;study;\n' > dist-native-linux/usr/share/applications/focus-plan.desktop
           tar -czf focus-plan-linux-x86_64.tar.gz -C dist-native-linux .
       - uses: actions/upload-artifact@v4
         with:
