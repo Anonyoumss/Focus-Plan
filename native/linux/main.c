@@ -683,7 +683,7 @@ static GtkWidget *build_settings_page(App *a) {
     /* sound toggle */
     GtkWidget *snd = gtk_check_button_new_with_label(tr("sound"));
     gtk_check_button_set_active(GTK_CHECK_BUTTON(snd), a->st.s.sound);
-    g_signal_connect_swapped(snd, "toggled", G_CALLBACK(snd_toggled), a);
+    g_signal_connect(snd, "toggled", G_CALLBACK(snd_toggled), a);
     gtk_box_append(GTK_BOX(box), snd);
     return box;
 }
@@ -722,7 +722,7 @@ static void rebuild_ui(App *a) {
         gtk_box_append(GTK_BOX(h), lbl);
         gtk_button_set_child(GTK_BUTTON(btn), h);
         gtk_widget_set_name(btn, i == 0 ? "t0" : i == 1 ? "t1" : i == 2 ? "t2" : "t3");
-        g_signal_connect_swapped(btn, "toggled", G_CALLBACK(on_tab_toggled), a);
+        g_signal_connect(btn, "toggled", G_CALLBACK(on_tab_toggled), a);
         if (i == 0) gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(btn), TRUE);
         adw_header_bar_pack_start(header, btn);
         a->tab_btns[i] = btn;
