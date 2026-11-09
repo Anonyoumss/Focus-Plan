@@ -34,9 +34,9 @@ jobs:
           for d in pkg/$PKG appdir; do
             cp focus-plan $d/usr/bin/focus-plan
             cp public/icon-512.png $d/usr/share/icons/hicolor/256x256/apps/focus-plan.png
-            printf '[Desktop Entry]\nType=Application\nName=Focus Plan\nComment=Pomodoro focus timer with study goals\nExec=focus-plan\nIcon=focus-plan\nTerminal=false\nCategories=Office;Productivity;\nKeywords=pomodoro;focus;study;\n' > $d/usr/share/applications/focus-plan.desktop
+            printf '[Desktop Entry]\nType=Application\nName=Focus Plan\nComment=Pomodoro focus timer with study goals\nExec=focus-plan\nIcon=focus-plan\nTerminal=false\nCategories=Office;\nKeywords=pomodoro;focus;study;\n' > $d/usr/share/applications/focus-plan.desktop
           done
-          printf '[Desktop Entry]\nType=Application\nName=Focus Plan\nExec=focus-plan\nIcon=focus-plan\nTerminal=false\nCategories=Office;Productivity;\n' > appdir/focus-plan.desktop
+          printf '[Desktop Entry]\nType=Application\nName=Focus Plan\nExec=focus-plan\nIcon=focus-plan\nTerminal=false\nCategories=Office;\n' > appdir/focus-plan.desktop
           printf '#!/bin/sh\nexec "$(dirname "$0")/usr/bin/focus-plan" "$@"\n' > appdir/AppRun
           chmod +x appdir/AppRun
           # .deb
