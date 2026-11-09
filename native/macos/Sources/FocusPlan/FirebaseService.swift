@@ -3,6 +3,7 @@ import FirebaseCore
 import FirebaseAuth
 import FirebaseFirestore
 import AuthenticationServices
+import AppKit
 
 /// Firebase backend for the native macOS app.
 /// - Google sign-in uses ASWebAuthenticationSession (system browser OAuth)
@@ -11,7 +12,7 @@ import AuthenticationServices
 /// - Fully optional: the app runs 100% offline as a guest when signed out
 ///   or when Firebase is not configured.
 @MainActor
-final class FirebaseService: ObservableObject {
+final class FirebaseService: NSObject, ObservableObject, ASWebAuthenticationPresentationContextProviding {
     @Published var user: User?
     @Published var isConfigured = false
     @Published var isSyncing = false
@@ -57,9 +58,20 @@ final class FirebaseService: ObservableObject {
         }
         guard let url = googleAuthURL(clientID: clientID) else { return }
         do {
-            let callback = try await ASWebAuthenticationSession
-                .shared
-                .authenticate(url: url, callbackURLScheme: "com.googleusercontent.apps")
+            let callback = try await withCheckedThrowingContinuation { cont in
+                let session = ASWebAuthenticationSession(
+                    url: url,
+                    callbackURLScheme: "com.googleusercontent.apps"
+                ) { callbackURL, error in
+                    if let error { cont.resume(throwing: error); return }
+                    guard let callbackURL else {
+                        cont.resume(throwing: URLError(.cancelled)); return
+                    }
+                    cont.resume(returning: callbackURL)
+                }
+                session.presentationContextProvider = self
+                session.start()
+            }
             // Parse id_token from the redirect fragment/query
             guard let idToken = extractIdToken(from: callback) else {
                 syncError = "no-id-token"
@@ -96,6 +108,10 @@ final class FirebaseService: ObservableObject {
         }
         return URLComponents(url: url, resolvingAgainstBaseURL: false)?
             .queryItems?.first(where: { $0.name == "id_token" })?.value
+    }
+
+    nonisolated func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        NSApplication.shared.keyWindow ?? NSApplication.shared.windows.first ?? ASPresentationAnchor()
     }
 
     func signOut() {
