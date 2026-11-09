@@ -20,7 +20,8 @@ final class FirebaseService: NSObject, ObservableObject, ASWebAuthenticationPres
     @Published var syncError: String?
 
     private var handle: AuthStateDidChangeListenerHandle?
-    private let db = Firestore.firestore()
+    // Lazy: Firestore.firestore() throws if FirebaseApp isn't configured yet.
+    private lazy var db = Firestore.firestore()
     private let googleClientID: String? = {
         // OAuth client ID for the Google sign-in web flow. Configure via
         // `defaults write com.focusplan.app GoogleClientID -string <id>`
@@ -52,6 +53,10 @@ final class FirebaseService: NSObject, ObservableObject, ASWebAuthenticationPres
     /// Runs the Google OAuth consent flow in the system browser and
     /// exchanges the returned id_token for a Firebase credential.
     func signInWithGoogle() async {
+        guard isConfigured, FirebaseApp.app() != nil else {
+            syncError = "firebase-not-configured"
+            return
+        }
         guard let clientID = googleClientID else {
             syncError = "google-client-id-not-configured"
             return
@@ -115,6 +120,7 @@ final class FirebaseService: NSObject, ObservableObject, ASWebAuthenticationPres
     }
 
     func signOut() {
+        guard FirebaseApp.app() != nil else { return }
         try? Auth.auth().signOut()
     }
 
