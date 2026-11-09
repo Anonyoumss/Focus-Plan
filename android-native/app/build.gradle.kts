@@ -42,7 +42,23 @@ val fpProps = Properties().apply {
     val f = rootProject.file("local.properties")
     if (f.exists()) f.inputStream().use { load(it) }
 }
-fun fp(key: String) = (project.findProperty(key) as? String) ?: fpProps.getProperty(key) ?: ""
+// Public web config for project focus-plan-m3e — same values the web app
+// ships; safe to embed (they identify the project, they are not secrets).
+val fpDefaults = mapOf(
+    "FP_FIREBASE_API_KEY" to "AIzaSyBHk3Rj9BwGuSZRNvyE08DKf_7FU0XrGLg",
+    "FP_FIREBASE_AUTH_DOMAIN" to "focus-plan-m3e.firebaseapp.com",
+    "FP_FIREBASE_PROJECT_ID" to "focus-plan-m3e",
+    "FP_FIREBASE_STORAGE_BUCKET" to "focus-plan-m3e.firebasestorage.app",
+    "FP_FIREBASE_MESSAGING_SENDER_ID" to "509405731415",
+)
+// Android still needs its own Firebase Android-app registration
+// (applicationId + SHA-1) for FP_FIREBASE_APP_ID, and a Google Cloud
+// "Web application" OAuth client for FP_WEB_CLIENT_ID. Both are owner
+// steps — see docs/ANDROID-NATIVE.md.
+fun fp(key: String) = (project.findProperty(key) as? String)
+    ?: fpProps.getProperty(key)
+    ?: fpDefaults[key]
+    ?: ""
 
 android.defaultConfig {
     resValue("string", "firebase_api_key", fp("FP_FIREBASE_API_KEY"))

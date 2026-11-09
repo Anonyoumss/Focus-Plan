@@ -9,8 +9,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 private val Context.dataStore by preferencesDataStore(name = "focusplan")
 
@@ -51,7 +52,20 @@ class Store(private val context: Context) {
     }
 
     companion object {
-        val DATE_FMT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        fun todayKey(): String = LocalDate.now().format(DATE_FMT)
+        private val DATE_FMT = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        private val DAY_FMT = SimpleDateFormat("E", Locale.US)
+
+        /** yyyy-MM-dd for today minus [daysAgo] days. API-24 safe (no java.time). */
+        fun dateKey(daysAgo: Int = 0): String {
+            val c = Calendar.getInstance()
+            c.add(Calendar.DAY_OF_YEAR, -daysAgo)
+            return DATE_FMT.format(c.time)
+        }
+        fun todayKey(): String = dateKey(0)
+        fun dayNameShort(daysAgo: Int): String {
+            val c = Calendar.getInstance()
+            c.add(Calendar.DAY_OF_YEAR, -daysAgo)
+            return DAY_FMT.format(c.time).take(2)
+        }
     }
 }

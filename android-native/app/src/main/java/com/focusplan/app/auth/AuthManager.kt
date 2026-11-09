@@ -32,7 +32,7 @@ class AuthManager(private val context: Context) {
 
     fun init(apiKey: String, appId: String, projectId: String, senderId: String) {
         if (firebaseReady) return
-        if (apiKey.isBlank() || projectId.isBlank()) return
+        if (apiKey.isBlank() || appId.isBlank() || projectId.isBlank() || senderId.isBlank()) return
         FirebaseApp.initializeApp(
             context,
             com.google.firebase.FirebaseOptions.Builder()

@@ -1,5 +1,7 @@
 package com.focusplan.app.ui
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -9,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.graphicsLayer
 import com.focusplan.app.data.TaskItem
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -43,14 +46,29 @@ fun FocusScreen(state: AppState) {
         Spacer(Modifier.height(32.dp))
 
         val rem = snap.remainingSeconds
-        val mm = rem / 60
-        val ss = rem % 60
-        Text(
-            String.format(Locale.US, "%02d:%02d", mm, ss),
-            fontSize = 72.sp,
-            fontWeight = FontWeight.Light,
-            color = MaterialTheme.colorScheme.primary,
+        val timeText = String.format(Locale.US, "%02d:%02d", rem / 60, rem % 60)
+        // Pulse gently while running
+        val pulse by rememberInfiniteTransition(label = "pulse").animateFloat(
+            initialValue = 1f, targetValue = if (snap.running) 1.04f else 1f,
+            animationSpec = infiniteRepeatable(tween(1200), RepeatMode.Reverse),
+            label = "pulseScale",
         )
+        AnimatedContent(
+            targetState = timeText,
+            transitionSpec = {
+                (fadeIn(tween(250)) + scaleIn(tween(250), initialScale = 0.92f))
+                    .togetherWith(fadeOut(tween(150)))
+            },
+            label = "timerDigits",
+        ) { t ->
+            Text(
+                t,
+                fontSize = 72.sp,
+                fontWeight = FontWeight.Light,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.graphicsLayer { scaleX = pulse; scaleY = pulse },
+            )
+        }
         Spacer(Modifier.height(8.dp))
         Text(
             tasks.firstOrNull { it.id == snap.taskId }?.title ?: L10n.tr("noTask"),
@@ -61,10 +79,15 @@ fun FocusScreen(state: AppState) {
         Spacer(Modifier.height(32.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            val btnColor by animateColorAsState(
+                if (snap.running) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                animationSpec = tween(300), label = "btnColor",
+            )
             FilledTonalButton(
                 onClick = { if (snap.running) state.engine.pause() else state.engine.start() },
                 modifier = Modifier.height(56.dp).width(140.dp),
                 shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.filledTonalButtonColors(containerColor = btnColor),
             ) {
                 Text(if (snap.running) L10n.tr("pause") else L10n.tr("start"))
             }
