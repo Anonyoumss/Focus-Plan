@@ -57,6 +57,7 @@ static void task_deleted(GtkButton *b, gpointer d);
 static void snd_toggled(GtkCheckButton *c, gpointer d);
 static void on_tab_toggled(GtkToggleButton *b, gpointer d);
 static void rebuild_ui(App *a);
+static GtkWidget *build_stats_page(App *a);
 
 /* ---------- persistence ---------- */
 static char *state_path(void) {
