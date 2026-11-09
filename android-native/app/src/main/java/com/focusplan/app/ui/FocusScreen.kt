@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalView
 import com.focusplan.app.data.TaskItem
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -25,6 +26,19 @@ fun FocusScreen(state: AppState) {
     val scope = rememberCoroutineScope()
     var showTaskPicker by remember { mutableStateOf(false) }
     var durations by remember { mutableStateOf(mapOf("focus" to 25, "short" to 5, "long" to 15)) }
+
+    // Keep screen on while a session runs so the timer never sleeps mid-focus
+    val view = LocalView.current
+    LaunchedEffect(snap.running) {
+        if (snap.running) {
+            view.keepScreenOn = true
+        } else {
+            view.keepScreenOn = false
+        }
+    }
+    DisposableEffect(Unit) {
+        onDispose { view.keepScreenOn = false }
+    }
 
     Column(
         Modifier.fillMaxSize().padding(24.dp),
@@ -84,7 +98,10 @@ fun FocusScreen(state: AppState) {
                 animationSpec = tween(300), label = "btnColor",
             )
             FilledTonalButton(
-                onClick = { if (snap.running) state.engine.pause() else state.engine.start() },
+                onClick = {
+                    view.performHapticFeedback(android.view.HapticFeedbackConstants.CONTEXT_CLICK)
+                    if (snap.running) state.engine.pause() else state.engine.start()
+                },
                 modifier = Modifier.height(56.dp).width(140.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.filledTonalButtonColors(containerColor = btnColor),
