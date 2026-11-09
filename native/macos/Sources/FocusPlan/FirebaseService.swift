@@ -58,7 +58,7 @@ final class FirebaseService: NSObject, ObservableObject, ASWebAuthenticationPres
         }
         guard let url = googleAuthURL(clientID: clientID) else { return }
         do {
-            let callback = try await withCheckedThrowingContinuation { cont in
+            let callback = try await withCheckedThrowingContinuation { (cont: CheckedContinuation<URL, Error>) in
                 let session = ASWebAuthenticationSession(
                     url: url,
                     callbackURLScheme: "com.googleusercontent.apps"
@@ -77,7 +77,7 @@ final class FirebaseService: NSObject, ObservableObject, ASWebAuthenticationPres
                 syncError = "no-id-token"
                 return
             }
-            let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: nil)
+            let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: "")
             _ = try await Auth.auth().signIn(with: credential)
             syncError = nil
         } catch {
