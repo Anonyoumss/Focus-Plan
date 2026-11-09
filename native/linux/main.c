@@ -53,6 +53,9 @@ typedef struct {
 
 static App app;
 
+static const char *CATS[] = {"study", "work", "personal", "other"};
+static void sync_active_btn(App *a);
+
 static const char *APP_CSS =
     "/* Focus Plan — Material 3 inspired GTK4/libadwaita theme (embedded).\n"
     " * Uses Adwaita named colors so light/dark follow the system style manager. */\n"
@@ -100,7 +103,7 @@ static const char *APP_CSS =
 
 static void load_css(void) {
     GtkCssProvider *p = gtk_css_provider_new();
-    gtk_css_provider_load_from_string(p, APP_CSS);
+    gtk_css_provider_load_from_data(p, APP_CSS, -1);
     gtk_style_context_add_provider_for_display(gdk_display_get_default(),
         GTK_STYLE_PROVIDER(p), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     g_object_unref(p);
@@ -474,8 +477,6 @@ static void step_changed(GtkButton *b, gpointer d) {
         if (!a->running) { a->remaining = mode_seconds(a); refresh_time_label(a); }
     }
 }
-
-static const char *CATS[] = {"study", "work", "personal", "other"};
 
 static void cat_toggled(GtkCheckButton *c, gpointer d) {
     App *a = d;
