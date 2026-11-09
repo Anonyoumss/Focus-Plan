@@ -327,4 +327,10 @@ Built with: React, TypeScript, Vite, Tailwind CSS, `@material/web`
 Vitest (MIT), Playwright (Apache-2.0). Fonts: Roboto Flex, Plus Jakarta
 Sans, Readex Pro (SIL Open Font License); icons: Material Symbols
 Rounded (Apache-2.0). This project is MIT licensed — see [LICENSE](LICENSE).
-No code, assets, or copy from Pomofocus or Tomato was used.
+
+The native Android app in `native-app/` is built on
+[Tomato](https://github.com/nsh07/Tomato) by Nishant Mishra (Kotlin
+Multiplatform + Compose Multiplatform, GPL-3.0 — see `native-app/LICENSE`
+and [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md)). Timer behavior,
+features, and sound design were also studied from
+[Pomofocus](https://github.com/bermarte/pomofocus).
