@@ -12,20 +12,29 @@ on:
 
 jobs:
   macos-swiftui:
-    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: arm64, runner: macos-latest, label: aarch64 }
+          - { arch: x86_64, runner: macos-15-intel, label: x64 }
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
-      - name: Build SwiftUI app
+      - name: Build SwiftUI app (${{ matrix.arch }})
         env:
           MACOS_GOOGLE_SERVICE_INFO: ${{ secrets.MACOS_GOOGLE_SERVICE_INFO }}
         run: |
           cd native/macos
-          swift build -c release
-      - name: Bundle .app
+          swift build -c release --arch ${{ matrix.arch }}
+      - name: Bundle .app + DMG (${{ matrix.arch }})
         run: |
+          set -e
+          ARCH="${{ matrix.arch }}"
           APP="Focus Plan.app"
           mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-          cp native/macos/.build/release/FocusPlan "$APP/Contents/MacOS/FocusPlan"
+          cp "native/macos/.build/apple/Products/Release/FocusPlan" "$APP/Contents/MacOS/FocusPlan" 2>/dev/null \
+            || cp "native/macos/.build/release/FocusPlan" "$APP/Contents/MacOS/FocusPlan"
           # Optional Firebase config: set repo secret MACOS_GOOGLE_SERVICE_INFO
           # to the base64 of GoogleService-Info.plist for an iOS/macOS OAuth
           # client in project focus-plan-m3e. Without it the app runs guest.
@@ -39,8 +48,8 @@ jobs:
             <key>CFBundleName</key><string>Focus Plan</string>
             <key>CFBundleDisplayName</key><string>Focus Plan</string>
             <key>CFBundleIdentifier</key><string>com.focusplan.app</string>
-            <key>CFBundleVersion</key><string>0.1.0</string>
-            <key>CFBundleShortVersionString</key><string>0.1.0</string>
+            <key>CFBundleVersion</key><string>0.5.2</string>
+            <key>CFBundleShortVersionString</key><string>0.5.2</string>
             <key>CFBundleExecutable</key><string>FocusPlan</string>
             <key>LSMinimumSystemVersion</key><string>13.0</string>
             <key>NSHighResolutionCapable</key><true/>
@@ -48,13 +57,22 @@ jobs:
           PLIST
           # ad-hoc sign so Gatekeeper lets it run locally
           codesign --force --deep --sign - "$APP"
-          tar -czf focus-plan-macos-arm64.tar.gz "$APP"
+          tar -czf "focus-plan-macos-${{ matrix.label }}.tar.gz" "$APP"
+          # DMG with /Applications symlink (drag-to-install)
+          rm -rf dmgroot && mkdir dmgroot
+          cp -R "$APP" dmgroot/
+          ln -s /Applications dmgroot/Applications
+          hdiutil create -volname "Focus Plan" -srcfolder dmgroot -ov -format UDZO "Focus.Plan-${{ matrix.label }}.dmg"
       - uses: actions/upload-artifact@v4
         with:
-          name: focus-plan-macos-native
-          path: focus-plan-macos-arm64.tar.gz
+          name: focus-plan-macos-${{ matrix.label }}
+          path: |
+            focus-plan-macos-${{ matrix.label }}.tar.gz
+            Focus.Plan-${{ matrix.label }}.dmg
       - name: Attach to release on tags
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.ref_name }}" focus-plan-macos-arm64.tar.gz --clobber
+        run: |
+          gh release upload "${{ github.ref_name }}" "focus-plan-macos-${{ matrix.label }}.tar.gz" --clobber
+          gh release upload "${{ github.ref_name }}" "Focus.Plan-${{ matrix.label }}.dmg" --clobber
