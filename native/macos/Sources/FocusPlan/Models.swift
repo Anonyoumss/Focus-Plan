@@ -106,9 +106,14 @@ enum L {
             "language": "Language", "theme": "Theme", "sound": "Sound",
             "sessionsToday": "Sessions today", "streak": "Day streak",
             "focusLength": "Focus length (min)", "breakLength": "Break length (min)",
-            "longBreak": "Long break (min)", "untilLong": "Sessions until long break",
+            "longBreakLength": "Long break (min)", "untilLong": "Sessions until long break",
             "emptyTasks": "No tasks yet", "delete": "Delete",
             "sessionDone": "Session complete!",
+            "timer": "Timer", "history": "History",
+            "account": "Account", "signIn": "Sign in with Google",
+            "signOut": "Sign out", "guest": "Guest mode",
+            "sync": "Sync", "lastSync": "Last synced",
+            "firebaseNotConfigured": "Cloud sync is not configured",
         ]
         let arStrings: [String: String] = [
             "focus": "تركيز", "shortBreak": "استراحة قصيرة", "longBreak": "استراحة طويلة",
@@ -117,9 +122,14 @@ enum L {
             "language": "اللغة", "theme": "المظهر", "sound": "الصوت",
             "sessionsToday": "جلسات اليوم", "streak": "أيام متتالية",
             "focusLength": "مدة التركيز (دقيقة)", "breakLength": "مدة الاستراحة (دقيقة)",
-            "longBreak": "الاستراحة الطويلة (دقيقة)", "untilLong": "جلسات قبل الاستراحة الطويلة",
+            "longBreakLength": "الاستراحة الطويلة (دقيقة)", "untilLong": "جلسات قبل الاستراحة الطويلة",
             "emptyTasks": "لا مهام بعد", "delete": "حذف",
             "sessionDone": "اكتملت الجلسة!",
+            "timer": "المؤقت", "history": "السجل",
+            "account": "الحساب", "signIn": "تسجيل الدخول بحساب Google",
+            "signOut": "تسجيل الخروج", "guest": "وضع الضيف",
+            "sync": "المزامنة", "lastSync": "آخر مزامنة",
+            "firebaseNotConfigured": "المزامنة السحابية غير مهيأة",
         ]
         return (ar ? arStrings : en)[key] ?? key
     }

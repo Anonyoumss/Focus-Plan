@@ -66,7 +66,7 @@ struct SettingsView: View {
                         value: Binding(get: { app.state.settings.shortBreakMinutes },
                                        set: { v in app.updateSettings { $0.shortBreakMinutes = v } }),
                         in: 1...60)
-                Stepper("\(L.tr("longBreak", ar)): \(app.state.settings.longBreakMinutes)",
+                Stepper("\(L.tr("longBreakLength", ar)): \(app.state.settings.longBreakMinutes)",
                         value: Binding(get: { app.state.settings.longBreakMinutes },
                                        set: { v in app.updateSettings { $0.longBreakMinutes = v } }),
                         in: 1...120)
