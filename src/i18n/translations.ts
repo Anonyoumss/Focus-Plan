@@ -390,6 +390,14 @@ export interface Translations {
     testsCta: string;
     verifyNote: string;
     privacyFirst: string;
+    downloadsTitle: string;
+    downloadsDesc: string;
+    downloadsNote: string;
+    dlWebNote: string;
+    dlAndroidNote: string;
+    dlMacNote: string;
+    dlWindowsNote: string;
+    dlLinuxNote: string;
   };
   invite: {
     title: string;
@@ -860,6 +868,14 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       testsCta: 'Browse the test catalog',
       verifyNote: 'Catalog details come from official sources where confirmed. Anything unverified is labeled verify on the official site.',
       privacyFirst: 'Local first. Your data stays in this browser until you choose otherwise.',
+      downloadsTitle: 'Take Focus Plan with you',
+      downloadsDesc: 'The same app runs in your browser as an installable PWA, and natively on Android, macOS, Windows, and Linux. Everything syncs when you sign in.',
+      downloadsNote: 'Native builds are on the GitHub releases page. The web app above works fully offline.',
+      dlWebNote: 'Installable in any browser',
+      dlAndroidNote: 'APK, Android 8+',
+      dlMacNote: 'Apple Silicon and Intel',
+      dlWindowsNote: 'x64 installer',
+      dlLinuxNote: 'deb and AppImage',
     },
     invite: {
       title: 'Group invites are not open yet',
@@ -1328,6 +1344,14 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
       testsCta: 'تصفح دليل الاختبارات',
       verifyNote: 'تفاصيل الدليل من مصادر رسمية حيثما تأكدت. أي حقل غير مؤكد موسوم بـ تحقق من الموقع الرسمي.',
       privacyFirst: 'محلي أولاً. بياناتك تبقى في هذا المتصفح إلى أن تقرر غير ذلك.',
+      downloadsTitle: 'خذ فوكس بلان معك',
+      downloadsDesc: 'التطبيق نفسه يعمل في متصفحك كتطبيق ويب قابل للتثبيت، وعلى أندرويد وماك وويندوز ولينكس بشكل أصلي. كل شيء يتزامن عند تسجيل الدخول.',
+      downloadsNote: 'الإصدارات الأصلية على صفحة الإصدارات في GitHub. تطبيق الويب أعلاه يعمل دون اتصال بالكامل.',
+      dlWebNote: 'قابل للتثبيت في أي متصفح',
+      dlAndroidNote: 'APK، أندرويد 8 فأحدث',
+      dlMacNote: 'Apple Silicon وIntel',
+      dlWindowsNote: 'مثبت x64',
+      dlLinuxNote: 'deb وAppImage',
     },
     invite: {
       title: 'دعوات المجموعات غير متاحة بعد',

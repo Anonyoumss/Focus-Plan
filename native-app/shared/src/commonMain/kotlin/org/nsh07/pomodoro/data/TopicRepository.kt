@@ -18,6 +18,7 @@
 package org.nsh07.pomodoro.data
 
 import androidx.sqlite.SQLiteException
+import org.nsh07.pomodoro.cloud.FocusCloudSync
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -43,12 +44,15 @@ class AppTopicRepository(
     private val ioDispatcher: CoroutineDispatcher
 ) : TopicRepository {
     override suspend fun insertTopic(topic: Topic): Long = withContext(ioDispatcher) {
-        topicDao.insertTopic(topic)
+        val id = topicDao.insertTopic(topic)
+        FocusCloudSync.syncTopic(topic.copy(id = id))
+        id
     }
 
     override suspend fun updateTopic(topic: Topic): Boolean = withContext(ioDispatcher) {
         try {
             topicDao.updateTopic(topic)
+            FocusCloudSync.syncTopic(topic)
             true
         } catch (_: SQLiteException) {
             false
@@ -57,11 +61,13 @@ class AppTopicRepository(
 
     override suspend fun deleteTopic(topic: Topic) = withContext(ioDispatcher) {
         topicDao.deleteTopic(topic)
+        FocusCloudSync.deleteTopic(topic.id)
     }
 
     override suspend fun deleteTopicMergingStats(topic: Topic, targetTopicId: Long) =
         withContext(ioDispatcher) {
             topicDao.deleteTopicMergingStats(topic, targetTopicId)
+            FocusCloudSync.deleteTopic(topic.id)
         }
 
     override fun getAllTopics(): Flow<List<Topic>> = topicDao.getAllTopics()

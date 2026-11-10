@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.compose.resources.getString
+import org.nsh07.pomodoro.cloud.FocusCloudSync
 import org.nsh07.pomodoro.data.StatRepository
 import org.nsh07.pomodoro.data.StateRepository
 import org.nsh07.pomodoro.data.Topic
@@ -333,6 +334,9 @@ class TimerManager(
     ): Boolean = expiryLock.withLock {
         if (!_timerState.value.timerRunning || remainingInInterval() > 0) return@withLock false
 
+        val expiredTopic = stateRepository.currentTopic.value
+        val wasFocus = _timerState.value.timerMode == TimerMode.FOCUS
+
         // The next interval must not start counting until the timer is started again
         advanceTimer(
             onStart = onTimerExpired,
@@ -340,6 +344,7 @@ class TimerManager(
             setDoNotDisturb = setDoNotDisturb,
             startNextInterval = false
         )
+        if (wasFocus) FocusCloudSync.recordFocusSession(expiredTopic)
         _timerState.update { currentState ->
             currentState.copy(timerRunning = false)
         }

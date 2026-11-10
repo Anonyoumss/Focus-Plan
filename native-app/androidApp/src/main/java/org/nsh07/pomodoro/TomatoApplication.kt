@@ -32,6 +32,7 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.nsh07.pomodoro.billing.initializePurchases
+import org.nsh07.pomodoro.cloud.FocusCloudSync
 import org.nsh07.pomodoro.di.androidModule
 import org.nsh07.pomodoro.di.dbModule
 import org.nsh07.pomodoro.di.servicesModule
@@ -44,6 +45,7 @@ class TomatoApplication : Application() {
         super.onCreate()
 
         initializePurchases(this)
+        FocusCloudSync.initialize(this)
 
         val notificationChannel = NotificationChannel(
             "timer",

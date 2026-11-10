@@ -96,6 +96,10 @@ kotlin {
             implementation(libs.material.kolor)
 
             implementation(libs.filekit.core) // file handling
+
+            implementation(libs.dev.gitlive.firebase.app)
+            implementation(libs.dev.gitlive.firebase.auth)
+            implementation(libs.dev.gitlive.firebase.firestore)
         }
 
         commonTest.dependencies {

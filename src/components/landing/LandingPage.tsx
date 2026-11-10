@@ -259,6 +259,78 @@ export const LandingPage: React.FC = () => {
             </div>
           </div>
         </section>
+      {/* Downloads */}
+      <section
+        className="border-t"
+        style={{ borderColor: 'var(--md-sys-color-outline-variant)' }}
+      >
+        <div className="max-w-6xl mx-auto px-4 py-14">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 items-start">
+            <div className="lg:col-span-2">
+              <h2
+                className="text-2xl font-bold font-display"
+                style={{ color: 'var(--md-sys-color-on-surface)' }}
+              >
+                {t.landing.downloadsTitle}
+              </h2>
+              <p
+                className="text-sm mt-3 leading-relaxed"
+                style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+              >
+                {t.landing.downloadsDesc}
+              </p>
+              <p
+                className="text-xs mt-4"
+                style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+              >
+                {t.landing.downloadsNote}
+              </p>
+            </div>
+            <ul className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[
+                { icon: 'web', label: 'Web / PWA', note: t.landing.dlWebNote },
+                { icon: 'android', label: 'Android', note: t.landing.dlAndroidNote },
+                { icon: 'apple', label: 'macOS', note: t.landing.dlMacNote },
+                { icon: 'desktop_windows', label: 'Windows', note: t.landing.dlWindowsNote },
+                { icon: 'terminal', label: 'Linux', note: t.landing.dlLinuxNote },
+              ].map((p) => (
+                <li
+                  key={p.label}
+                  className="flex items-center gap-3 rounded-2xl border px-4 py-3"
+                  style={{
+                    borderColor: 'var(--md-sys-color-outline-variant)',
+                    backgroundColor: 'var(--md-sys-color-surface-container-low)',
+                  }}
+                >
+                  <MaterialIcon
+                    name={p.icon}
+                    size={22}
+                    style={{ color: 'var(--md-sys-color-primary)' }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                      {p.label}
+                    </div>
+                    <div className="text-xs" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                      {p.note}
+                    </div>
+                  </div>
+                  <a
+                    href="https://github.com/Anonyoumss/Focus-Plan/releases/latest"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold flex items-center gap-1 shrink-0 hover:underline"
+                    style={{ color: 'var(--md-sys-color-primary)' }}
+                  >
+                    {locale === 'ar' ? 'تنزيل' : 'Get'}
+                    <MaterialIcon name="download" size={14} />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
       </main>
 
       <footer

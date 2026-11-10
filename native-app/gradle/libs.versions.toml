@@ -11,6 +11,7 @@ buildKonfig = "0.22.0"
 coreKtx = "1.19.0"
 espressoCore = "3.7.0"
 filekitCore = "0.16.0"
+firebaseKotlinSdk = "2.7.0"
 filekitDialogsCompose = "0.16.0"
 glance = "1.2.0"
 jlayerPlayer = "2024.04.19"
@@ -56,6 +57,9 @@ androidx-ui-test-junit4 = { group = "org.jetbrains.compose.ui", name = "ui-test-
 androidx-ui-tooling = { group = "org.jetbrains.compose.ui", name = "ui-tooling", version.ref = "composeMultiplatform" }
 components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekitCore" }
+dev-gitlive-firebase-app = { module = "dev.gitlive:firebase-app", version.ref = "firebaseKotlinSdk" }
+dev-gitlive-firebase-auth = { module = "dev.gitlive:firebase-auth", version.ref = "firebaseKotlinSdk" }
+dev-gitlive-firebase-firestore = { module = "dev.gitlive:firebase-firestore", version.ref = "firebaseKotlinSdk" }
 filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekitDialogsCompose" }
 jlayer-player = { module = "dev.mccue:jlayer-player", version.ref = "jlayerPlayer" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
