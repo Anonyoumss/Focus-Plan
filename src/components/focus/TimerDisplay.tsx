@@ -149,6 +149,8 @@ export const TimerDisplay: React.FC = () => {
 
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
           <span
+            role="timer"
+            aria-live="off"
             className="font-timer text-6xl sm:text-7xl font-bold tracking-tight"
             style={{ color: 'var(--md-sys-color-on-surface)' }}
           >

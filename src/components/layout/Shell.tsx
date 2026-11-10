@@ -115,6 +115,9 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
         color: 'var(--md-sys-color-on-surface)',
       }}
     >
+      <a href="#main-content" className="skip-link">
+        {locale === 'ar' ? 'تخطَّ إلى المحتوى' : 'Skip to content'}
+      </a>
       {/* Desktop / Tablet M3 Navigation Rail */}
       <aside
         className="hidden md:flex flex-col items-center justify-between w-20 py-6 border-e shrink-0 select-none z-30"
@@ -148,6 +151,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
                 onClick={() => navigateToAppTab(item.id)}
                 className="flex flex-col items-center justify-center w-16 py-1.5 rounded-2xl transition-all cursor-pointer group"
                 title={item.label}
+                aria-current={isActive ? 'page' : undefined}
               >
                 <div
                   className={`w-14 h-8 rounded-full flex items-center justify-center transition-colors ${
@@ -250,7 +254,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
         </header>
 
         {/* Active Page Component Body */}
-        <main className="flex-1 min-h-0 overflow-y-auto">
+        <main id="main-content" tabIndex={-1} className="flex-1 min-h-0 overflow-y-auto outline-none">
           {children}
         </main>
 
@@ -290,6 +294,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
               key={item.id}
               onClick={() => navigateToAppTab(item.id)}
               className="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] cursor-pointer"
+              aria-current={isActive ? 'page' : undefined}
             >
               <div
                 className={`w-12 h-7 rounded-full flex items-center justify-center transition-colors ${
@@ -386,6 +391,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
                       setShowMoreSheet(false);
                     }}
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold cursor-pointer text-start"
+                    aria-current={isActive ? 'page' : undefined}
                     style={{
                       backgroundColor: isActive
                         ? 'var(--md-sys-color-primary-container)'
